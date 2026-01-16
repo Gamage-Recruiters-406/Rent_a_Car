@@ -31,6 +31,16 @@ const bookingSchema = new mongoose.Schema(
             ref: "Customer",
             required: true,
         },
+        ownerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Owner",
+            required: true,
+        },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected", "cancelled"],
+            default: "pending",
+        },
     },
     {
         timestamps: true,
