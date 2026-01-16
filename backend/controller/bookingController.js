@@ -2,22 +2,22 @@ import Booking from "../model/Booking.js";
 
 export const createBooking = async (req, res) => {
     try {
-        const { bookingId, startDateTime, endDateTime, carId, customerId, ownerId } = req.body;
+        const { bookingId, startingDate, endDate, documents, customerId, vehicleId } = req.body;
 
-        if (!startDateTime || !endDateTime || !carId || !customerId || !ownerId) {
+        if (!startingDate || !endDate || !customerId || !vehicleId) {
             return res.status(400).json({
                 success: false,
-                message: "startDateTime, endDateTime, carId, customerId, and ownerId are required",
+                message: "startingDate, endDate, customerId, and vehicleId are required",
             });
         }
 
         const booking = await Booking.create({
             bookingId,
-            startDateTime,
-            endDateTime,
-            carId,
+            startingDate,
+            endDate,
+            documents,
             customerId,
-            ownerId,
+            vehicleId,
         });
 
         return res.status(201).json({
@@ -81,18 +81,17 @@ export const getBookingById = async (req, res) => {
 export const updateBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        const { bookingId, startDateTime, endDateTime, carId, customerId, ownerId, status } = req.body;
+        const { bookingId, startingDate, endDate, documents, customerId, vehicleId } = req.body;
 
         const booking = await Booking.findByIdAndUpdate(
             id,
             {
                 bookingId,
-                startDateTime,
-                endDateTime,
-                carId,
+                startingDate,
+                endDate,
+                documents,
                 customerId,
-                ownerId,
-                status,
+                vehicleId,
             },
             { new: true, runValidators: true }
         );
@@ -138,84 +137,6 @@ export const deleteBooking = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Error deleting booking",
-            error: error.message,
-        });
-    }
-};
-
-export const approveBooking = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { ownerId } = req.body;
-
-        if (!ownerId) {
-            return res.status(400).json({
-                success: false,
-                message: "ownerId is required",
-            });
-        }
-
-        const booking = await Booking.findOneAndUpdate(
-            { _id: id, ownerId, status: "pending" },
-            { status: "approved" },
-            { new: true }
-        );
-
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: "Pending booking not found for this owner",
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Booking approved successfully",
-            data: booking,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Error approving booking",
-            error: error.message,
-        });
-    }
-};
-
-export const rejectBooking = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { ownerId } = req.body;
-
-        if (!ownerId) {
-            return res.status(400).json({
-                success: false,
-                message: "ownerId is required",
-            });
-        }
-
-        const booking = await Booking.findOneAndUpdate(
-            { _id: id, ownerId, status: "pending" },
-            { status: "rejected" },
-            { new: true }
-        );
-
-        if (!booking) {
-            return res.status(404).json({
-                success: false,
-                message: "Pending booking not found for this owner",
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Booking rejected successfully",
-            data: booking,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Error rejecting booking",
             error: error.message,
         });
     }

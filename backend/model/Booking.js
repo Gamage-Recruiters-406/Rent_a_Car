@@ -7,39 +7,35 @@ const bookingSchema = new mongoose.Schema(
             unique: true,
             trim: true,
         },
-        startDateTime: {
+        startingDate: {
             type: Date,
             required: true,
         },
-        endDateTime: {
+        endDate: {
             type: Date,
             required: true,
             validate: {
                 validator: function (value) {
-                    return !this.startDateTime || value > this.startDateTime;
+                    return !this.startingDate || value > this.startingDate;
                 },
-                message: "End date/time must be after start date/time",
+                message: "End date must be after starting date",
             },
         },
-        carId: {
+        documents: [
+            {
+                type: String,
+                trim: true,
+            },
+        ],
+        customerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        vehicleId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Vehicle",
             required: true,
-        },
-        customerId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Customer",
-            required: true,
-        },
-        ownerId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Owner",
-            required: true,
-        },
-        status: {
-            type: String,
-            enum: ["pending", "approved", "rejected", "cancelled"],
-            default: "pending",
         },
     },
     {
