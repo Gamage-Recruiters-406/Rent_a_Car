@@ -1,7 +1,7 @@
 import JWT from "jsonwebtoken";
 
-
-export default requiredSignIn = async (req, res, next) => {
+//using this function check user is signin or not
+export const requiredSignIn = async (req, res, next) => {
     try {
         const token = req.cookies.access_token;
 
@@ -23,4 +23,37 @@ export default requiredSignIn = async (req, res, next) => {
             message: "Invalid or expired token"
         })
     }
+}
+
+//using this function check logged user is admin or not
+export const isAdmin = async(req, res, next) => {
+    if(req.user.role !== 3){
+        return res.status(403).json({
+            success: false,
+            message: "Access denied, Only admin can access."
+        })
+    };
+    next();
+}
+
+//using this function check logged user is customer or not
+export const isCustomer = async(req, res, next) => {
+    if(req.user.role !== 1){
+        return res.status(403).json({
+            success: false,
+            message: "Access denied, Only cutomers can access."
+        })
+    };
+    next();
+}
+
+//using this function check logged user is vehicle owner or not
+export const isOwner = async(req, res, next) => {
+    if(req.user.role !== 2 ){
+        return res.status(403).json({
+            success: false,
+            message: "Access denied, Only vehicle owners can access."
+        })
+    };
+    next();
 }

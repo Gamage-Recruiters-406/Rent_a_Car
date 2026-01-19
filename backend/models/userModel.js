@@ -26,10 +26,18 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
+        required: true
     },
     status: {
         type: String,
         enum: ["verified" , "suspend" , "pending"]
+    },
+    //email verification
+    emailVerifyTokenHash: { 
+        type: String 
+    },
+    emailVerifyTokenExpires: { 
+        type: Date 
     }
 
 },{timestamps: true})
