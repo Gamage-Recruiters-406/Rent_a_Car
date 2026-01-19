@@ -10,6 +10,7 @@ import path from "path";
 
 //import Router files
 import userRoutes from "./routes/userRoute.js";
+import reviewRoutes from "./routes/reviewRoute.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 
 
@@ -37,6 +38,7 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 //routes
 app.use("/api/v1/authUser",userRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/vehicle", vehicleRoutes);
 
 
