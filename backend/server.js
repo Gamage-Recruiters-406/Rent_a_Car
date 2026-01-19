@@ -40,9 +40,6 @@ app.use("/api/v1/authUser",userRoutes);
 app.use("/api/v1/vehicle", vehicleRoutes);
 
 
-//routes
-app.use("/api/v1/authUser",userRoutes);
-
 app.get("/", (req, res) => {
     res.send({
         message: "Welcome to Rent_a_Car web application"
