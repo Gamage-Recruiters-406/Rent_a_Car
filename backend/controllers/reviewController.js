@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Review from "../models/Review.js";
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
-import User from "../models/User.js";
+import User from "../models/userModel.js";
 
  //Create a new review for a vehicle
  //Only customers (role=1) can create reviews
