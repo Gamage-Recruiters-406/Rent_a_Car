@@ -10,7 +10,7 @@ import path from "path";
 
 //import Router files
 import userRoutes from "./routes/userRoute.js";
-import reviewRoutes from "./routes/reviewRoute.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 
 
