@@ -1,5 +1,5 @@
 import express from "express";
-import requiredSignIn from "../middlewares/authMiddleware.js";
+import {requiredSignIn} from "../middlewares/authMiddleware.js";
 import {
   createReview,
   getReviewsByVehicle,
