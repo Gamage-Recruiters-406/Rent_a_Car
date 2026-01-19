@@ -1,6 +1,20 @@
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 
+const normalizeDate = (value) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const calculateTotalAmount = (startDate, endDate, dailyRate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffMs = end.getTime() - start.getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const days = Math.max(1, Math.ceil(diffMs / dayMs));
+    return days * dailyRate;
+};
+
 export const createBooking = async (req, res) => {
     try {
         const { bookingId, startingDate, endDate, documents, customerId, vehicleId } = req.body;
@@ -9,6 +23,15 @@ export const createBooking = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "startingDate, endDate, customerId, and vehicleId are required",
+            });
+        }
+
+        const start = normalizeDate(startingDate);
+        const end = normalizeDate(endDate);
+        if (!start || !end || end <= start) {
+            return res.status(400).json({
+                success: false,
+                message: "End date must be after starting date",
             });
         }
 
@@ -24,6 +47,13 @@ export const createBooking = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Vehicle is not approved for booking",
+            });
+        }
+
+        if (vehicle.amount === null || vehicle.amount === undefined) {
+            return res.status(400).json({
+                success: false,
+                message: "Vehicle price is not set",
             });
         }
 
@@ -49,6 +79,8 @@ export const createBooking = async (req, res) => {
             customerId,
             vehicleId,
             ownerId: vehicle.ownerId,
+            dailyRate: vehicle.amount,
+            totalAmount: calculateTotalAmount(start, end, vehicle.amount),
         });
 
         return res.status(201).json({
@@ -152,6 +184,14 @@ export const updateBooking = async (req, res) => {
         if (endDate !== undefined) booking.endDate = endDate;
         if (documents !== undefined) booking.documents = documents;
         if (status !== undefined) booking.status = status;
+
+        if (startingDate !== undefined || endDate !== undefined) {
+            booking.totalAmount = calculateTotalAmount(
+                booking.startingDate,
+                booking.endDate,
+                booking.dailyRate
+            );
+        }
 
         await booking.save();
 
@@ -267,6 +307,236 @@ export const rejectBooking = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Error rejecting booking",
+            error: error.message,
+        });
+    }
+};
+
+export const searchVehicles = async (req, res) => {
+    try {
+        const {
+            location,
+            type,
+            minPrice,
+            maxPrice,
+            startDate,
+            endDate,
+            fuelType,
+            year,
+            model,
+            title,
+        } = req.query;
+
+        const filter = {
+            status: "Approved",
+        };
+
+        if (location) {
+            filter.location = { $regex: location, $options: "i" };
+        }
+
+        if (type) {
+            filter.vehicleType = { $regex: type, $options: "i" };
+        }
+
+        if (fuelType) {
+            filter.fuelType = fuelType;
+        }
+
+        if (year) {
+            filter.year = Number(year);
+        }
+
+        if (model) {
+            filter.model = { $regex: model, $options: "i" };
+        }
+
+        if (title) {
+            filter.title = { $regex: title, $options: "i" };
+        }
+
+        if (minPrice || maxPrice) {
+            filter.amount = {};
+            if (minPrice) filter.amount.$gte = Number(minPrice);
+            if (maxPrice) filter.amount.$lte = Number(maxPrice);
+        }
+
+        const start = startDate ? normalizeDate(startDate) : null;
+        const end = endDate ? normalizeDate(endDate) : null;
+
+        if (start && end && end > start) {
+            const bookedVehicleIds = await Booking.distinct("vehicleId", {
+                status: { $ne: "rejected" },
+                startingDate: { $lte: end },
+                endDate: { $gte: start },
+            });
+
+            if (bookedVehicleIds.length) {
+                filter._id = { $nin: bookedVehicleIds };
+            }
+        }
+
+        const vehicles = await Vehicle.find(filter).sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            message: "Vehicles fetched successfully",
+            data: vehicles,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error searching vehicles",
+            error: error.message,
+        });
+    }
+};
+
+export const getVehicleAvailability = async (req, res) => {
+    try {
+        const { vehicleId } = req.params;
+
+        const vehicle = await Vehicle.findById(vehicleId);
+        if (!vehicle) {
+            return res.status(404).json({
+                success: false,
+                message: "Vehicle not found",
+            });
+        }
+
+        const bookings = await Booking.find({
+            vehicleId,
+            status: { $ne: "rejected" },
+        })
+            .select("startingDate endDate status")
+            .sort({ startingDate: 1 });
+
+        return res.status(200).json({
+            success: true,
+            message: "Availability fetched successfully",
+            data: bookings,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching availability",
+            error: error.message,
+        });
+    }
+};
+
+export const getCustomerBookings = async (req, res) => {
+    try {
+        const { customerId } = req.params;
+        const { type, status } = req.query;
+
+        if (!customerId) {
+            return res.status(400).json({
+                success: false,
+                message: "customerId is required",
+            });
+        }
+
+        const filter = { customerId };
+        if (status) filter.status = status;
+
+        const now = new Date();
+        if (type === "past") {
+            filter.endDate = { $lt: now };
+        } else if (type === "upcoming") {
+            filter.endDate = { $gte: now };
+        }
+
+        const bookings = await Booking.find(filter).sort({ startingDate: -1 });
+
+        return res.status(200).json({
+            success: true,
+            message: "Customer bookings fetched successfully",
+            data: bookings,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching customer bookings",
+            error: error.message,
+        });
+    }
+};
+
+export const getOwnerBookings = async (req, res) => {
+    try {
+        const { ownerId } = req.params;
+        const { status } = req.query;
+
+        if (!ownerId) {
+            return res.status(400).json({
+                success: false,
+                message: "ownerId is required",
+            });
+        }
+
+        const filter = { ownerId };
+        if (status) filter.status = status;
+
+        const bookings = await Booking.find(filter).sort({ startingDate: -1 });
+
+        return res.status(200).json({
+            success: true,
+            message: "Owner bookings fetched successfully",
+            data: bookings,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching owner bookings",
+            error: error.message,
+        });
+    }
+};
+
+export const getOwnerEarnings = async (req, res) => {
+    try {
+        const { ownerId } = req.params;
+        const { startDate, endDate } = req.query;
+
+        if (!ownerId) {
+            return res.status(400).json({
+                success: false,
+                message: "ownerId is required",
+            });
+        }
+
+        const filter = { ownerId, status: "approved" };
+        const start = startDate ? normalizeDate(startDate) : null;
+        const end = endDate ? normalizeDate(endDate) : null;
+
+        if (start && end && end > start) {
+            filter.startingDate = { $gte: start };
+            filter.endDate = { $lte: end };
+        }
+
+        const earnings = await Booking.aggregate([
+            { $match: filter },
+            {
+                $group: {
+                    _id: null,
+                    totalEarnings: { $sum: "$totalAmount" },
+                    totalBookings: { $sum: 1 },
+                },
+            },
+        ]);
+
+        const summary = earnings[0] || { totalEarnings: 0, totalBookings: 0 };
+
+        return res.status(200).json({
+            success: true,
+            message: "Owner earnings fetched successfully",
+            data: summary,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching owner earnings",
             error: error.message,
         });
     }

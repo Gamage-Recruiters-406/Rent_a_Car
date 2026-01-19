@@ -42,6 +42,21 @@ const bookingSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        dailyRate: {
+            type: Number,
+            min: 0,
+            required: true,
+        },
+        totalAmount: {
+            type: Number,
+            min: 0,
+            required: true,
+        },
+        currency: {
+            type: String,
+            default: "LKR",
+            trim: true,
+        },
         status: {
             type: String,
             enum: ["pending", "approved", "rejected"],
