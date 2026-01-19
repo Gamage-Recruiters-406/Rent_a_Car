@@ -122,13 +122,10 @@ export const registerOwner = async (req, res) => {
 
     const hashedPassword = await passwordHash(password);
 
-    console.log("Awa")
-
     // 1) generate token (raw) + store hash
     const rawToken = crypto.randomBytes(32).toString("hex");
     const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
 
-    console.log("tokenHasd: ",tokenHash)
     const user = await User.create({
       first_name,
       last_name,
@@ -142,8 +139,16 @@ export const registerOwner = async (req, res) => {
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
 
-    console.log(user.email, verifyUrl);
-    await sendVerifyEmail(user.email, verifyUrl);
+    try {
+      await sendVerifyEmail(user.email, verifyUrl);
+      console.log("VerifyURL: ", verifyUrl);
+    } catch (e) {
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: "Verification email sending failed. Try again.",
+      });
+    }
 
     return res.status(201).json({
       success: true,
