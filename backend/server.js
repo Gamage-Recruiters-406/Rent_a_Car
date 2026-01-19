@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 
 //import Router files
 import userRoutes from "./routes/userRoute.js";
+import reviewRoutes from "./routes/reviewRoute.js";
 
 
 //configure environment
@@ -33,6 +34,7 @@ app.use(cookieParser());
 
 //routes
 app.use("/api/v1/authUser",userRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
 
 app.get("/", (req, res) => {
     res.send({
