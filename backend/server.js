@@ -6,6 +6,7 @@ import cors from "cors";
 import helmet from "helmet";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
+import bookingRoutes from "./routes/bookingRoutes.js";
 import path from "path";
 
 //import Router files
@@ -47,6 +48,8 @@ app.get("/", (req, res) => {
         message: "Welcome to Rent_a_Car web application"
     })
 });
+
+app.use("/api/bookings", bookingRoutes);
 
 const PORT = process.env.PORT;
 
