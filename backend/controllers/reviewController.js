@@ -56,10 +56,10 @@ export const createReview = async (req, res) => {
 
     // Check if user has completed booking for this vehicle
     const completedBooking = await Booking.findOne({
-      vehicle_id: vehicle_id,
-      customer_id: customer_id,
+      vehicleId: vehicle_id,
+      customerId: customer_id,
       status: "approved",
-      end_date: { $lt: new Date() }
+      endDate: { $lt: new Date() }
     });
 
     if (!completedBooking) {
@@ -402,26 +402,26 @@ export const canReviewVehicle = async (req, res) => {
 
     // Check if user has completed booking
     const completedBooking = await Booking.findOne({
-      vehicle_id: vehicle_id,
-      customer_id: customer_id,
+      vehicleId: vehicle_id,
+      customerId: customer_id,
       status: "approved",
-      end_date: { $lt: new Date() }
+      endDate: { $lt: new Date() }
     });
 
     if (!completedBooking) {
       // Check for upcoming booking
       const upcomingBooking = await Booking.findOne({
-        vehicle_id: vehicle_id,
-        customer_id: customer_id,
+        vehicleId: vehicle_id,
+        customerId: customer_id,
         status: "approved",
-        end_date: { $gt: new Date() }
+        endDate: { $gt: new Date() }
       });
 
       if (upcomingBooking) {
         return res.status(200).json({
           canReview: false,
           reason: "Your rental hasn't completed yet. You can review after the rental period ends.",
-          bookingEndDate: upcomingBooking.end_date
+          bookingEndDate: upcomingBooking.endDate
         });
       }
 
@@ -441,8 +441,8 @@ export const canReviewVehicle = async (req, res) => {
       },
       bookingDetails: {
         booking_id: completedBooking._id,
-        startDate: completedBooking.starting_date,
-        endDate: completedBooking.end_date
+        startDate: completedBooking.startingDate,
+        endDate: completedBooking.endDate
       }
     });
   } catch (error) {
@@ -470,26 +470,26 @@ export const getReviewableBookings = async (req, res) => {
 
     // Find all approved bookings that have ended
     const completedBookings = await Booking.find({
-      customer_id: customer_id,
+      customerId: customer_id,
       status: "approved",
-      end_date: { $lt: new Date() }
+      endDate: { $lt: new Date() }
     })
-      .populate("vehicle_id", "title model year photos numberPlate fuelType")
-      .sort({ end_date: -1 });
+      .populate("vehicleId", "title model year photos numberPlate fuelType")
+      .sort({ endDate: -1 });
 
     // Check which vehicles have been reviewed already
     const reviewableBookings = await Promise.all(
       completedBookings.map(async (booking) => {
         const alreadyReviewed = await Review.exists({
-          vehicle_id: booking.vehicle_id._id,
+          vehicle_id: booking.vehicleId._id,
           customer_id: customer_id
         });
 
         return {
           booking_id: booking._id,
-          vehicle: booking.vehicle_id,
-          startDate: booking.starting_date,
-          endDate: booking.end_date,
+          vehicle: booking.vehicleId,
+          startDate: booking.startingDate,
+          endDate: booking.endDate,
           canReview: !alreadyReviewed,
           alreadyReviewed: alreadyReviewed
         };
