@@ -1,13 +1,43 @@
 import Booking from "../models/Booking.js";
+import Vehicle from "../models/Vehicle.js";
 
 export const createBooking = async (req, res) => {
     try {
-        const { bookingId, startingDate, endDate, documents, customerId, vehicleId, ownerId } = req.body;
+        const { bookingId, startingDate, endDate, documents, customerId, vehicleId } = req.body;
 
-        if (!startingDate || !endDate || !customerId || !vehicleId || !ownerId) {
+        if (!startingDate || !endDate || !customerId || !vehicleId) {
             return res.status(400).json({
                 success: false,
-                message: "startingDate, endDate, customerId, vehicleId, and ownerId are required",
+                message: "startingDate, endDate, customerId, and vehicleId are required",
+            });
+        }
+
+        const vehicle = await Vehicle.findById(vehicleId);
+        if (!vehicle) {
+            return res.status(404).json({
+                success: false,
+                message: "Vehicle not found",
+            });
+        }
+
+        if (vehicle.status !== "Approved") {
+            return res.status(400).json({
+                success: false,
+                message: "Vehicle is not approved for booking",
+            });
+        }
+
+        const overlap = await Booking.findOne({
+            vehicleId,
+            status: { $ne: "rejected" },
+            startingDate: { $lte: endDate },
+            endDate: { $gte: startingDate },
+        });
+
+        if (overlap) {
+            return res.status(409).json({
+                success: false,
+                message: "Vehicle is already booked for the selected dates",
             });
         }
 
@@ -18,7 +48,7 @@ export const createBooking = async (req, res) => {
             documents,
             customerId,
             vehicleId,
-            ownerId,
+            ownerId: vehicle.ownerId,
         });
 
         return res.status(201).json({
@@ -82,22 +112,9 @@ export const getBookingById = async (req, res) => {
 export const updateBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        const { bookingId, startingDate, endDate, documents, customerId, vehicleId, ownerId, status } = req.body;
+        const { startingDate, endDate, documents, status } = req.body;
 
-        const booking = await Booking.findByIdAndUpdate(
-            id,
-            {
-                bookingId,
-                startingDate,
-                endDate,
-                documents,
-                customerId,
-                vehicleId,
-                ownerId,
-                status,
-            },
-            { new: true, runValidators: true }
-        );
+        const booking = await Booking.findById(id);
 
         if (!booking) {
             return res.status(404).json({
@@ -105,6 +122,38 @@ export const updateBooking = async (req, res) => {
                 message: "Booking not found",
             });
         }
+
+        const nextStartingDate = startingDate ?? booking.startingDate;
+        const nextEndDate = endDate ?? booking.endDate;
+
+        if (nextEndDate <= nextStartingDate) {
+            return res.status(400).json({
+                success: false,
+                message: "End date must be after starting date",
+            });
+        }
+
+        const overlap = await Booking.findOne({
+            _id: { $ne: id },
+            vehicleId: booking.vehicleId,
+            status: { $ne: "rejected" },
+            startingDate: { $lte: nextEndDate },
+            endDate: { $gte: nextStartingDate },
+        });
+
+        if (overlap) {
+            return res.status(409).json({
+                success: false,
+                message: "Vehicle is already booked for the selected dates",
+            });
+        }
+
+        if (startingDate !== undefined) booking.startingDate = startingDate;
+        if (endDate !== undefined) booking.endDate = endDate;
+        if (documents !== undefined) booking.documents = documents;
+        if (status !== undefined) booking.status = status;
+
+        await booking.save();
 
         return res.status(200).json({
             success: true,
