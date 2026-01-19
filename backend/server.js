@@ -6,9 +6,11 @@ import cors from "cors";
 import helmet from "helmet";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 //import Router files
 import userRoutes from "./routes/userRoute.js";
+import vehicleRoutes from "./routes/vehicleRoutes.js";
 
 
 //configure environment
@@ -30,6 +32,13 @@ app.use(helmet());
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+
+//routes
+app.use("/api/v1/authUser",userRoutes);
+app.use("/api/v1/vehicle", vehicleRoutes);
+
 
 //routes
 app.use("/api/v1/authUser",userRoutes);
