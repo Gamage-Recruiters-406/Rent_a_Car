@@ -1,5 +1,6 @@
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
+import User from "../models/userModel.js";
 
 const normalizeDate = (value) => {
     const date = new Date(value);
@@ -15,6 +16,35 @@ const calculateTotalAmount = (startDate, endDate, dailyRate) => {
     return days * dailyRate;
 };
 
+const requireUserRole = async (userId, role, roleName) => {
+    if (!userId) {
+        return {
+            ok: false,
+            status: 400,
+            message: "userId is required",
+        };
+    }
+
+    const user = await User.findById(userId).select("role");
+    if (!user) {
+        return {
+            ok: false,
+            status: 404,
+            message: "User not found",
+        };
+    }
+
+    if (user.role !== role) {
+        return {
+            ok: false,
+            status: 403,
+            message: `${roleName} access only`,
+        };
+    }
+
+    return { ok: true };
+};
+
 export const createBooking = async (req, res) => {
     try {
         const { bookingId, startingDate, endDate, documents, customerId, vehicleId } = req.body;
@@ -23,6 +53,14 @@ export const createBooking = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "startingDate, endDate, customerId, and vehicleId are required",
+            });
+        }
+
+        const customerCheck = await requireUserRole(customerId, 1, "Customer");
+        if (!customerCheck.ok) {
+            return res.status(customerCheck.status).json({
+                success: false,
+                message: customerCheck.message,
             });
         }
 
@@ -246,6 +284,14 @@ export const approveBooking = async (req, res) => {
             });
         }
 
+        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
+        if (!ownerCheck.ok) {
+            return res.status(ownerCheck.status).json({
+                success: false,
+                message: ownerCheck.message,
+            });
+        }
+
         const booking = await Booking.findOneAndUpdate(
             { _id: id, ownerId, status: "pending" },
             { status: "approved" },
@@ -282,6 +328,14 @@ export const rejectBooking = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "ownerId is required",
+            });
+        }
+
+        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
+        if (!ownerCheck.ok) {
+            return res.status(ownerCheck.status).json({
+                success: false,
+                message: ownerCheck.message,
             });
         }
 
@@ -437,6 +491,14 @@ export const getCustomerBookings = async (req, res) => {
             });
         }
 
+        const customerCheck = await requireUserRole(customerId, 1, "Customer");
+        if (!customerCheck.ok) {
+            return res.status(customerCheck.status).json({
+                success: false,
+                message: customerCheck.message,
+            });
+        }
+
         const filter = { customerId };
         if (status) filter.status = status;
 
@@ -475,6 +537,14 @@ export const getOwnerBookings = async (req, res) => {
             });
         }
 
+        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
+        if (!ownerCheck.ok) {
+            return res.status(ownerCheck.status).json({
+                success: false,
+                message: ownerCheck.message,
+            });
+        }
+
         const filter = { ownerId };
         if (status) filter.status = status;
 
@@ -503,6 +573,14 @@ export const getOwnerEarnings = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "ownerId is required",
+            });
+        }
+
+        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
+        if (!ownerCheck.ok) {
+            return res.status(ownerCheck.status).json({
+                success: false,
+                message: ownerCheck.message,
             });
         }
 
