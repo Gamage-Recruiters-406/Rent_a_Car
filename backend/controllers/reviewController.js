@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Review from "../models/Review.js";
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
-import User from "../models/User.js";
+import User from "../models/userModel.js";
 
  //Create a new review for a vehicle
  //Only customers (role=1) can create reviews
@@ -435,7 +435,9 @@ export const canReviewVehicle = async (req, res) => {
       canReview: true,
       vehicleDetails: {
         vehicle_id: vehicle._id,
-        name: vehicle.name || `${vehicle.make} ${vehicle.model}`
+        title: vehicle.title,
+        model: vehicle.model,
+        year: vehicle.year
       },
       bookingDetails: {
         booking_id: completedBooking._id,
@@ -523,7 +525,7 @@ export const getMyVehicleReviews = async (req, res) => {
     }
 
     // Find vehicles owned by this user
-    const ownedVehicles = await Vehicle.find({ owner_id: customer_id }).select("_id");
+    const ownedVehicles = await Vehicle.find({ ownerId: customer_id }).select("_id");
     const vehicleIds = ownedVehicles.map(v => v._id);
 
     if (vehicleIds.length === 0) {
