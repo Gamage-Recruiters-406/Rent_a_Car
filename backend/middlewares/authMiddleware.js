@@ -1,7 +1,7 @@
 import JWT from "jsonwebtoken";
 
 
-export default requiredSignIn = async (req, res, next) => {
+export const requiredSignIn = async (req, res, next) => {
     try {
         const token = req.cookies.access_token;
 

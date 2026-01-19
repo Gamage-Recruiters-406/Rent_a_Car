@@ -7,6 +7,9 @@ import helmet from "helmet";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
 
+//import Router files
+import userRoutes from "./routes/userRoute.js";
+
 
 //configure environment
 dotenv.config();
@@ -27,6 +30,9 @@ app.use(helmet());
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
+
+//routes
+app.use("/api/v1/authUser",userRoutes);
 
 app.get("/", (req, res) => {
     res.send({
