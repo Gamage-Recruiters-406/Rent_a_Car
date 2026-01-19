@@ -1,17 +1,19 @@
+import "dotenv/config";
 import nodemailer from "nodemailer";
 
+const user = process.env.SMTP_USER;
+const pass = process.env.SMTP_PASS;
+
+console.log("MAILER user:", user);
+console.log("MAILER pass length:", pass?.length);
+
 export const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: false, // true only for 465
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
+  service: "gmail",
+  auth: { user, pass },
 });
 
 export async function sendVerifyEmail(to, verifyUrl) {
-  await transporter.sendMail({
+  return transporter.sendMail({
     from: process.env.MAIL_FROM,
     to,
     subject: "Verify your email",
