@@ -12,9 +12,6 @@ import path from "path";
 import userRoutes from "./routes/userRoute.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 
-//import Router files
-import userRoutes from "./routes/userRoute.js";
-
 
 //configure environment
 dotenv.config();
