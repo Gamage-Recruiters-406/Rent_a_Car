@@ -4,8 +4,6 @@ import nodemailer from "nodemailer";
 const user = process.env.SMTP_USER;
 const pass = process.env.SMTP_PASS;
 
-console.log("MAILER user:", user);
-console.log("MAILER pass length:", pass?.length);
 
 export const transporter = nodemailer.createTransport({
   service: "gmail",
