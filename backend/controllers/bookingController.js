@@ -1,6 +1,5 @@
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
-import User from "../models/userModel.js";
 
 const normalizeDate = (value) => {
     const date = new Date(value);
@@ -16,51 +15,22 @@ const calculateTotalAmount = (startDate, endDate, dailyRate) => {
     return days * dailyRate;
 };
 
-const requireUserRole = async (userId, role, roleName) => {
-    if (!userId) {
-        return {
-            ok: false,
-            status: 400,
-            message: "userId is required",
-        };
-    }
-
-    const user = await User.findById(userId).select("role");
-    if (!user) {
-        return {
-            ok: false,
-            status: 404,
-            message: "User not found",
-        };
-    }
-
-    if (user.role !== role) {
-        return {
-            ok: false,
-            status: 403,
-            message: `${roleName} access only`,
-        };
-    }
-
-    return { ok: true };
+const canAccessBooking = (booking, user) => {
+    if (!booking || !user) return false;
+    if (user.role === 3) return true;
+    const userId = String(user.userid);
+    return String(booking.customerId) === userId || String(booking.ownerId) === userId;
 };
 
 export const createBooking = async (req, res) => {
     try {
-        const { bookingId, startingDate, endDate, documents, customerId, vehicleId } = req.body;
+        const { bookingId, startingDate, endDate, documents, vehicleId } = req.body;
+        const customerId = req.user?.userid;
 
-        if (!startingDate || !endDate || !customerId || !vehicleId) {
+        if (!startingDate || !endDate || !vehicleId) {
             return res.status(400).json({
                 success: false,
-                message: "startingDate, endDate, customerId, and vehicleId are required",
-            });
-        }
-
-        const customerCheck = await requireUserRole(customerId, 1, "Customer");
-        if (!customerCheck.ok) {
-            return res.status(customerCheck.status).json({
-                success: false,
-                message: customerCheck.message,
+                message: "startingDate, endDate, and vehicleId are required",
             });
         }
 
@@ -165,6 +135,13 @@ export const getBookingById = async (req, res) => {
             });
         }
 
+        if (!canAccessBooking(booking, req.user)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied",
+            });
+        }
+
         return res.status(200).json({
             success: true,
             message: "Booking fetched successfully",
@@ -190,6 +167,13 @@ export const updateBooking = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Booking not found",
+            });
+        }
+
+        if (!canAccessBooking(booking, req.user)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied",
             });
         }
 
@@ -250,7 +234,7 @@ export const updateBooking = async (req, res) => {
 export const deleteBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        const booking = await Booking.findByIdAndDelete(id);
+        const booking = await Booking.findById(id);
 
         if (!booking) {
             return res.status(404).json({
@@ -258,6 +242,15 @@ export const deleteBooking = async (req, res) => {
                 message: "Booking not found",
             });
         }
+
+        if (!canAccessBooking(booking, req.user)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied",
+            });
+        }
+
+        await booking.deleteOne();
 
         return res.status(200).json({
             success: true,
@@ -275,22 +268,7 @@ export const deleteBooking = async (req, res) => {
 export const approveBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        const { ownerId } = req.body;
-
-        if (!ownerId) {
-            return res.status(400).json({
-                success: false,
-                message: "ownerId is required",
-            });
-        }
-
-        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
-        if (!ownerCheck.ok) {
-            return res.status(ownerCheck.status).json({
-                success: false,
-                message: ownerCheck.message,
-            });
-        }
+        const ownerId = req.user?.userid;
 
         const booking = await Booking.findOneAndUpdate(
             { _id: id, ownerId, status: "pending" },
@@ -322,22 +300,7 @@ export const approveBooking = async (req, res) => {
 export const rejectBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        const { ownerId } = req.body;
-
-        if (!ownerId) {
-            return res.status(400).json({
-                success: false,
-                message: "ownerId is required",
-            });
-        }
-
-        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
-        if (!ownerCheck.ok) {
-            return res.status(ownerCheck.status).json({
-                success: false,
-                message: ownerCheck.message,
-            });
-        }
+        const ownerId = req.user?.userid;
 
         const booking = await Booking.findOneAndUpdate(
             { _id: id, ownerId, status: "pending" },
@@ -481,21 +444,14 @@ export const getVehicleAvailability = async (req, res) => {
 
 export const getCustomerBookings = async (req, res) => {
     try {
-        const { customerId } = req.params;
+        const customerId = req.user?.userid;
+        const { customerId: paramCustomerId } = req.params;
         const { type, status } = req.query;
 
-        if (!customerId) {
-            return res.status(400).json({
+        if (paramCustomerId && String(paramCustomerId) !== String(customerId)) {
+            return res.status(403).json({
                 success: false,
-                message: "customerId is required",
-            });
-        }
-
-        const customerCheck = await requireUserRole(customerId, 1, "Customer");
-        if (!customerCheck.ok) {
-            return res.status(customerCheck.status).json({
-                success: false,
-                message: customerCheck.message,
+                message: "Access denied",
             });
         }
 
@@ -527,21 +483,14 @@ export const getCustomerBookings = async (req, res) => {
 
 export const getOwnerBookings = async (req, res) => {
     try {
-        const { ownerId } = req.params;
+        const ownerId = req.user?.userid;
+        const { ownerId: paramOwnerId } = req.params;
         const { status } = req.query;
 
-        if (!ownerId) {
-            return res.status(400).json({
+        if (paramOwnerId && String(paramOwnerId) !== String(ownerId)) {
+            return res.status(403).json({
                 success: false,
-                message: "ownerId is required",
-            });
-        }
-
-        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
-        if (!ownerCheck.ok) {
-            return res.status(ownerCheck.status).json({
-                success: false,
-                message: ownerCheck.message,
+                message: "Access denied",
             });
         }
 
@@ -566,21 +515,14 @@ export const getOwnerBookings = async (req, res) => {
 
 export const getOwnerEarnings = async (req, res) => {
     try {
-        const { ownerId } = req.params;
+        const ownerId = req.user?.userid;
+        const { ownerId: paramOwnerId } = req.params;
         const { startDate, endDate } = req.query;
 
-        if (!ownerId) {
-            return res.status(400).json({
+        if (paramOwnerId && String(paramOwnerId) !== String(ownerId)) {
+            return res.status(403).json({
                 success: false,
-                message: "ownerId is required",
-            });
-        }
-
-        const ownerCheck = await requireUserRole(ownerId, 2, "Owner");
-        if (!ownerCheck.ok) {
-            return res.status(ownerCheck.status).json({
-                success: false,
-                message: ownerCheck.message,
+                message: "Access denied",
             });
         }
 

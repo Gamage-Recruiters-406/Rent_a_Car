@@ -13,20 +13,26 @@ import {
     getOwnerBookings,
     getOwnerEarnings,
 } from "../controllers/bookingController.js";
+import {
+    requiredSignIn,
+    isAdmin,
+    isCustomer,
+    isOwner,
+} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/search", searchVehicles);
+router.get("/vehicleSearch", searchVehicles);
 router.get("/availability/:vehicleId", getVehicleAvailability);
-router.get("/customer/:customerId", getCustomerBookings);
-router.get("/owner/:ownerId/earnings", getOwnerEarnings);
-router.get("/owner/:ownerId", getOwnerBookings);
-router.post("/", createBooking);
-router.get("/", getBookings);
-router.get("/:id", getBookingById);
-router.put("/:id", updateBooking);
-router.patch("/:id/approve", approveBooking);
-router.patch("/:id/reject", rejectBooking);
-router.delete("/:id", deleteBooking);
+router.get("/customer/:customerId", requiredSignIn, isCustomer, getCustomerBookings);
+router.get("/owner/earnings/:ownerId", requiredSignIn, isOwner, getOwnerEarnings);
+router.get("/owner/:ownerId", requiredSignIn, isOwner, getOwnerBookings);
+router.post("/create", requiredSignIn, isCustomer, createBooking);
+router.get("/get", requiredSignIn, isAdmin, getBookings);
+router.get("/get/:id", requiredSignIn, getBookingById);
+router.put("/update/:id", requiredSignIn, updateBooking);
+router.patch("/approve/:id", requiredSignIn, isOwner, approveBooking);
+router.patch("/reject/:id", requiredSignIn, isOwner, rejectBooking);
+router.delete("/delete/:id", requiredSignIn, deleteBooking);
 
 export default router;
