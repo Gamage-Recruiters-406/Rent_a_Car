@@ -37,11 +37,13 @@ export async function sendVerifyEmail(to, verifyUrl) {
     subject: "Verify your email",
     html: `
       <h3>Email Verification</h3>
-      <p>Please verify your email by clicking below:</p>
+      <p>Please verify your email by clicking the button below: (Link expire with in 10 minutes)</p>
       <a href="${verifyUrl}"
          style="display:inline-block;padding:10px 16px;background:#2563eb;color:white;text-decoration:none;border-radius:6px">
          Verify Email
       </a>
+      <p>If you didn’t request this, ignore this email.</p><br/>
+      <p>(Kindly refrain from responding to this automated system-generated email. Your cooperation is appreciated.)</p>
     `,
   });
 }

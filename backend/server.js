@@ -6,7 +6,6 @@ import cors from "cors";
 import helmet from "helmet";
 import connectDB from "./config/db.js";
 import cookieParser from "cookie-parser";
-import bookingRoutes from "./routes/bookingRoutes.js";
 import path from "path";
 
 //import Router files
@@ -14,6 +13,7 @@ import userRoutes from "./routes/userRoute.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js"
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 
 //configure environment
@@ -43,6 +43,7 @@ app.use("/api/v1/authUser",userRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/vehicle", vehicleRoutes);
 app.use("/api/v1/notification",notificationRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 
 
 app.get("/", (req, res) => {
@@ -51,7 +52,7 @@ app.get("/", (req, res) => {
     })
 });
 
-app.use("/api/bookings", bookingRoutes);
+
 
 const PORT = process.env.PORT;
 

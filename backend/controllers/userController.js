@@ -3,6 +3,7 @@ import { comparePassword, passwordHash} from "../helpers/authHelper.js";
 import JWT from 'jsonwebtoken';
 import crypto from "crypto";
 import { sendVerifyEmail } from "../helpers/mailer.js";
+import { trusted } from "mongoose";
 
 //register as a normal user
 export const registerUser = async (req, res) => {
@@ -100,6 +101,23 @@ export const SignIn = async (req, res) => {
     }
 }
 
+//logout function
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie('access_token').status(200).json({
+      success: true,
+      message: "SignOut Successfully."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
 //vehicle owner registration process
 export const registerOwner = async (req, res) => {
   try {
@@ -134,14 +152,13 @@ export const registerOwner = async (req, res) => {
       role: 2,
       status: "pending",
       emailVerifyTokenHash: tokenHash,
-      emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 30), // 30 mins for expire token
+      emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 mins for expire token
     });
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
 
     try {
       await sendVerifyEmail(user.email, verifyUrl);
-      console.log("VerifyURL: ", verifyUrl);
     } catch (e) {
       await User.findByIdAndDelete(user._id);
       return res.status(500).json({
@@ -163,6 +180,7 @@ export const registerOwner = async (req, res) => {
   }
 };
 
+//email verification function
 export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query; // from /verify-email?token=...
@@ -199,3 +217,138 @@ export const verifyEmail = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server Side Error" });
   }
 };
+
+//resend verification mail function
+export const ReSendVerificationMail = async (req, res) => {
+  try {
+    const id = req.user.userid;
+
+    const user = await User.findById(id);
+
+    if(user.status === "verified"){
+      return res.status(200).json({
+        success: true,
+        message: "Your account is already verified."
+      })
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+    
+    const updateToken = {};
+    updateToken.emailVerifyTokenHash = tokenHash;
+    updateToken.emailVerifyTokenExpires = new Date(Date.now() + 1000 * 60 * 10);
+
+    const update = await User.findByIdAndUpdate( id, {$set: updateToken} )
+
+    if(!update){
+      return res.status(404).json({
+        success: false,
+        message: "Account not found."
+      })
+    }
+
+    try {
+      await sendVerifyEmail(user.email, verifyUrl);
+    } catch (e) {
+      return res.status(500).json({
+        success: false,
+        message: "Verification email sending failed. Try again.",
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Please check your email to verify."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//grt all users except admins
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({role: {$in: [1,2]} });
+
+    if(users.length === 0 ){
+      return res.status(404).json({
+        success: false,
+        message: "No users found."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Users found successfully.",
+      users
+    })
+
+  } catch (error) {
+    console.log(first);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//get all customers
+export const getAllCustomers = async (req, res) => {
+  try {
+    const users = await User.find({role: 1});
+
+    if(users.length === 0 ){
+      return  res.status(404).json({
+        success: false,
+        message: "No users found."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Users found successfully.",
+      users
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//get all vehicle owners
+export const getAllOwners = async (req, res) => {
+  try {
+    const users = await User.find({role: 2});
+    if(users.length === 0 ){
+      return res.status(404).json({
+        success: false,
+        message: "No owners found."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Owners found successfully.",
+      users
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
