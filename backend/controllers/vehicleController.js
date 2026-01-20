@@ -19,6 +19,9 @@ const removeFileSafe = (filePath) => {
   } catch (_) {}
 };
 
+
+
+// CREATE VEHICLE LISTING
 export const createVehicleListing = async (req, res) => {
   let tempDir = req._uploadTempDir;
   let vehicle = null;
@@ -33,7 +36,7 @@ export const createVehicleListing = async (req, res) => {
 
     const { title, description, numberPlate, model, year, fuelType, transmission, pricePerDay, pricePerKm, address, lat, lng } = req.body;
 
-    if (!title || !numberPlate || !model || !year || !fuelType || !transmission || !pricePerDay === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
+    if (!title || !numberPlate || !model || !year || !fuelType || !transmission || pricePerDay === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
@@ -156,6 +159,50 @@ export const createVehicleListing = async (req, res) => {
       });
     }
 
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
+
+
+
+// DELETE VEHICLE LISTING
+export const deleteVehicleListing = async (req, res) => {
+  try {
+    const ownerId = req.user?.userid;
+    if (!ownerId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const vehicleId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(vehicleId)) {
+      return res.status(400).json({ success: false, message: "Invalid vehicle ID." });
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: "Vehicle not found." });
+    }
+
+    if (vehicle.ownerId.toString() !== ownerId.toString()) {
+      return res.status(403).json({ success: false, message: "Forbidden. You do not own this vehicle." });
+    }
+
+    await Vehicle.findByIdAndDelete(vehicleId);
+
+    const folderPath = path.join(process.cwd(), "uploads", vehicleId);
+    removeDirSafe(folderPath);
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Vehicle deleted successfully.",
+      deletedId: vehicleId
+    });
+  } catch (error) {
+    console.log("DELETE VEHICLE ERROR:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Server Side Error",
