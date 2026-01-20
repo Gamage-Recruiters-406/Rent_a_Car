@@ -53,6 +53,17 @@ const vehicleSchema = new mongoose.Schema(
             type: String,
             enum: ["Pending", "Approved", "Rejected"],
             default: "Pending"
+        },
+        averageRating: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 5
+        },
+        reviewCount: {
+            type: Number,
+            default: 0,
+            min: 0
         }
     },
     { timestamps: true }
