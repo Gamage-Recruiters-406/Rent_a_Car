@@ -14,7 +14,8 @@ router.post("/register", registerUser);
 router.post("/login", SignIn);
 
 //rejister as a vehicle owner
-router.post("/OwnerRejistration", registerOwner);
+router.post("/OwnerRegistration", registerOwner);
+//vehicle owner verificaton route
 router.get("/verify-email", verifyEmail);
 
 export default router;
