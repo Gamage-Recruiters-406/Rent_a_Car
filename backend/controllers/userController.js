@@ -100,6 +100,23 @@ export const SignIn = async (req, res) => {
     }
 }
 
+//logout function
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie('access_token').status(200).json({
+      success: true,
+      message: "SignOut Successfully."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
 //vehicle owner registration process
 export const registerOwner = async (req, res) => {
   try {
@@ -141,7 +158,6 @@ export const registerOwner = async (req, res) => {
 
     try {
       await sendVerifyEmail(user.email, verifyUrl);
-      console.log("VerifyURL: ", verifyUrl);
     } catch (e) {
       await User.findByIdAndDelete(user._id);
       return res.status(500).json({
@@ -199,3 +215,58 @@ export const verifyEmail = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server Side Error" });
   }
 };
+
+//resend verification mail function
+export const ReSendVerificationMail = async (req, res) => {
+  try {
+    const id = req.user.userid;
+
+    const user = await User.findById(id);
+
+    if(user.status === "verified"){
+      return res.status(200).json({
+        success: true,
+        message: "Your account is already verified."
+      })
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+    
+    const updateToken = {};
+    updateToken.emailVerifyTokenHash = tokenHash;
+    updateToken.emailVerifyTokenExpires = new Date(Date.now() + 1000 * 60 * 10);
+
+    const update = await User.findByIdAndUpdate( id, {$set: updateToken} )
+
+    if(!update){
+      return res.status(404).json({
+        success: false,
+        message: "Account not found."
+      })
+    }
+
+    try {
+      await sendVerifyEmail(user.email, verifyUrl);
+    } catch (e) {
+      return res.status(500).json({
+        success: false,
+        message: "Verification email sending failed. Try again.",
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Please check your email to verify."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
