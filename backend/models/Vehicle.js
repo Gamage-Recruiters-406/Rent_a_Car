@@ -35,10 +35,20 @@ const vehicleSchema = new mongoose.Schema(
             enum: ['Petrol', 'Diesel', 'Electric', 'Hybrid'],
             required: true
         },
-        amount: {
+        transmission: {
+            type: String,
+            enum: ["Automatic", "Manual"],
+            required: true
+        },
+        pricePerDay: {
             type: Number,
-            min: 0,
-            default: null
+            required: true,
+            min: 0
+        },
+        pricePerKm: {
+            type: Number,
+            required: true,
+            min: 0
         },
         photos: [{
             url: {
@@ -49,6 +59,24 @@ const vehicleSchema = new mongoose.Schema(
                 type: String
             }
         }],
+        location: {
+            address: { type: String, default: "" },
+            geo: {
+                type: {
+                    type: String,
+                    enum: ["Point"],
+                    default: "Point"
+                },
+                coordinates: {
+                    type: [Number],
+                    required: true,
+                    validate: {
+                        validator: (v) => Array.isArray(v) && v.length === 2,
+                        message: "Geo cordinates must be [lng, lat].",
+                    },
+                },
+            },
+        },
         status: {
             type: String,
             enum: ["Pending", "Approved", "Rejected"],
@@ -70,5 +98,7 @@ const vehicleSchema = new mongoose.Schema(
 );
 
 vehicleSchema.index({ ownerId: 1, numberPlate: 1 }, { unique: true });
+
+vehicleSchema.index({ "location.geo": "2dsphere" });
 
 export default mongoose.model("Vehicle", vehicleSchema);
