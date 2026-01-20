@@ -134,7 +134,7 @@ export const registerOwner = async (req, res) => {
       role: 2,
       status: "pending",
       emailVerifyTokenHash: tokenHash,
-      emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 30), // 30 mins for expire token
+      emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 mins for expire token
     });
 
     const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
