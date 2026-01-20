@@ -3,6 +3,7 @@ import { comparePassword, passwordHash} from "../helpers/authHelper.js";
 import JWT from 'jsonwebtoken';
 import crypto from "crypto";
 import { sendVerifyEmail } from "../helpers/mailer.js";
+import { trusted } from "mongoose";
 
 //register as a normal user
 export const registerUser = async (req, res) => {
@@ -179,6 +180,7 @@ export const registerOwner = async (req, res) => {
   }
 };
 
+//email verification function
 export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query; // from /verify-email?token=...
@@ -260,6 +262,86 @@ export const ReSendVerificationMail = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Please check your email to verify."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//grt all users except admins
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({role: {$in: [1,2]} });
+
+    if(users.length === 0 ){
+      return res.status(404).json({
+        success: false,
+        message: "No users found."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Users found successfully.",
+      users
+    })
+
+  } catch (error) {
+    console.log(first);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//get all customers
+export const getAllCustomers = async (req, res) => {
+  try {
+    const users = await User.find({role: 1});
+
+    if(users.length === 0 ){
+      return  res.status(404).json({
+        success: false,
+        message: "No users found."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Users found successfully.",
+      users
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//get all vehicle owners
+export const getAllOwners = async (req, res) => {
+  try {
+    const users = await User.find({role: 2});
+    if(users.length === 0 ){
+      return res.status(404).json({
+        success: false,
+        message: "No owners found."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Owners found successfully.",
+      users
     })
 
   } catch (error) {

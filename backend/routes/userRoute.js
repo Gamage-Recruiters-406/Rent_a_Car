@@ -4,14 +4,17 @@ import {registerUser,
     registerOwner,
     verifyEmail,
     ReSendVerificationMail,
-    logout
+    logout,
+    getAllUsers,
+    getAllCustomers,
+    getAllOwners
 } from "../controllers/userController.js"
 
-import { requiredSignIn, isOwner } from '../middlewares/authMiddleware.js';
+import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
 
 const router = express.Router()
 
-//uer registration route
+//user registration route
 router.post("/register", registerUser);
 
 //login route
@@ -19,12 +22,19 @@ router.post("/login", SignIn);
 //logout function
 router.post("/logout", requiredSignIn, logout);
 
-//rejister as a vehicle owner
+//register as a vehicle owner
 router.post("/OwnerRegistration", registerOwner);
 //vehicle owner verificaton route
 router.get("/verify-email", verifyEmail);
 
 //get verify email again
 router.patch("/getVerificationMail",requiredSignIn, isOwner, ReSendVerificationMail);
+
+//get all users except admins
+router.get("/getAllUsers",requiredSignIn, isAdmin, getAllUsers)
+//get customers
+router.get("/getAllCustomers", requiredSignIn, isAdmin, getAllCustomers)
+//get all vehicle owners
+router.get("/getAllOwners", requiredSignIn, isAdmin, getAllOwners)
 
 export default router;
