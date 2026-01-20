@@ -12,6 +12,7 @@ import path from "path";
 import userRoutes from "./routes/userRoute.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js"
 import bookingRoutes from "./routes/bookingRoutes.js";
 
 
@@ -41,6 +42,7 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/v1/authUser",userRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/vehicle", vehicleRoutes);
+app.use("/api/v1/notification",notificationRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 
 

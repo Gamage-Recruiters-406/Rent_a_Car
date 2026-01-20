@@ -514,10 +514,10 @@ export const getReviewableBookings = async (req, res) => {
 
 export const getMyVehicleReviews = async (req, res) => {
   try {
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const ownerId = req.user.id; // correct meaning
 
     // Check if user is an owner (role=2)
-    const user = await User.findById(customer_id);
+    const user = await User.findById(ownerId);
     if (!user || user.role !== 2) {
       return res.status(403).json({ 
         message: "Only vehicle owners can view reviews of their vehicles" 
@@ -525,7 +525,7 @@ export const getMyVehicleReviews = async (req, res) => {
     }
 
     // Find vehicles owned by this user
-    const ownedVehicles = await Vehicle.find({ ownerId: customer_id }).select("_id");
+    const ownedVehicles = await Vehicle.find({ ownerId }).select("_id");
     const vehicleIds = ownedVehicles.map(v => v._id);
 
     if (vehicleIds.length === 0) {
@@ -537,22 +537,20 @@ export const getMyVehicleReviews = async (req, res) => {
         totalReviews: 0
       });
     }
-    
-    // Get reviews for these vehicles
-    const reviews = await Review.find({ 
+
+    // Get reviews for owned vehicles
+    const reviews = await Review.find({
       vehicle_id: { $in: vehicleIds }
     })
       .populate("customer_id", "first_name last_name")
       .populate("vehicle_id", "title model year photos numberPlate fuelType")
       .sort({ createdAt: -1 });
 
-    // Calculate statistics per vehicle
+    // Calculate stats per vehicle
     const vehicleStats = await Promise.all(
-      vehicleIds.map(async (vid) => {
+      vehicleIds.map(async (vehicleId) => {
         const stats = await Review.aggregate([
-          { $match: { 
-            vehicle_id: vid
-          }},
+          { $match: { vehicle_id: vehicleId } },
           {
             $group: {
               _id: "$vehicle_id",
@@ -561,10 +559,12 @@ export const getMyVehicleReviews = async (req, res) => {
             }
           }
         ]);
-        
+
         return {
-          vehicle_id: vid,
-          averageRating: stats[0] ? parseFloat(stats[0].averageRating.toFixed(1)) : 0,
+          vehicle_id: vehicleId,
+          averageRating: stats[0] 
+            ? Number(stats[0].averageRating.toFixed(1)) 
+            : 0,
           totalReviews: stats[0]?.totalReviews || 0
         };
       })
@@ -577,6 +577,7 @@ export const getMyVehicleReviews = async (req, res) => {
       totalVehicles: vehicleIds.length,
       totalReviews: reviews.length
     });
+
   } catch (error) {
     console.error("Get my vehicle reviews error:", error);
     res.status(500).json({ 
@@ -607,6 +608,11 @@ const updateVehicleRating = async (vehicle_id) => {
       await Vehicle.findByIdAndUpdate(vehicle_id, {
         averageRating: parseFloat(result[0].averageRating.toFixed(1)),
         reviewCount: result[0].reviewCount
+      });
+    }else {
+      await Vehicle.findByIdAndUpdate(vehicle_id, {
+        averageRating: 0,
+        reviewCount: 0
       });
     }
   } catch (error) {
