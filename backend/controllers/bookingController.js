@@ -1,5 +1,6 @@
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
+import path from "path";
 
 const normalizeDate = (value) => {
     const date = new Date(value);
@@ -85,11 +86,26 @@ export const createBooking = async (req, res) => {
             });
         }
 
+        const uploadedDocuments =
+            req.files?.map((file) => {
+                const relativePath = path
+                    .relative(process.cwd(), file.path)
+                    .split(path.sep)
+                    .join("/");
+                return `/${relativePath}`;
+            }) ?? [];
+
+        const bodyDocuments = Array.isArray(documents)
+            ? documents
+            : documents
+            ? [documents]
+            : [];
+
         const booking = await Booking.create({
             bookingId,
             startingDate,
             endDate,
-            documents,
+            documents: uploadedDocuments.length ? uploadedDocuments : bodyDocuments,
             customerId,
             vehicleId,
             ownerId: vehicle.ownerId,
