@@ -58,7 +58,13 @@ export const createBooking = async (req, res) => {
             });
         }
 
-        if (vehicle.amount === null || vehicle.amount === undefined) {
+        const dailyRate =
+            vehicle.pricePerDay ??
+            vehicle.amount ??
+            (typeof vehicle.get === "function" ? vehicle.get("amount") : undefined) ??
+            vehicle._doc?.amount;
+
+        if (dailyRate === null || dailyRate === undefined) {
             return res.status(400).json({
                 success: false,
                 message: "Vehicle price is not set",
@@ -87,8 +93,8 @@ export const createBooking = async (req, res) => {
             customerId,
             vehicleId,
             ownerId: vehicle.ownerId,
-            dailyRate: vehicle.amount,
-            totalAmount: calculateTotalAmount(start, end, vehicle.amount),
+            dailyRate,
+            totalAmount: calculateTotalAmount(start, end, dailyRate),
         });
 
         return res.status(201).json({
