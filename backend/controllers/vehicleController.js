@@ -34,13 +34,13 @@ export const createVehicleListing = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const { title, description, numberPlate, model, year, fuelType, transmission, pricePerDay, pricePerKm, address, lat, lng } = req.body;
+    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, address, lat, lng } = req.body;
 
-    if (!title || !numberPlate || !model || !year || !fuelType || !transmission || pricePerDay === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
+    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
-        message: "Required: title, numberPlate, model, year, fuelType, transmission, pricePerDay, pricePerKm, lat, lng",
+        message: "Required: title, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, lat, lng",
       });
     }
 
@@ -79,6 +79,7 @@ export const createVehicleListing = async (req, res) => {
       description: description || "",
       numberPlate: numberPlate.trim(),
       model: model.trim(),
+      vehicleType,
       year: Number(year),
       fuelType,
       transmission,
