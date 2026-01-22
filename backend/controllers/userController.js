@@ -2,8 +2,7 @@ import User from "../models/userModel.js";
 import { comparePassword, passwordHash} from "../helpers/authHelper.js";
 import JWT from 'jsonwebtoken';
 import crypto from "crypto";
-import { sendVerifyEmail } from "../helpers/mailer.js";
-import { trusted } from "mongoose";
+import { sendVerifyEmail, suspendOwner } from "../helpers/mailer.js";
 
 //register as a normal user
 export const registerUser = async (req, res) => {
@@ -206,6 +205,7 @@ export const verifyEmail = async (req, res) => {
     user.status = "verified";
     user.emailVerifyTokenHash = undefined;
     user.emailVerifyTokenExpires = undefined;
+    user.suspendExpires = undefined;
     await user.save();
 
     return res.status(200).json({
@@ -455,12 +455,24 @@ export const OwnerStatus = async (req, res ) => {
     const {status} = req.body;
 
     const user = await User.findById(id);
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "User Not Found"
+      })
+    };
+
     const updateUser = {}
     if (status !== undefined ) updateUser.status = status;
+    updateUser.suspendExpires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // expire within 1 week 
 
     const update = await User.findByIdAndUpdate(
       id,
-      {$set:updateUser}
+      {$set:updateUser},
+      {
+        new: true,
+        runValidators: true
+      }
     )
 
     if(!update){
@@ -468,6 +480,15 @@ export const OwnerStatus = async (req, res ) => {
         success: false,
         message: "user status update failed."
       })
+    }
+
+    try {
+      await suspendOwner(user.email, user.first_name);
+    } catch (e) {
+      return res.status(500).json({
+        success: false,
+        message: "Suspend email sending failed. Try again.",
+      });
     }
 
     res.status(200).json({

@@ -38,6 +38,9 @@ const userSchema = new mongoose.Schema({
     },
     emailVerifyTokenExpires: { 
         type: Date 
+    },
+    suspendExpires: {
+        type: Date
     }
 
 },{timestamps: true})

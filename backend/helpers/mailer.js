@@ -42,10 +42,36 @@ export async function sendVerifyEmail(to, verifyUrl) {
          style="display:inline-block;padding:10px 16px;background:#2563eb;color:white;text-decoration:none;border-radius:6px">
          Verify Email
       </a>
-      <p>If you didn’t request this, ignore this email.</p><br/>
+      <p>If you didn’t request this, ignore this email.</p>
+      <p>Thank you for your understanding,<br/>
+      Rent My Car Team</p><br/>
       <p>(Kindly refrain from responding to this automated system-generated email. Your cooperation is appreciated.)</p>
     `,
   });
+}
+
+//common email for suspended accounts.
+export async function suspendOwner(to, name) {
+  return transporter.sendMail({
+    from: process.env.MAIL_FROM,
+    to,
+    subject: "Suspension Notice.",
+    html: `
+    <p>Hi ${name},</p>
+    <p>We're writing to inform you that your <b>Rent My Car</b> account has been <b>suspended</b> due to a <b>violation of our Terms and Conditions.</b></p>
+    <p>During the suspension period, you won't be able to access certain features of the platform.</p>
+    <p><b>What happens next</b></p>
+    <ul>
+      <li>Your account will remain suspended for <b>1 week.</b></li>
+      <li>After <b>1 week,</b> you can verify your account again and request reactivation through the app/website.</li>
+    </ul>
+    <p>If you'd like to review our rules, please check the Terms and Conditions within the Rent My Car platform.</p>
+    <p>Thank you for your understanding,<br/>
+    Rent My Car Team</p><br/>
+    <p>(Kindly refrain from responding to this automated system-generated email. Your cooperation is appreciated.)</p>
+    `
+  })
+  
 }
 
 /**
