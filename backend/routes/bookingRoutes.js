@@ -7,6 +7,7 @@ import {
     deleteBooking,
     approveBooking,
     rejectBooking,
+    cancelBooking,
     searchVehicles,
     getVehicleAvailability,
     getCustomerBookings,
@@ -34,6 +35,7 @@ router.get("/get/:id", requiredSignIn, getBookingById);
 router.put("/update/:id", requiredSignIn, updateBooking);
 router.patch("/approve/:id", requiredSignIn, isOwner, approveBooking);
 router.patch("/reject/:id", requiredSignIn, isOwner, rejectBooking);
+router.patch("/cancel/:id", requiredSignIn, isCustomer, cancelBooking);
 router.delete("/delete/:id", requiredSignIn, deleteBooking);
 
 export default router;
