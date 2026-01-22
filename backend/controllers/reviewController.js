@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Review from "../models/Review.js";
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
-import User from "../models/User.js";
+import User from "../models/userModel.js";
 
  //Create a new review for a vehicle
  //Only customers (role=1) can create reviews
@@ -56,10 +56,10 @@ export const createReview = async (req, res) => {
 
     // Check if user has completed booking for this vehicle
     const completedBooking = await Booking.findOne({
-      vehicle_id: vehicle_id,
-      customer_id: customer_id,
+      vehicleId: vehicle_id,
+      customerId: customer_id,
       status: "approved",
-      end_date: { $lt: new Date() }
+      endDate: { $lt: new Date() }
     });
 
     if (!completedBooking) {
@@ -402,26 +402,26 @@ export const canReviewVehicle = async (req, res) => {
 
     // Check if user has completed booking
     const completedBooking = await Booking.findOne({
-      vehicle_id: vehicle_id,
-      customer_id: customer_id,
+      vehicleId: vehicle_id,
+      customerId: customer_id,
       status: "approved",
-      end_date: { $lt: new Date() }
+      endDate: { $lt: new Date() }
     });
 
     if (!completedBooking) {
       // Check for upcoming booking
       const upcomingBooking = await Booking.findOne({
-        vehicle_id: vehicle_id,
-        customer_id: customer_id,
+        vehicleId: vehicle_id,
+        customerId: customer_id,
         status: "approved",
-        end_date: { $gt: new Date() }
+        endDate: { $gt: new Date() }
       });
 
       if (upcomingBooking) {
         return res.status(200).json({
           canReview: false,
           reason: "Your rental hasn't completed yet. You can review after the rental period ends.",
-          bookingEndDate: upcomingBooking.end_date
+          bookingEndDate: upcomingBooking.endDate
         });
       }
 
@@ -435,12 +435,14 @@ export const canReviewVehicle = async (req, res) => {
       canReview: true,
       vehicleDetails: {
         vehicle_id: vehicle._id,
-        name: vehicle.name || `${vehicle.make} ${vehicle.model}`
+        title: vehicle.title,
+        model: vehicle.model,
+        year: vehicle.year
       },
       bookingDetails: {
         booking_id: completedBooking._id,
-        startDate: completedBooking.starting_date,
-        endDate: completedBooking.end_date
+        startDate: completedBooking.startingDate,
+        endDate: completedBooking.endDate
       }
     });
   } catch (error) {
@@ -468,26 +470,26 @@ export const getReviewableBookings = async (req, res) => {
 
     // Find all approved bookings that have ended
     const completedBookings = await Booking.find({
-      customer_id: customer_id,
+      customerId: customer_id,
       status: "approved",
-      end_date: { $lt: new Date() }
+      endDate: { $lt: new Date() }
     })
-      .populate("vehicle_id", "title model year photos numberPlate fuelType")
-      .sort({ end_date: -1 });
+      .populate("vehicleId", "title model year photos numberPlate fuelType")
+      .sort({ endDate: -1 });
 
     // Check which vehicles have been reviewed already
     const reviewableBookings = await Promise.all(
       completedBookings.map(async (booking) => {
         const alreadyReviewed = await Review.exists({
-          vehicle_id: booking.vehicle_id._id,
+          vehicle_id: booking.vehicleId._id,
           customer_id: customer_id
         });
 
         return {
           booking_id: booking._id,
-          vehicle: booking.vehicle_id,
-          startDate: booking.starting_date,
-          endDate: booking.end_date,
+          vehicle: booking.vehicleId,
+          startDate: booking.startingDate,
+          endDate: booking.endDate,
           canReview: !alreadyReviewed,
           alreadyReviewed: alreadyReviewed
         };
@@ -512,10 +514,10 @@ export const getReviewableBookings = async (req, res) => {
 
 export const getMyVehicleReviews = async (req, res) => {
   try {
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const ownerId = req.user.id; // correct meaning
 
     // Check if user is an owner (role=2)
-    const user = await User.findById(customer_id);
+    const user = await User.findById(ownerId);
     if (!user || user.role !== 2) {
       return res.status(403).json({ 
         message: "Only vehicle owners can view reviews of their vehicles" 
@@ -523,7 +525,7 @@ export const getMyVehicleReviews = async (req, res) => {
     }
 
     // Find vehicles owned by this user
-    const ownedVehicles = await Vehicle.find({ owner_id: customer_id }).select("_id");
+    const ownedVehicles = await Vehicle.find({ ownerId }).select("_id");
     const vehicleIds = ownedVehicles.map(v => v._id);
 
     if (vehicleIds.length === 0) {
@@ -535,22 +537,20 @@ export const getMyVehicleReviews = async (req, res) => {
         totalReviews: 0
       });
     }
-    
-    // Get reviews for these vehicles
-    const reviews = await Review.find({ 
+
+    // Get reviews for owned vehicles
+    const reviews = await Review.find({
       vehicle_id: { $in: vehicleIds }
     })
       .populate("customer_id", "first_name last_name")
       .populate("vehicle_id", "title model year photos numberPlate fuelType")
       .sort({ createdAt: -1 });
 
-    // Calculate statistics per vehicle
+    // Calculate stats per vehicle
     const vehicleStats = await Promise.all(
-      vehicleIds.map(async (vid) => {
+      vehicleIds.map(async (vehicleId) => {
         const stats = await Review.aggregate([
-          { $match: { 
-            vehicle_id: vid
-          }},
+          { $match: { vehicle_id: vehicleId } },
           {
             $group: {
               _id: "$vehicle_id",
@@ -559,10 +559,12 @@ export const getMyVehicleReviews = async (req, res) => {
             }
           }
         ]);
-        
+
         return {
-          vehicle_id: vid,
-          averageRating: stats[0] ? parseFloat(stats[0].averageRating.toFixed(1)) : 0,
+          vehicle_id: vehicleId,
+          averageRating: stats[0] 
+            ? Number(stats[0].averageRating.toFixed(1)) 
+            : 0,
           totalReviews: stats[0]?.totalReviews || 0
         };
       })
@@ -575,6 +577,7 @@ export const getMyVehicleReviews = async (req, res) => {
       totalVehicles: vehicleIds.length,
       totalReviews: reviews.length
     });
+
   } catch (error) {
     console.error("Get my vehicle reviews error:", error);
     res.status(500).json({ 
@@ -605,6 +608,11 @@ const updateVehicleRating = async (vehicle_id) => {
       await Vehicle.findByIdAndUpdate(vehicle_id, {
         averageRating: parseFloat(result[0].averageRating.toFixed(1)),
         reviewCount: result[0].reviewCount
+      });
+    }else {
+      await Vehicle.findByIdAndUpdate(vehicle_id, {
+        averageRating: 0,
+        reviewCount: 0
       });
     }
   } catch (error) {

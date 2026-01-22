@@ -4,13 +4,32 @@ import nodemailer from "nodemailer";
 const user = process.env.SMTP_USER;
 const pass = process.env.SMTP_PASS;
 
+console.log("MAILER user:", user);
+console.log("MAILER pass length:", pass?.length);
 
+ //Single transporter for entire project
+ 
 export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: { user, pass },
 });
 
-//verification mail send function
+ //Common email template
+
+const generateEmailTemplate = ({ title, message, details }) => `
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+  <h2 style="color:#0d6efd;text-align:center">${title}</h2>
+  <p>${message}</p>
+  ${details ? `<hr/><div>${details}</div>` : ""}
+  <hr/>
+  <p style="text-align:center;font-size:14px">
+    Thank you for using <strong>Rent My Car</strong>
+  </p>
+</div>
+`;
+
+ //EMAIL VERIFICATION 
+
 export async function sendVerifyEmail(to, verifyUrl) {
   return transporter.sendMail({
     from: process.env.MAIL_FROM,

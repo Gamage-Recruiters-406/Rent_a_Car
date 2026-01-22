@@ -8,13 +8,23 @@ const removeDirSafe = (dirPath) => {
     if (fs.existsSync(dirPath)) {
       fs.rmSync(dirPath, { recursive: true, force: true });
     }
-  } catch (_) {
-    // ignore cleanup errors
-  }
+  } catch (_) {}
 };
 
+const removeFileSafe = (filePath) => {
+  try {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (_) {}
+};
+
+
+
+// CREATE VEHICLE LISTING
 export const createVehicleListing = async (req, res) => {
   let tempDir = req._uploadTempDir;
+  let vehicle = null;
 
   try {
     const ownerId = req.user?.userid; // from JWT payload
@@ -24,13 +34,13 @@ export const createVehicleListing = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const { title, description, numberPlate, model, year, fuelType, amount } = req.body;
+    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, address, lat, lng } = req.body;
 
-    if (!title || !numberPlate || !model || !year || !fuelType) {
+    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
-        message: "title, numberPlate, model, year, fuelType are required.",
+        message: "Required: title, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, lat, lng",
       });
     }
 
@@ -42,6 +52,26 @@ export const createVehicleListing = async (req, res) => {
       });
     }
 
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    if (Number.isNaN(latNum) || Number.isNaN(lngNum)) {
+      if (tempDir) removeDirSafe(tempDir);
+      return res.status(400).json({
+        success: false,
+        message: "lat and lng must be valid numbers.",
+      });
+    }
+
+    const ppd = Number(pricePerDay);
+    const ppk = Number(pricePerKm);
+    if (Number.isNaN(ppd) || ppd < 0 || Number.isNaN(ppk) || ppk < 0) {
+      if (tempDir) removeDirSafe(tempDir);
+      return res.status(400).json({
+        success: false,
+        message: "pricePerDay and pricePerKm must be valid non-negative numbers.",
+      });
+    }
+
     // 1) Create vehicle first WITHOUT photos (so we can get _id)
     const vehicle = await Vehicle.create({
       ownerId,
@@ -49,10 +79,20 @@ export const createVehicleListing = async (req, res) => {
       description: description || "",
       numberPlate: numberPlate.trim(),
       model: model.trim(),
+      vehicleType,
       year: Number(year),
       fuelType,
-      amount: amount !== undefined && amount !== "" ? Number(amount) : null,
-      photos: [], // will update after moving files
+      transmission,
+      pricePerDay: ppd,
+      pricePerKm: ppk,
+      photos: [],
+      location: {
+        address: address || "",
+        geo: {
+          type: "Point",
+          coordinates: [lngNum, latNum],
+        },
+      },
     });
 
     // 2) Move uploaded files from temp folder -> uploads/<vehicleId>/
@@ -67,10 +107,9 @@ export const createVehicleListing = async (req, res) => {
     const photos = [];
 
     for (const f of req.files) {
-      const oldPath = f.path; // temp path from multer
+      const oldPath = f.path;
       const newPath = path.join(destDir, f.filename);
 
-      // move file
       fs.renameSync(oldPath, newPath);
 
       photos.push({
@@ -97,6 +136,16 @@ export const createVehicleListing = async (req, res) => {
     // cleanup temp folder on error
     if (tempDir) removeDirSafe(tempDir);
 
+    if (vehicle?._id) {
+      const vehicleId = vehicle._id.toString();
+      const destDir = path.join(process.cwd(), "uploads", vehicleId);
+      removeDirSafe(destDir);
+
+      try {
+        await Vehicle.findByIdAndDelete(vehicle._id);
+      } catch (_) {}
+    }
+
     if (error?.code === 11000) {
       return res.status(409).json({
         success: false,
@@ -111,6 +160,50 @@ export const createVehicleListing = async (req, res) => {
       });
     }
 
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
+
+
+
+// DELETE VEHICLE LISTING
+export const deleteVehicleListing = async (req, res) => {
+  try {
+    const ownerId = req.user?.userid;
+    if (!ownerId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const vehicleId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(vehicleId)) {
+      return res.status(400).json({ success: false, message: "Invalid vehicle ID." });
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: "Vehicle not found." });
+    }
+
+    if (vehicle.ownerId.toString() !== ownerId.toString()) {
+      return res.status(403).json({ success: false, message: "Forbidden. You do not own this vehicle." });
+    }
+
+    await Vehicle.findByIdAndDelete(vehicleId);
+
+    const folderPath = path.join(process.cwd(), "uploads", vehicleId);
+    removeDirSafe(folderPath);
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Vehicle deleted successfully.",
+      deletedId: vehicleId
+    });
+  } catch (error) {
+    console.log("DELETE VEHICLE ERROR:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Server Side Error",

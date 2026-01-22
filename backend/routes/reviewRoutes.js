@@ -1,5 +1,5 @@
 import express from "express";
-import requiredSignIn from "../middleware/authMiddleware.js";
+import {requiredSignIn} from "../middlewares/authMiddleware.js";
 import {
   createReview,
   getReviewsByVehicle,
@@ -15,16 +15,16 @@ import {
 const router = express.Router();
 
 // Public routes - no authentication required
-router.get("/vehicle/:vehicleId", getReviewsByVehicle);
+router.get("/vehicle/:vehicle_id", getReviewsByVehicle);
 
 // Protected routes - require authentication
-router.post("/", requiredSignIn, createReview);
+router.post("/create", requiredSignIn, createReview);
 router.get("/me", requiredSignIn, getMyReviews);
-router.get("/can-review/:vehicleId", requiredSignIn, canReviewVehicle);
+router.get("/can-review/:vehicle_id", requiredSignIn, canReviewVehicle);
 router.get("/reviewable-bookings", requiredSignIn, getReviewableBookings);
 router.get("/my-vehicles", requiredSignIn, getMyVehicleReviews);
-router.put("/:reviewId", requiredSignIn, updateReview);
-router.delete("/:reviewId", requiredSignIn, deleteReview);
-router.get("/vehicle/:vehicleId/rating", getVehicleRating);
+router.put("update/:reviewId", requiredSignIn, updateReview);
+router.delete("/delete/:reviewId", requiredSignIn, deleteReview);
+router.get("/vehicle/:vehicle_id/rating", getVehicleRating);
 
 export default router;
