@@ -276,7 +276,7 @@ export const ReSendVerificationMail = async (req, res) => {
 //grt all users except admins
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({role: {$in: [1,2]} });
+    const users = await User.find({role: {$in: [1,2]} }).select("-password");
 
     if(users.length === 0 ){
       return res.status(404).json({
@@ -303,7 +303,7 @@ export const getAllUsers = async (req, res) => {
 //get all customers
 export const getAllCustomers = async (req, res) => {
   try {
-    const users = await User.find({role: 1});
+    const users = await User.find({role: 1}).select("-password");
 
     if(users.length === 0 ){
       return  res.status(404).json({
@@ -330,7 +330,7 @@ export const getAllCustomers = async (req, res) => {
 //get all vehicle owners
 export const getAllOwners = async (req, res) => {
   try {
-    const users = await User.find({role: 2});
+    const users = await User.find({role: 2}).select("-password");
     if(users.length === 0 ){
       return res.status(404).json({
         success: false,
@@ -342,6 +342,137 @@ export const getAllOwners = async (req, res) => {
       success: true,
       message: "Owners found successfully.",
       users
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//user details update
+export const Updateuser = async(req, res) => {
+  try {
+    const id = req.user.userid;
+    const {first_name, last_name} = req.body;
+    const user = await User.findById(id);
+
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "User not fount."
+      })
+    }
+
+    const updateUser = {};
+    if(first_name !== undefined) updateUser.first_name = first_name;
+    if(last_name !== undefined) updateUser.last_name = last_name;
+
+    const update = await User.findByIdAndUpdate(
+      id, 
+      {$set: updateUser}
+    )
+
+    if(!update) {
+      return res.status(404).json({
+        success: false,
+        message: "User deatils update failed."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User details update successfully.",
+    })
+
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//get signin user details
+export const getUserDetails = async(req, res ) => {
+  try {
+    const id = req.user.userid;
+    const user = await User.findById(id).select("-password");
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User details fetch successfully.",
+      user
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+} 
+
+//fetch user by ID
+export const getUserbyId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select("-password");
+    if (!user){ 
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      })
+    }
+    res.status(200).json({
+      success: true,
+      message: "User details fetch sunccessfully.",
+      user
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+} 
+
+export const OwnerStatus = async (req, res ) => {
+  try {
+    const {id} = req.params;
+    const {status} = req.body;
+
+    const user = await User.findById(id);
+    const updateUser = {}
+    if (status !== undefined ) updateUser.status = status;
+
+    const update = await User.findByIdAndUpdate(
+      id,
+      {$set:updateUser}
+    )
+
+    if(!update){
+      return res.status(404).json({
+        success: false,
+        message: "user status update failed."
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User status update success fully."
     })
 
   } catch (error) {

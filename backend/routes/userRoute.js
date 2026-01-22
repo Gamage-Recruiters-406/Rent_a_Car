@@ -7,7 +7,11 @@ import {registerUser,
     logout,
     getAllUsers,
     getAllCustomers,
-    getAllOwners
+    getAllOwners,
+    Updateuser,
+    getUserDetails,
+    getUserbyId,
+    OwnerStatus
 } from "../controllers/userController.js"
 
 import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
@@ -31,10 +35,19 @@ router.get("/verify-email", verifyEmail);
 router.patch("/getVerificationMail",requiredSignIn, isOwner, ReSendVerificationMail);
 
 //get all users except admins
-router.get("/getAllUsers",requiredSignIn, isAdmin, getAllUsers)
+router.get("/getAllUsers",requiredSignIn, isAdmin, getAllUsers);
 //get customers
-router.get("/getAllCustomers", requiredSignIn, isAdmin, getAllCustomers)
+router.get("/getAllCustomers", requiredSignIn, isAdmin, getAllCustomers);
 //get all vehicle owners
-router.get("/getAllOwners", requiredSignIn, isAdmin, getAllOwners)
+router.get("/getAllOwners", requiredSignIn, isAdmin, getAllOwners);
+
+//update user details
+router.put("/Updateuser", requiredSignIn, Updateuser);
+//get signin user details
+router.get("/getUserDetails",requiredSignIn, getUserDetails);
+//get user details by id, only admin can get other user details
+router.get("/getUserbyId/:id",requiredSignIn, isAdmin, getUserbyId);
+//update vehicle owner status
+router.patch("/OwnerStatus/:id", requiredSignIn, isAdmin, OwnerStatus);
 
 export default router;
