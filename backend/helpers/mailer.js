@@ -45,7 +45,7 @@ export async function sendVerifyEmail(to, verifyUrl) {
       <p>If you didn’t request this, ignore this email.</p>
       <p>Thank you for your understanding,<br/>
       Rent My Car Team</p><br/>
-      <p>(Kindly refrain from responding to this automated system-generated email. Your cooperation is appreciated.)</p>
+      <p>(Please do not reply to this automated email.)</p>
     `,
   });
 }
@@ -68,7 +68,7 @@ export async function suspendOwner(to, name, Date) {
     <p>If you'd like to review our rules, please check the Terms and Conditions within the Rent My Car platform.<br/><br/>
     Thank you for your understanding,<br/>
     Rent My Car Team</p><br/>
-    <p>(Kindly refrain from responding to this automated system-generated email. Your cooperation is appreciated.)</p>
+    <p>(Please do not reply to this automated email.)</p>
     `
   })
   
