@@ -43,8 +43,24 @@ const fileFilter = (req, file, cb) => {
   cb(new Error("Only image files are allowed!"), false);
 };
 
+const documentFileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "application/pdf" ||
+    (file.mimetype && file.mimetype.startsWith("image/"))
+  ) {
+    return cb(null, true);
+  }
+  cb(new Error("Only PDF or image files are allowed!"), false);
+};
+
 export const uploadVehiclePhotos = multer({
   storage,
   fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB each
+});
+
+export const uploadBookingDocuments = multer({
+  storage,
+  fileFilter: documentFileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB each
 });
