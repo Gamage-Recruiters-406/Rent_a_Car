@@ -466,6 +466,8 @@ export const OwnerStatus = async (req, res ) => {
     if (status !== undefined ) updateUser.status = status;
     updateUser.suspendExpires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // expire within 1 week 
 
+    const onlyDate = updateUser.suspendExpires.toISOString().split("T")[0]; //to catch date 
+
     const update = await User.findByIdAndUpdate(
       id,
       {$set:updateUser},
@@ -483,7 +485,7 @@ export const OwnerStatus = async (req, res ) => {
     }
 
     try {
-      await suspendOwner(user.email, user.first_name);
+      await suspendOwner(user.email, user.first_name, onlyDate);
     } catch (e) {
       return res.status(500).json({
         success: false,
