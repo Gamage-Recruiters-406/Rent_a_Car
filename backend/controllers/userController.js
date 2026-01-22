@@ -2,7 +2,7 @@ import User from "../models/userModel.js";
 import { comparePassword, passwordHash} from "../helpers/authHelper.js";
 import JWT from 'jsonwebtoken';
 import crypto from "crypto";
-import { sendVerifyEmail } from "../helpers/mailer.js";
+import { sendVerifyEmail, suspendOwner } from "../helpers/mailer.js";
 import { trusted } from "mongoose";
 
 //register as a normal user
@@ -468,6 +468,15 @@ export const OwnerStatus = async (req, res ) => {
         success: false,
         message: "user status update failed."
       })
+    }
+
+    try {
+      await suspendOwner(user.email, user.first_name);
+    } catch (e) {
+      return res.status(500).json({
+        success: false,
+        message: "Suspend email sending failed. Try again.",
+      });
     }
 
     res.status(200).json({
