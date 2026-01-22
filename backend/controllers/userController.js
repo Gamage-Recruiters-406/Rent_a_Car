@@ -231,6 +231,29 @@ export const ReSendVerificationMail = async (req, res) => {
         message: "Your account is already verified."
       })
     }
+    //suspend end date
+    const onlyDate = user.suspendExpires.toISOString().split("T")[0];
+
+    //todays date
+    const date = new Date(Date.now());
+    const TodayDate = date.toISOString().split("T")[0];
+
+    if(user.status === "suspend" && TodayDate < onlyDate){
+      try {
+        await suspendOwner(user.email, user.first_name, onlyDate);
+
+        return res.status(200).json({
+          success: true,
+          message: "Check your email."
+        })
+
+      } catch (e) {
+        return res.status(500).json({
+          success: false,
+          message: "Suspend email sending failed. Try again.",
+        });
+      }
+    };
 
     const rawToken = crypto.randomBytes(32).toString("hex");
     const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
