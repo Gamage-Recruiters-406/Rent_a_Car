@@ -210,3 +210,35 @@ export const deleteVehicleListing = async (req, res) => {
     });
   }
 };
+
+
+
+// GET SINGLE VEHICLE LISTING
+export const getSingleVehicleListing = async (req, res) => {
+  try {
+    const vehicleId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(vehicleId)) {
+      return res.status(400).json({ success: false, message: "Invalid vehicle ID." });
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId)
+      .populate("ownerId", "name email phoneNumber")
+      .lean();
+
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: "Vehicle not found." });
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      vehicle 
+    });
+  } catch (error) {
+    console.log("GET SINGLE VEHICLE ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
