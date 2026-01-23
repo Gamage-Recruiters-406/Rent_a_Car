@@ -274,9 +274,58 @@ export const updateBooking = async (req, res) => {
             });
         }
 
+        const uploadedDocuments = [];
+        if (req.files?.length) {
+            const uploadRoot = path.join(process.cwd(), "uploads");
+            const destDir = path.join(uploadRoot, "bookings", booking._id.toString());
+
+            if (fs.existsSync(destDir)) {
+                fs.rmSync(destDir, { recursive: true, force: true });
+            }
+
+            fs.mkdirSync(destDir, { recursive: true });
+
+            const nameCounts = new Map();
+
+            for (const file of req.files) {
+                const safeName = getSafeFileName(file.originalname);
+                const ext = path.extname(safeName);
+                const base = path.basename(safeName, ext);
+
+                const count = nameCounts.get(safeName) ?? 0;
+                nameCounts.set(safeName, count + 1);
+
+                const finalName = count === 0 ? safeName : `${base}-${count}${ext}`;
+
+                fs.renameSync(file.path, path.join(destDir, finalName));
+                uploadedDocuments.push(finalName);
+            }
+        }
+
+        let parsedDocuments = documents;
+        if (typeof documents === "string") {
+            try {
+                parsedDocuments = JSON.parse(documents);
+            } catch (_) {
+                parsedDocuments = documents;
+            }
+        }
+
+        const bodyDocuments = Array.isArray(parsedDocuments)
+            ? parsedDocuments
+            : parsedDocuments
+            ? [parsedDocuments]
+            : undefined;
+
         if (startingDate !== undefined) booking.startingDate = startingDate;
         if (endDate !== undefined) booking.endDate = endDate;
-        if (documents !== undefined) booking.documents = documents;
+
+        if (bodyDocuments !== undefined || uploadedDocuments.length) {
+            booking.documents = uploadedDocuments.length
+                ? uploadedDocuments
+                : bodyDocuments ?? [];
+        }
+
         if (status !== undefined) booking.status = status;
 
         if (startingDate !== undefined || endDate !== undefined) {
@@ -289,12 +338,18 @@ export const updateBooking = async (req, res) => {
 
         await booking.save();
 
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
+
+        const bookingData = booking.toObject();
+        bookingData.documentUrls = buildBookingDocumentUrls(booking);
+
         return res.status(200).json({
             success: true,
             message: "Booking updated successfully",
-            data: booking,
+            data: bookingData,
         });
     } catch (error) {
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
         return res.status(500).json({
             success: false,
             message: "Error updating booking",
