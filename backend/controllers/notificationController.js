@@ -13,9 +13,6 @@ export const notifyBooking = async ({ type, bookingId }) => {
 
   if (!booking) throw new Error("Booking not found");
 
-  booking.status = type;
-  await booking.save();
-
   // Create notification
   await Notification.create({
     title: type === "approved" ? "Booking Approved" : "Booking Rejected",
