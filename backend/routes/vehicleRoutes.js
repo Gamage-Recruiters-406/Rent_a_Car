@@ -1,7 +1,7 @@
 import express from 'express';
 import { requiredSignIn, isOwner } from '../middlewares/authMiddleware.js';
 import { uploadVehiclePhotos } from '../middlewares/uploadMiddleware.js';
-import { createVehicleListing, deleteVehicleListing, getSingleVehicleListing } from '../controllers/vehicleController.js';
+import { createVehicleListing, deleteVehicleListing, getSingleVehicleListing, getMyVehicleListings } from '../controllers/vehicleController.js';
 
 const router = express.Router();
 
@@ -11,6 +11,8 @@ router.post("/create", requiredSignIn, isOwner, uploadVehiclePhotos.array("photo
 // Delete vehicle listing
 router.delete("/delete/:id", requiredSignIn, isOwner, deleteVehicleListing);
 // Get single vehicle listing
-router.get("/:id", getSingleVehicleListing);
+router.get("/get/:id", requiredSignIn, isOwner, getSingleVehicleListing);
+// Get my all vehicle listings
+router.get("/get-my-all", requiredSignIn, isOwner, getMyVehicleListings);
 
 export default router;

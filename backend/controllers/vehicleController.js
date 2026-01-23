@@ -242,3 +242,31 @@ export const getSingleVehicleListing = async (req, res) => {
     });
   }
 };
+
+
+
+// GET MY ALL VEHICLE LISTINGS
+export const getMyVehicleListings = async (req, res) => {
+  try {
+    const ownerId = req.user?.userid;
+    if (!ownerId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const vehicles = await Vehicle.find({ ownerId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({ 
+      success: true, 
+      count: vehicles.length,
+      vehicles 
+    });
+  } catch (error) {
+    console.log("GET MY VEHICLE LISTINGS ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
