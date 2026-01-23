@@ -50,7 +50,7 @@ export const createBooking = async (req, res) => {
     let destDir = null;
 
     try {
-        const { bookingId, startingDate, endDate, documents, vehicleId } = req.body;
+        const { startingDate, endDate, documents, vehicleId } = req.body;
         const customerId = req.user?.userid;
 
         if (!startingDate || !endDate || !vehicleId) {
@@ -112,7 +112,6 @@ export const createBooking = async (req, res) => {
         }
 
         booking = new Booking({
-            bookingId,
             startingDate,
             endDate,
             documents: [],
