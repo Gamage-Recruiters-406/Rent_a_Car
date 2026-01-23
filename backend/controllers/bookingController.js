@@ -2,6 +2,7 @@ import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 import path from "path";
 import fs from "fs";
+import { notifyBooking } from "../controllers/notificationController.js";
 
 const normalizeDate = (value) => {
     const date = new Date(value);
@@ -410,6 +411,13 @@ export const approveBooking = async (req, res) => {
             });
         }
 
+        // --- Notification & Email ---
+        try {
+            await notifyBooking({ type: "approved", bookingId: booking._id });
+        } catch (err) {
+            console.error("Error sending booking notification/email:", err.message);
+        }
+
         return res.status(200).json({
             success: true,
             message: "Booking approved successfully",
@@ -441,6 +449,14 @@ export const rejectBooking = async (req, res) => {
                 message: "Pending booking not found for this owner",
             });
         }
+
+        // --- Notification & Email ---
+        try {
+            await notifyBooking({ type: "rejected", bookingId: booking._id });
+        } catch (err) {
+            console.error("Error sending booking notification/email:", err.message);
+        }
+
 
         return res.status(200).json({
             success: true,
