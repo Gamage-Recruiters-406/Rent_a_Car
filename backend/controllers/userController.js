@@ -232,15 +232,15 @@ export const ReSendVerificationMail = async (req, res) => {
       })
     }
     //suspend end date
-    const onlyDate = user.suspendExpires.toISOString().split("T")[0];
+    const suspendDate = user.suspendExpires.toISOString().split("T")[0];
 
     //todays date
     const date = new Date(Date.now());
     const TodayDate = date.toISOString().split("T")[0];
 
-    if(user.status === "suspend" && TodayDate < onlyDate){
+    if(user.status === "suspend" && TodayDate <= suspendDate){
       try {
-        await suspendOwner(user.email, user.first_name, onlyDate);
+        await suspendOwner(user.email, user.first_name, suspendDate);
 
         return res.status(200).json({
           success: true,
