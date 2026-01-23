@@ -7,9 +7,9 @@ import { sendVerifyEmail, suspendOwner } from "../helpers/mailer.js";
 //register as a normal user
 export const registerUser = async (req, res) => {
     try {
-        const { first_name, last_name, email, password} = req.body; 
+        const { first_name, last_name, email, contactNumber, password} = req.body; 
 
-        if(!first_name || !last_name || !email || !password){
+        if(!first_name || !last_name || !email || !password || !contactNumber){
             res.status(404).json({
                 success: false,
                 message: "All field must need to fill."
@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
         const hashed = await passwordHash(password);
 
         const user = await User.create({
-            first_name, last_name, email, password: hashed
+            first_name, last_name, email, contactNumber, password: hashed
         })
 
         res.status(200).json({
@@ -120,9 +120,9 @@ export const logout = async (req, res) => {
 //vehicle owner registration process
 export const registerOwner = async (req, res) => {
   try {
-    const { first_name, last_name, email, password } = req.body;
+    const { first_name, last_name, email, contactNumber, password } = req.body;
 
-    if (!first_name || !last_name || !email || !password) {
+    if (!first_name || !last_name || !email || !password || !contactNumber) {
       return res.status(400).json({
         success: false,
         message: "All fields are required.",
@@ -147,6 +147,7 @@ export const registerOwner = async (req, res) => {
       first_name,
       last_name,
       email,
+      contactNumber,
       password: hashedPassword,
       role: 2,
       status: "pending",
@@ -380,7 +381,7 @@ export const getAllOwners = async (req, res) => {
 export const Updateuser = async(req, res) => {
   try {
     const id = req.user.userid;
-    const {first_name, last_name} = req.body;
+    const {first_name, last_name, contactNumber} = req.body;
     const user = await User.findById(id);
 
     if(!user){
@@ -393,6 +394,7 @@ export const Updateuser = async(req, res) => {
     const updateUser = {};
     if(first_name !== undefined) updateUser.first_name = first_name;
     if(last_name !== undefined) updateUser.last_name = last_name;
+    if(contactNumber !== undefined) updateUser.contactNumber = contactNumber;
 
     const update = await User.findByIdAndUpdate(
       id, 
