@@ -11,7 +11,8 @@ import {registerUser,
     Updateuser,
     getUserDetails,
     getUserbyId,
-    OwnerStatus
+    OwnerStatus,
+    emailNotify
 } from "../controllers/userController.js"
 
 import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
@@ -49,5 +50,7 @@ router.get("/getUserDetails",requiredSignIn, getUserDetails);
 router.get("/getUserbyId/:id",requiredSignIn, isAdmin, getUserbyId);
 //update vehicle owner status
 router.patch("/OwnerStatus/:id", requiredSignIn, isAdmin, OwnerStatus);
+//email notification button trun off/on function
+router.patch("/emailNotify",requiredSignIn, emailNotify)
 
 export default router;
