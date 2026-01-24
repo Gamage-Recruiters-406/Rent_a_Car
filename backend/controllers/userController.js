@@ -531,3 +531,43 @@ export const OwnerStatus = async (req, res ) => {
     })
   }
 }
+
+//email notification button turn turn/off seeting update
+export const emailNotify = async(req, res) => {
+  try {
+    const id = req.user.userid;
+    const {emailNotify} = req.body;
+
+    const user = await User.findById(id);
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      })
+    }
+
+    const updateUser = await User.findByIdAndUpdate(
+      id, 
+      {$set: {emailNotify: emailNotify} },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if(!updateUser){
+      return res.status(400).json({
+        success: false,
+        message: "Email notification update faild."
+      })
+    }
+    res.status(200).json({
+      success: true,
+      message: "Email notification setting update successfully."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
