@@ -1,5 +1,8 @@
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
+import path from "path";
+import fs from "fs";
+import { notifyBooking } from "../controllers/notificationController.js";
 
 const normalizeDate = (value) => {
     const date = new Date(value);
@@ -22,9 +25,33 @@ const canAccessBooking = (booking, user) => {
     return String(booking.customerId) === userId || String(booking.ownerId) === userId;
 };
 
-export const createBooking = async (req, res) => {
+const removeDirSafe = (dirPath) => {
     try {
-        const { bookingId, startingDate, endDate, documents, vehicleId } = req.body;
+        if (dirPath && fs.existsSync(dirPath)) {
+            fs.rmSync(dirPath, { recursive: true, force: true });
+        }
+    } catch (_) {}
+};
+
+const getSafeFileName = (originalName) => {
+    const baseName = path.basename(originalName || "document");
+    return baseName.replace(/[\\/]/g, "_");
+};
+
+const buildBookingDocumentUrls = (booking) => {
+    const bookingId = booking?._id?.toString();
+    if (!bookingId) return [];
+    return (booking.documents || []).map(
+        (name) => `/uploads/bookings/${bookingId}/${encodeURIComponent(name)}`
+    );
+};
+
+export const createBooking = async (req, res) => {
+    let booking = null;
+    let destDir = null;
+
+    try {
+        const { startingDate, endDate, documents, vehicleId } = req.body;
         const customerId = req.user?.userid;
 
         if (!startingDate || !endDate || !vehicleId) {
@@ -58,7 +85,13 @@ export const createBooking = async (req, res) => {
             });
         }
 
-        if (vehicle.amount === null || vehicle.amount === undefined) {
+        const dailyRate =
+            vehicle.pricePerDay ??
+            vehicle.amount ??
+            (typeof vehicle.get === "function" ? vehicle.get("amount") : undefined) ??
+            vehicle._doc?.amount;
+
+        if (dailyRate === null || dailyRate === undefined) {
             return res.status(400).json({
                 success: false,
                 message: "Vehicle price is not set",
@@ -67,7 +100,7 @@ export const createBooking = async (req, res) => {
 
         const overlap = await Booking.findOne({
             vehicleId,
-            status: { $ne: "rejected" },
+            status: { $nin: ["rejected", "cancelled"] },
             startingDate: { $lte: endDate },
             endDate: { $gte: startingDate },
         });
@@ -79,17 +112,52 @@ export const createBooking = async (req, res) => {
             });
         }
 
-        const booking = await Booking.create({
-            bookingId,
+        booking = new Booking({
             startingDate,
             endDate,
-            documents,
+            documents: [],
             customerId,
             vehicleId,
             ownerId: vehicle.ownerId,
-            dailyRate: vehicle.amount,
-            totalAmount: calculateTotalAmount(start, end, vehicle.amount),
+            dailyRate,
+            totalAmount: calculateTotalAmount(start, end, dailyRate),
         });
+
+        const uploadRoot = path.join(process.cwd(), "uploads");
+        destDir = path.join(uploadRoot, "bookings", booking._id.toString());
+
+        const uploadedDocuments = [];
+
+        if (req.files?.length) {
+            fs.mkdirSync(destDir, { recursive: true });
+
+            for (const file of req.files) {
+                const safeName = getSafeFileName(file.originalname);
+                const ext = path.extname(safeName);
+                const base = path.basename(safeName, ext);
+
+                let finalName = safeName;
+                let counter = 1;
+                while (fs.existsSync(path.join(destDir, finalName))) {
+                    finalName = `${base}-${counter}${ext}`;
+                    counter += 1;
+                }
+
+                fs.renameSync(file.path, path.join(destDir, finalName));
+                uploadedDocuments.push(finalName);
+            }
+        }
+
+        const bodyDocuments = Array.isArray(documents)
+            ? documents
+            : documents
+            ? [documents]
+            : [];
+
+        booking.documents = uploadedDocuments.length ? uploadedDocuments : bodyDocuments;
+        await booking.save();
+
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
 
         return res.status(201).json({
             success: true,
@@ -97,6 +165,8 @@ export const createBooking = async (req, res) => {
             data: booking,
         });
     } catch (error) {
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
+        if (destDir) removeDirSafe(destDir);
         return res.status(500).json({
             success: false,
             message: "Error creating booking",
@@ -142,10 +212,13 @@ export const getBookingById = async (req, res) => {
             });
         }
 
+        const bookingData = booking.toObject();
+        bookingData.documentUrls = buildBookingDocumentUrls(booking);
+
         return res.status(200).json({
             success: true,
             message: "Booking fetched successfully",
-            data: booking,
+            data: bookingData,
         });
     } catch (error) {
         return res.status(500).json({
@@ -190,7 +263,7 @@ export const updateBooking = async (req, res) => {
         const overlap = await Booking.findOne({
             _id: { $ne: id },
             vehicleId: booking.vehicleId,
-            status: { $ne: "rejected" },
+            status: { $nin: ["rejected", "cancelled"] },
             startingDate: { $lte: nextEndDate },
             endDate: { $gte: nextStartingDate },
         });
@@ -202,9 +275,58 @@ export const updateBooking = async (req, res) => {
             });
         }
 
+        const uploadedDocuments = [];
+        if (req.files?.length) {
+            const uploadRoot = path.join(process.cwd(), "uploads");
+            const destDir = path.join(uploadRoot, "bookings", booking._id.toString());
+
+            if (fs.existsSync(destDir)) {
+                fs.rmSync(destDir, { recursive: true, force: true });
+            }
+
+            fs.mkdirSync(destDir, { recursive: true });
+
+            const nameCounts = new Map();
+
+            for (const file of req.files) {
+                const safeName = getSafeFileName(file.originalname);
+                const ext = path.extname(safeName);
+                const base = path.basename(safeName, ext);
+
+                const count = nameCounts.get(safeName) ?? 0;
+                nameCounts.set(safeName, count + 1);
+
+                const finalName = count === 0 ? safeName : `${base}-${count}${ext}`;
+
+                fs.renameSync(file.path, path.join(destDir, finalName));
+                uploadedDocuments.push(finalName);
+            }
+        }
+
+        let parsedDocuments = documents;
+        if (typeof documents === "string") {
+            try {
+                parsedDocuments = JSON.parse(documents);
+            } catch (_) {
+                parsedDocuments = documents;
+            }
+        }
+
+        const bodyDocuments = Array.isArray(parsedDocuments)
+            ? parsedDocuments
+            : parsedDocuments
+            ? [parsedDocuments]
+            : undefined;
+
         if (startingDate !== undefined) booking.startingDate = startingDate;
         if (endDate !== undefined) booking.endDate = endDate;
-        if (documents !== undefined) booking.documents = documents;
+
+        if (bodyDocuments !== undefined || uploadedDocuments.length) {
+            booking.documents = uploadedDocuments.length
+                ? uploadedDocuments
+                : bodyDocuments ?? [];
+        }
+
         if (status !== undefined) booking.status = status;
 
         if (startingDate !== undefined || endDate !== undefined) {
@@ -217,12 +339,18 @@ export const updateBooking = async (req, res) => {
 
         await booking.save();
 
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
+
+        const bookingData = booking.toObject();
+        bookingData.documentUrls = buildBookingDocumentUrls(booking);
+
         return res.status(200).json({
             success: true,
             message: "Booking updated successfully",
-            data: booking,
+            data: bookingData,
         });
     } catch (error) {
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
         return res.status(500).json({
             success: false,
             message: "Error updating booking",
@@ -283,6 +411,13 @@ export const approveBooking = async (req, res) => {
             });
         }
 
+        // --- Notification & Email ---
+        try {
+            await notifyBooking({ type: "approved", bookingId: booking._id });
+        } catch (err) {
+            console.error("Error sending booking notification/email:", err.message);
+        }
+
         return res.status(200).json({
             success: true,
             message: "Booking approved successfully",
@@ -315,6 +450,14 @@ export const rejectBooking = async (req, res) => {
             });
         }
 
+        // --- Notification & Email ---
+        try {
+            await notifyBooking({ type: "rejected", bookingId: booking._id });
+        } catch (err) {
+            console.error("Error sending booking notification/email:", err.message);
+        }
+
+
         return res.status(200).json({
             success: true,
             message: "Booking rejected successfully",
@@ -324,6 +467,51 @@ export const rejectBooking = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Error rejecting booking",
+            error: error.message,
+        });
+    }
+};
+
+export const cancelBooking = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const customerId = req.user?.userid;
+
+        const booking = await Booking.findById(id);
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found",
+            });
+        }
+
+        if (String(booking.customerId) !== String(customerId)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied",
+            });
+        }
+
+        if (booking.status === "rejected" || booking.status === "cancelled") {
+            return res.status(400).json({
+                success: false,
+                message: "Booking cannot be cancelled",
+            });
+        }
+
+        booking.status = "cancelled";
+        await booking.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Booking cancelled successfully",
+            data: booking,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error cancelling booking",
             error: error.message,
         });
     }
@@ -383,7 +571,7 @@ export const searchVehicles = async (req, res) => {
 
         if (start && end && end > start) {
             const bookedVehicleIds = await Booking.distinct("vehicleId", {
-                status: { $ne: "rejected" },
+                status: { $nin: ["rejected", "cancelled"] },
                 startingDate: { $lte: end },
                 endDate: { $gte: start },
             });
@@ -423,7 +611,7 @@ export const getVehicleAvailability = async (req, res) => {
 
         const bookings = await Booking.find({
             vehicleId,
-            status: { $ne: "rejected" },
+            status: { $nin: ["rejected", "cancelled"] },
         })
             .select("startingDate endDate status")
             .sort({ startingDate: 1 });
