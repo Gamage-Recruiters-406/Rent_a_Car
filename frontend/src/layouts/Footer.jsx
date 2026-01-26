@@ -15,7 +15,7 @@ export default function Footer() {
 	return (
 		<footer className="mt-16 bg-slate-900 text-slate-300">
 			<div className="mx-auto max-w-6xl px-6 py-12">
-				<div className="grid gap-10 md:grid-cols-[1.2fr,1fr,1fr,1fr]">
+				<div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
 					<div className="space-y-4">
 						<div className="flex items-center gap-2 text-white">
 							<svg
