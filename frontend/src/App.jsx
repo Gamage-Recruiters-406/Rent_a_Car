@@ -11,7 +11,12 @@ function App() {
       <Routes>
         <Route path="/" element={<h1>Home</h1>} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
-        <Route path="/signin" element={<SignInPage/>} />
+
+
+
+
+        {/* login */}
+        <Route path="/login" element={<SignInPage/>} />
         <Route path="/signup" element={<SignUpPage/>} />
         <Route path="/verify-email" element={<VerifyEmailPage/>} />
       </Routes>

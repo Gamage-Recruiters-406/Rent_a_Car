@@ -82,7 +82,7 @@ export default function VerifyEmailPage() {
 
         {!loading && (
           <button
-            onClick={() => navigate("/signin")}
+            onClick={() => navigate("/login")}
             className="w-full bg-[#0A2E5C] text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A2E5C] transition-colors"
           >
             Back to Sign In

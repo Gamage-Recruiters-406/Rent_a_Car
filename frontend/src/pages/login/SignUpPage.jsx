@@ -52,15 +52,21 @@ export function SignUpPage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Registration successful:', data);
         toast.success('Registration successful! Please verify your email');
-        navigate('https://mail.google.com/mail/u/1/#inbox');
-      } else {
+
+          if(formData.userType === 'owner'){
+            navigate('https://mail.google.com/mail');
+          }else{
+            navigate('/login');
+          }
+      } else 
+        {
         const errorData = await response.json().catch(() => ({}));
         console.error('Registration failed:', response.status, errorData);
         toast.error(`Registration failed: ${errorData.message || 'Unknown error'}`);
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error during registration:', error);
       toast.error('An error occurred. Please try again later.');
     } finally {
