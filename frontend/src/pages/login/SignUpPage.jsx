@@ -53,8 +53,8 @@ export function SignUpPage() {
       if (response.ok) {
         const data = await response.json();
         console.log('Registration successful:', data);
-        toast.success('Registration successful! Please sign in.');
-        navigate('/signin');
+        toast.success('Registration successful! Please verify your email');
+        navigate('https://mail.google.com/mail/u/1/#inbox');
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Registration failed:', response.status, errorData);

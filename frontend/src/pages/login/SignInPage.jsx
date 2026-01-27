@@ -1,20 +1,63 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Car } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const apiVersion = import.meta.env.VITE_API_VERSION;
+
 export function SignInPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
   const [isLoading, setIsLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+  try{
+    const url = `${baseUrl}${apiVersion}/authUser/login`;
+    const response = await fetch(url,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },body: JSON.stringify(formData),
+    });
+    
+     toast.success("loging success");
+    if(!response.ok){
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    console.log('Login Response Data:', data); 
+
+    if(data.success || data.token){ 
+      if (data.token) {
+          localStorage.setItem('token', data.token);
+          console.log('Token stored in localStorage');
+      } else {
+          console.error('token eka nomatha!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+      }
+      
+      if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          console.log('User stored in localStorage');
+      }
+
+      navigate('/dashboard');
+    } else {
+        console.error('Login failed according to response logic:', data);
+        toast.error(data.message || 'Login failed');
+    }
+  } catch(error){
     setIsLoading(false);
-    console.log('Sign in:', formData);
+    toast.error(error.message);
+      console.log(error);
+    }
   };
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row">

@@ -10,6 +10,7 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<h1>Home</h1>} />
+        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/signin" element={<SignInPage/>} />
         <Route path="/signup" element={<SignUpPage/>} />
         <Route path="/verify-email" element={<VerifyEmailPage/>} />
