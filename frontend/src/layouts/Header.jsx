@@ -1,29 +1,11 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import logoBlue from "../assets/Rent My Car(Blue).png";
 
 const Logo = () => (
-	<div className="flex items-center gap-2 text-blue-700">
-		<svg
-			viewBox="0 0 64 32"
-			className="h-6 w-10"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			aria-hidden="true"
-		>
-			<path
-				d="M3 19c6-6 10-9 18-9 10 0 12 9 22 9h18"
-				stroke="currentColor"
-				strokeWidth="3"
-				strokeLinecap="round"
-			/>
-			<path
-				d="M27 10c4-5 10-8 19-8h6"
-				stroke="currentColor"
-				strokeWidth="3"
-				strokeLinecap="round"
-			/>
-		</svg>
-		<span className="text-lg font-semibold">Rent My Car</span>
+	<div className="flex items-center gap-2">
+		<img src={logoBlue} alt="Rent My Car" className="h-7 w-auto" />
+		<span className="text-lg font-semibold text-blue-700">Rent My Car</span>
 	</div>
 );
 

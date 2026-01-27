@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logoWhite from "../assets/Rent My Car.png";
 
 const SocialIcon = ({ children, href }) => (
 	<a
@@ -15,29 +16,10 @@ export default function Footer() {
 	return (
 		<footer className="mt-16 bg-slate-900 text-slate-300">
 			<div className="mx-auto max-w-6xl px-6 py-12">
-				<div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-					<div className="space-y-4">
+				<div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5 lg:gap-x-20">
+					<div className="space-y-4 lg:col-span-2">
 						<div className="flex items-center gap-2 text-white">
-							<svg
-								viewBox="0 0 64 32"
-								className="h-6 w-10"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								aria-hidden="true"
-							>
-								<path
-									d="M3 19c6-6 10-9 18-9 10 0 12 9 22 9h18"
-									stroke="currentColor"
-									strokeWidth="3"
-									strokeLinecap="round"
-								/>
-								<path
-									d="M27 10c4-5 10-8 19-8h6"
-									stroke="currentColor"
-									strokeWidth="3"
-									strokeLinecap="round"
-								/>
-							</svg>
+							<img src={logoWhite} alt="Rent My Car" className="h-7 w-auto" />
 							<span className="text-lg font-semibold">Rent My Car</span>
 						</div>
 						<p className="text-sm text-slate-400">
