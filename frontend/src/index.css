@@ -1,4 +1,32 @@
-:root {
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  --font-nunito: "Nunito", sans-serif;
+
+  /* Main Colors */
+  --color-brand-dark: #0D3778;     
+  --color-brand-primary: #1d407f;  
+  --color-brand-light: #002660  ;   
+
+  /* Status Colors */
+  --color-status-pending: #BF5E14;   /* Orange (Pending) */
+  --color-status-approved: #008236;  /* Green (Approved) */
+  --color-status-rejected: #E53E3E;  /* Red (Rejected) */
+
+  /* Surface Colors */
+  --color-table-border: #cbd5e1;
+  --color-card-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Apply font */
+body {
+  font-family: var(--font-nunito);
+}
+
+
+/* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -65,4 +93,4 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+} */
