@@ -152,3 +152,4 @@ vite.config.ts.timestamp-*
 *.njsproj
 *.sln
 *.sw?
+frontend/package-lock.json
