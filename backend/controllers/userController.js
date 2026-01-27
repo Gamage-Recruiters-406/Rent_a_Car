@@ -88,8 +88,9 @@ export const SignIn = async (req, res) => {
             success: true,
             message: "Login Successfully.",
             userid: user._id,
-            role : user.role
-        },token)
+            role : user.role,
+            token
+        })
 
     } catch (error) {
         console.log(error);
