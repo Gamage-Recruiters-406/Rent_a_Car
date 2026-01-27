@@ -29,8 +29,8 @@ export default function CustomerReviews() {
     <div className="w-full min-h-screen bg-white px-6 py-10">
       {/* Page Title */}
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-semibold text-blue-900">Customer Reviews</h1>
-        <p className="text-blue-600 mt-2">Share Your Experience With Us</p>
+        <h1 className="text-3xl font-semibold text-[#0D3778]">Customer Reviews</h1>   {/* Changes to responsive text size*/}
+        <p className="text-[#0D3778] mt-2">Share Your Experience With Us</p>
       </div>
 
       {/* Car & Rating Section */}
@@ -43,21 +43,21 @@ export default function CustomerReviews() {
         />
 
         {/* Rating Box */}
-        <div className="border rounded-xl p-6 text-center shadow-sm">
+        <div className="border-[#0D3778] rounded-xl p-6 text-center shadow-sm">
           <h2 className="text-xl font-medium mb-4">Toyota Prius (ABC-1234)</h2>
           <div className="flex items-center justify-center gap-6">
             <div>
               <p className="text-4xl font-semibold text-yellow-500">0.0</p>
               <div className="flex justify-center mt-2">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-yellow-400 text-lg">☆</span>
+                  <span key={i} className="text-yellow-400 text-lg">☆</span> // change star size, Imporet lucad Icon
                 ))}
               </div>
             </div>
             <div className="h-12 w-px bg-gray-300"></div>
             <div>
-              <p className="text-3xl font-semibold text-blue-900">0</p>
-              <p className="text-sm text-gray-500">Reviews</p>
+              <p className="text-3xl font-semibold text-[#0D3778]">0</p> {/* Changes to responsive text size*/}
+              <p className="text-sm text-[#0D3778]">Reviews</p>
             </div>
           </div>
         </div>
@@ -88,15 +88,15 @@ export default function CustomerReviews() {
         <label className="block mb-2 font-medium">Write Feedback</label>
         <textarea
           placeholder="Share your experience..."
-          className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#0D3778]"
           rows="4"
         />
 
         <div className="flex justify-end gap-4 mt-6">
-          <button className="px-6 py-2 border rounded-lg text-gray-600">
+          <button className="px-6 py-2 bg-white border-[#0D3778] rounded-lg text-[#0D3778]">
             Cancel
           </button>
-          <button className="px-6 py-2 bg-blue-800 text-white rounded-lg">
+          <button className="px-6 py-2 bg-[#0D3778] text-white rounded-lg">
             Submit Review
           </button>
         </div>
