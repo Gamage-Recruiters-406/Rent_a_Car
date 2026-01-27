@@ -571,3 +571,57 @@ export const emailNotify = async(req, res) => {
     })
   }
 }
+
+//remove user account
+export const deleteAccount = async(req, res) => {
+  try {
+    const id = req.user.userid;
+    const deleteAccount = await User.findByIdAndDelete(id);
+
+    if(!deleteAccount){
+      return res.status(400).json({
+        success: false,
+        message: "Account not found"
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//remove user account by id (admin part)
+export const AdminDeleteAccount = async(req, res) => {
+  try {
+    const {id} = req.params;
+    const deleteAccount = await User.findByIdAndDelete(id);
+
+    if(!deleteAccount){
+      return res.status(400).json({
+        success: false,
+        message: "Account not found"
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
