@@ -23,42 +23,28 @@ export function SignInPage() {
     const url = `${baseUrl}${apiVersion}/authUser/login`;
     const response = await fetch(url,{
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },body: JSON.stringify(formData),
+      headers: {'Content-Type': 'application/json',},
+      body: JSON.stringify(formData),
     });
+    toast.success("loging success");
     
-     toast.success("loging success");
     if(!response.ok){
       throw new Error('Network response was not ok');
     }
     const data = await response.json();
-    console.log('Login Response Data:', data); 
-
     if(data.success || data.token){ 
-      if (data.token) {
-          localStorage.setItem('token', data.token);
-          console.log('Token stored in localStorage');
-      } else {
-          console.error('token eka nomatha!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-      }
-      
-      if (data.user) {
+          localStorage.setItem('token', data.token); 
           localStorage.setItem('user', JSON.stringify(data.user));
-          console.log('User stored in localStorage');
-      }
-
       navigate('/dashboard');
     } else {
-        console.error('Login failed according to response logic:', data);
-        toast.error(data.message || 'Login failed');
-    }
-  } catch(error){
+        toast.error(data.message || 'Login failed'); }
+  } 
+  catch(error){
     setIsLoading(false);
     toast.error(error.message);
-      console.log(error);
     }
   };
+
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row">
       {/* Left Panel - Brand & Hero */}
