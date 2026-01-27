@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { Car } from 'lucide-react';
 
@@ -27,7 +28,8 @@ export function SignUpPage() {
 
     //confome password
     if (formData.password !== formData.confirmPassword) { 
-      alert('Passwords do not match!');
+      toast.error('Passwords do not match!');
+      setIsLoading(false);
       return;
     }
 
@@ -51,16 +53,16 @@ export function SignUpPage() {
       if (response.ok) {
         const data = await response.json();
         console.log('Registration successful:', data);
-        alert('Registration successful! Please sign in.');
+        toast.success('Registration successful! Please sign in.');
         navigate('/signin');
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Registration failed:', response.status, errorData);
-        alert(`Registration failed: ${errorData.message || 'Unknown error'}`);
+        toast.error(`Registration failed: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error during registration:', error);
-      alert('An error occurred. Please try again later.');
+      toast.error('An error occurred. Please try again later.');
     } finally {
       setIsLoading(false);
     }
