@@ -12,7 +12,9 @@ import {registerUser,
     getUserDetails,
     getUserbyId,
     OwnerStatus,
-    emailNotify
+    emailNotify,
+    deleteAccount,
+    AdminDeleteAccount
 } from "../controllers/userController.js"
 
 import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
@@ -53,4 +55,8 @@ router.patch("/OwnerStatus/:id", requiredSignIn, isAdmin, OwnerStatus);
 //email notification button trun off/on function
 router.patch("/emailNotify",requiredSignIn, emailNotify)
 
+//user delete there own account
+router.delete("/deleteAccount", requiredSignIn, deleteAccount);
+//admin remove owner or user
+router.delete("/adminRemoveAccount/:id", requiredSignIn, isAdmin, AdminDeleteAccount);
 export default router;
