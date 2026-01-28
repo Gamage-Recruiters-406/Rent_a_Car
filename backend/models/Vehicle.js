@@ -51,6 +51,11 @@ const vehicleSchema = new mongoose.Schema(
             required: true,
             min: 0
         },
+        km: {
+            type: Number,
+            required: true,
+            min: 0
+        },
         pricePerKm: {
             type: Number,
             required: true,
