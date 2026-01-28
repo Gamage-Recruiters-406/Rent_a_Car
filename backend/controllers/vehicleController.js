@@ -440,3 +440,50 @@ export const updateVehicleListing = async (req,res) => {
     });
   }
 };
+
+
+
+
+
+// ADMIN
+// UPDATE VEHICLE LISTING (APROVED/REJECTED)
+export const updateVehicleStatus = async (req,res) => {
+  try {
+    const vehicleId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(vehicleId)) {
+      return res.status(400).json({ success: false, message: "Invalid vehicle ID." });
+    }
+
+    const { status } = req.body;
+
+    const allowed = ["Pending", "Approved", "Rejected"];
+    if (!status || !allowed.includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Invalid status. Allowed: ${allowed.join(", ")}`
+       });
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: "Vehicle not found." });
+    }
+
+    vehicle.status = status;
+    await vehicle.save();
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Vehicle status updated successfully.",
+      vehicleId,
+      status: vehicle.status
+    });
+  } catch (error) {
+    console.log("UPDATE VEHICLE STATUS ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });  
+  }
+};
