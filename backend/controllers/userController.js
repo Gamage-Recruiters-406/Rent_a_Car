@@ -27,9 +27,32 @@ export const registerUser = async (req, res) => {
 
         const hashed = await passwordHash(password);
 
+        // 1) generate token (raw) + store hash
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
         const user = await User.create({
-            first_name, last_name, email, contactNumber, password: hashed
+            first_name,
+            last_name,
+            email,
+            contactNumber,
+            password: hashed,
+            status: "pending",
+            emailVerifyTokenHash: tokenHash,
+            emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 mins for expire token
         })
+
+        const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+
+        try {
+          await sendVerifyEmail(user.email, verifyUrl);
+        } catch (e) {
+          await User.findByIdAndDelete(user._id);
+          return res.status(500).json({
+            success: false,
+            message: "Verification email sending failed. Try again.",
+          });
+        }
 
         res.status(200).json({
             success: true,
@@ -78,6 +101,8 @@ export const SignIn = async (req, res) => {
             {
                 userid: user._id,
                 role: user.role,
+                status: user.status,
+                emailNotify: user.emailNotify,
             },
             process.env.JWT_SECRET, {expiresIn: "1d"}
         )
