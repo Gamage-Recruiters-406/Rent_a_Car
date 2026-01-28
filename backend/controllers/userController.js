@@ -777,17 +777,76 @@ export const verifyResetOtp = async (req, res) => {
       });
     }
 
-    //remove otp code and otp expire date from DB
+    //remove otp code from DB
     user.resetOtpHash = undefined;
-    user.resetOtpExpires = undefined
     await user.save();
 
     return res.status(200).json({
       success: true,
-      message: "OTP is correct.",
+      message: "OTP verification complete.",
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: "Server Side Error." });
   }
 };
+
+//rest password
+export const ResetPassword = async(req, res) => {
+  try {
+    const {email, password} = req.body;
+    if(!email || !password){
+      return res.status(404).json({
+        success: false,
+        message: "fill the password field."
+      })
+    }
+    const user = await User.findOne({email});
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "Account not found."
+      })
+    }
+
+    //check password
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character (@ ! # $ % &).",
+      });
+    }
+    if (user.resetOtpExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Please request a new OTP.",
+      });
+    }
+    if (user.resetOtpHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify it is your account first.",
+      });
+    }
+
+    //hash password
+    const hashedPassword = await passwordHash(password);
+    //set new password
+    user.password = hashedPassword;
+    //remove otp code and otp expire date from DB
+    user.resetOtpExpires = undefined
+    await user.save();
+
+    res.status(200).json({
+      success: false,
+      message: "Password change successfully."
+    })
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
