@@ -158,68 +158,6 @@ export const logout = async (req, res) => {
   }
 }
 
-//vehicle owner registration process
-export const registerOwner = async (req, res) => {
-  try {
-    const { first_name, last_name, email, contactNumber, password } = req.body;
-
-    if (!first_name || !last_name || !email || !password || !contactNumber) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required.",
-      });
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists.",
-      });
-    }
-
-    const hashedPassword = await passwordHash(password);
-
-    // 1) generate token (raw) + store hash
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-
-    const user = await User.create({
-      first_name,
-      last_name,
-      email,
-      contactNumber,
-      password: hashedPassword,
-      role: 2,
-      status: "pending",
-      emailVerifyTokenHash: tokenHash,
-      emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 mins for expire token
-    });
-
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
-
-    try {
-      await sendVerifyEmail(user.email, verifyUrl);
-    } catch (e) {
-      await User.findByIdAndDelete(user._id);
-      return res.status(500).json({
-        success: false,
-        message: "Verification email sending failed. Try again.",
-      });
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: "Owner registered. Please check your email to verify.",
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Server Side Error",
-    });
-  }
-};
 
 //email verification function
 export const verifyEmail = async (req, res) => {
