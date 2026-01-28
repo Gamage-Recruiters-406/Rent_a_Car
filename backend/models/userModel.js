@@ -51,6 +51,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["on", "off"],
         default: "off"
+    },
+    resetOtpHash: {
+        type: String
+    },
+    resetOtpExpires:{
+        type: Date
     }
 
 },{timestamps: true})
