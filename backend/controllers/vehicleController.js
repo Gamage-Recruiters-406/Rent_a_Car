@@ -35,9 +35,9 @@ export const createVehicleListing = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, address, lat, lng } = req.body;
+    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, km, pricePerKm, address, lat, lng } = req.body;
 
-    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
+    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || km === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
@@ -64,12 +64,13 @@ export const createVehicleListing = async (req, res) => {
     }
 
     const ppd = Number(pricePerDay);
+    const Km = Number(km);
     const ppk = Number(pricePerKm);
-    if (Number.isNaN(ppd) || ppd < 0 || Number.isNaN(ppk) || ppk < 0) {
+    if (Number.isNaN(ppd) || ppd < 0 || Number.isNaN(Km) || Km < 0 || Number.isNaN(ppk) || ppk < 0) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
-        message: "pricePerDay and pricePerKm must be valid non-negative numbers.",
+        message: "pricePerDay, km and pricePerKm must be valid non-negative numbers.",
       });
     }
 
@@ -85,6 +86,7 @@ export const createVehicleListing = async (req, res) => {
       fuelType,
       transmission,
       pricePerDay: ppd,
+      km: Km,
       pricePerKm: ppk,
       photos: [],
       location: {
@@ -312,6 +314,7 @@ export const updateVehicleListing = async (req,res) => {
       fuelType,
       transmission,
       pricePerDay,
+      km,
       pricePerKm,
       address,
       lat,
@@ -344,6 +347,15 @@ export const updateVehicleListing = async (req,res) => {
         return res.status(400).json({ success: false, message: "pricePerDay must be a valid non-negative number." });
       }
       vehicle.pricePerDay = ppd;
+    }
+
+    if (km !== undefined) {
+      const Km = Number(km);
+      if (Number.isNaN(Km) || Km < 0) {
+        if (tempDir) removeDirSafe(tempDir);
+        return res.status(400).json({ success: false, message: "km must be a valid non-negative number." });
+      }
+      vehicle.km = Km;
     }
 
     if (pricePerKm !== undefined) {
@@ -434,6 +446,113 @@ export const updateVehicleListing = async (req,res) => {
       });
     }
 
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
+
+
+
+
+
+// ADMIN
+// UPDATE VEHICLE LISTING (APROVED/REJECTED)
+export const updateVehicleStatus = async (req,res) => {
+  try {
+    const vehicleId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(vehicleId)) {
+      return res.status(400).json({ success: false, message: "Invalid vehicle ID." });
+    }
+
+    const { status } = req.body;
+
+    const allowed = ["Pending", "Approved", "Rejected"];
+    if (!status || !allowed.includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Invalid status. Allowed: ${allowed.join(", ")}`
+       });
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return res.status(404).json({ success: false, message: "Vehicle not found." });
+    }
+
+    vehicle.status = status;
+    await vehicle.save();
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Vehicle status updated successfully.",
+      vehicleId,
+      status: vehicle.status
+    });
+  } catch (error) {
+    console.log("UPDATE VEHICLE STATUS ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });  
+  }
+};
+
+
+
+// GET ALL VEHICLE LISTINGS (for Admin)
+export const getAllVehicleListings = async (req, res) => {
+  try {
+    const [total, vehicles] = await Promise.all([
+      Vehicle.countDocuments(),
+      Vehicle.find()
+        .sort({ createdAt: -1 })
+        .populate("ownerId", "name email phoneNumber")
+        .lean()
+    ]);
+
+    return res.status(200).json({ 
+      success: true, 
+      total,
+      vehicles 
+    });
+  } catch (error) {
+    console.log("GET ALL VEHICLES ERROR", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
+
+
+
+
+
+// CUSTOMER
+// GET ALL VEHICLE LISTINGS (for Customers)
+export const getAllAvailableVehicles = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find({ status: "Approved" })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "ownerId",
+        match: { status: "verified" },
+        select: "first_name last_name email contactNumber status"
+      })
+      .lean();
+
+    const filtered = vehicles.filter((v) => v.ownerId);
+
+    return res.status(200).json({ 
+      success: true, 
+      count: filtered.length,
+      vehicles: filtered 
+    });
+  } catch (error) {
+    console.log("GET VEHICLE LISTING ERROR:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Server Side Error",

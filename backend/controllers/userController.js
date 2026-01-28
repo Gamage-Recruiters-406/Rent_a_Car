@@ -2,19 +2,33 @@ import User from "../models/userModel.js";
 import { comparePassword, passwordHash} from "../helpers/authHelper.js";
 import JWT from 'jsonwebtoken';
 import crypto from "crypto";
-import { sendVerifyEmail, suspendOwner } from "../helpers/mailer.js";
+import { sendVerifyEmail, suspendOwner, sendOtpEmail } from "../helpers/mailer.js";
+import {isStrongPassword } from "../helpers/validator.js"
 
 //register as a normal user
 export const registerUser = async (req, res) => {
     try {
-        const { first_name, last_name, email, contactNumber, password} = req.body; 
-
-        if(!first_name || !last_name || !email || !password || !contactNumber){
+        const { first_name, last_name, email, userType, contactNumber, password} = req.body; 
+        let role = 1;
+        if(!first_name || !last_name || !email || !password || !contactNumber || !userType){
             res.status(404).json({
                 success: false,
                 message: "All field must need to fill."
             })
         }
+        //check password
+        if (!isStrongPassword(password)) {
+          return res.status(400).json({
+            success: false,
+            message:
+              "Password must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character (@ ! # $ % &).",
+          });
+        }
+        if(userType === "owner"){
+          role = 2;
+        }
+
+
 
         const existingUser = await User.findOne({email})
 
@@ -27,9 +41,33 @@ export const registerUser = async (req, res) => {
 
         const hashed = await passwordHash(password);
 
+        // 1) generate token (raw) + store hash
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
         const user = await User.create({
-            first_name, last_name, email, contactNumber, password: hashed
+            first_name,
+            last_name,
+            email,
+            contactNumber,
+            role,
+            password: hashed,
+            status: "pending",
+            emailVerifyTokenHash: tokenHash,
+            emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 mins for expire token
         })
+
+        const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+
+        try {
+          await sendVerifyEmail(user.email, verifyUrl);
+        } catch (e) {
+          await User.findByIdAndDelete(user._id);
+          return res.status(500).json({
+            success: false,
+            message: "Verification email sending failed. Try again.",
+          });
+        }
 
         res.status(200).json({
             success: true,
@@ -78,6 +116,8 @@ export const SignIn = async (req, res) => {
             {
                 userid: user._id,
                 role: user.role,
+                status: user.status,
+                emailNotify: user.emailNotify,
             },
             process.env.JWT_SECRET, {expiresIn: "1d"}
         )
@@ -88,8 +128,9 @@ export const SignIn = async (req, res) => {
             success: true,
             message: "Login Successfully.",
             userid: user._id,
-            role : user.role
-        },token)
+            role : user.role,
+            token
+        })
 
     } catch (error) {
         console.log(error);
@@ -117,68 +158,6 @@ export const logout = async (req, res) => {
   }
 }
 
-//vehicle owner registration process
-export const registerOwner = async (req, res) => {
-  try {
-    const { first_name, last_name, email, contactNumber, password } = req.body;
-
-    if (!first_name || !last_name || !email || !password || !contactNumber) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required.",
-      });
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists.",
-      });
-    }
-
-    const hashedPassword = await passwordHash(password);
-
-    // 1) generate token (raw) + store hash
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-
-    const user = await User.create({
-      first_name,
-      last_name,
-      email,
-      contactNumber,
-      password: hashedPassword,
-      role: 2,
-      status: "pending",
-      emailVerifyTokenHash: tokenHash,
-      emailVerifyTokenExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 mins for expire token
-    });
-
-    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${rawToken}`;
-
-    try {
-      await sendVerifyEmail(user.email, verifyUrl);
-    } catch (e) {
-      await User.findByIdAndDelete(user._id);
-      return res.status(500).json({
-        success: false,
-        message: "Verification email sending failed. Try again.",
-      });
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: "Owner registered. Please check your email to verify.",
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Server Side Error",
-    });
-  }
-};
 
 //email verification function
 export const verifyEmail = async (req, res) => {
@@ -563,6 +542,244 @@ export const emailNotify = async(req, res) => {
       message: "Email notification setting update successfully."
     })
 
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//remove user account
+export const deleteAccount = async(req, res) => {
+  try {
+    const id = req.user.userid;
+    const deleteAccount = await User.findByIdAndDelete(id);
+
+    if(!deleteAccount){
+      return res.status(400).json({
+        success: false,
+        message: "Account not found"
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//remove user account by id (admin part)
+export const AdminDeleteAccount = async(req, res) => {
+  try {
+    const {id} = req.params;
+    const deleteAccount = await User.findByIdAndDelete(id);
+
+    if(!deleteAccount){
+      return res.status(400).json({
+        success: false,
+        message: "Account not found"
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Account deleted successfully."
+    })
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error."
+    })
+  }
+}
+
+//password reset process 1- create random 6 digit number and send it to email
+export const otp = async (req,res) => {
+  try {
+    const {email} = req.body;
+    const user = await User.findOne({email});
+
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "Account not found."
+      })
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString(); // "100000" - "999999"
+
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    user.resetOtpHash = otpHash;
+    user.resetOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // expire with in 10 minutes
+
+    await user.save();
+    await sendOtpEmail(user.email, user.first_name, otp);
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to your email.",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    })
+  }
+}
+
+//Get new OTP code
+export const RestOTP = async (req,res) => {
+  try {
+    const {email} = req.body;
+    const user = await User.findOne({email});
+
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "Account not found."
+      })
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString(); // "100000" - "999999"
+
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    user.resetOtpHash = otpHash;
+    user.resetOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // expire with in 10 minutes
+
+    await user.save();
+    await sendOtpEmail(user.email, user.first_name, otp);
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to your email.",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    })
+  }
+}
+
+//OTP verification part
+export const verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required.",
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    if (!user.resetOtpHash || !user.resetOtpExpires) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP request found. Please request a new OTP.",
+      });
+    }
+
+    // check OTP is expired or not
+    if (user.resetOtpExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired. Please request a new OTP.",
+      });
+    }
+
+    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
+
+    //compare OTP code
+    if (otpHash !== user.resetOtpHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP.",
+      });
+    }
+
+    //remove otp code from DB
+    user.resetOtpHash = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verification complete.",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Server Side Error." });
+  }
+};
+
+//rest password
+export const ResetPassword = async(req, res) => {
+  try {
+    const {email, password} = req.body;
+    if(!email || !password){
+      return res.status(404).json({
+        success: false,
+        message: "fill the password field."
+      })
+    }
+    const user = await User.findOne({email});
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "Account not found."
+      })
+    }
+
+    //check password
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character (@ ! # $ % &).",
+      });
+    }
+    if (user.resetOtpExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Please request a new OTP.",
+      });
+    }
+    if (user.resetOtpHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify it is your account first.",
+      });
+    }
+
+    //hash password
+    const hashedPassword = await passwordHash(password);
+    //set new password
+    user.password = hashedPassword;
+    //remove otp code and otp expire date from DB
+    user.resetOtpExpires = undefined
+    await user.save();
+
+    res.status(200).json({
+      success: false,
+      message: "Password change successfully."
+    })
   } catch (error) {
     console.log(error);
     res.status(500).json({
