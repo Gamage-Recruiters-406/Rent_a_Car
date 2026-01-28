@@ -6,7 +6,8 @@ import { createVehicleListing,
         getSingleVehicleListing, 
         getMyVehicleListings,
         updateVehicleListing,
-        updateVehicleStatus } from '../controllers/vehicleController.js';
+        updateVehicleStatus, 
+        getAllVehicleListings} from '../controllers/vehicleController.js';
 
 const router = express.Router();
 
@@ -23,5 +24,7 @@ router.get("/get-my-all", requiredSignIn, isOwner, getMyVehicleListings);
 router.put("/update/:id", requiredSignIn, isOwner, uploadVehiclePhotos.array("photos", 10), updateVehicleListing);
 // Update vehicle status (Approved/Rejected) - ADMIN
 router.patch("/admin/status/:id", requiredSignIn, isAdmin, updateVehicleStatus);
+// Get all vehicle listings - ADMIN
+router.get("/admin/get-all", requiredSignIn, getAllVehicleListings);
 
 export default router;
