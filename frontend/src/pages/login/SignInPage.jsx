@@ -73,7 +73,7 @@ export function SignInPage() {
         </div>
       </div>
 
-      {/* Right Panel - Form Content */}
+      {/* Right Panel - Form Conten*/}
       <div className="w-full lg:w-[60%] bg-white flex flex-col justify-center items-center p-6 lg:p-12 overflow-y-auto">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2">
