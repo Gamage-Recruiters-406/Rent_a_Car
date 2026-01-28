@@ -499,3 +499,30 @@ export const updateVehicleStatus = async (req,res) => {
     });  
   }
 };
+
+
+
+// GET ALL VEHICLE LISTINGS (for Admin)
+export const getAllVehicleListings = async (req, res) => {
+  try {
+    const [total, vehicles] = await Promise.all([
+      Vehicle.countDocuments(),
+      Vehicle.find()
+        .sort({ createdAt: -1 })
+        .populate("ownerId", "name email phoneNumber")
+        .lean()
+    ]);
+
+    return res.status(200).json({ 
+      success: true, 
+      total,
+      vehicles 
+    });
+  } catch (error) {
+    console.log("GET ALL VEHICLES ERROR", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
