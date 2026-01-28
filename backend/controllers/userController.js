@@ -3,18 +3,32 @@ import { comparePassword, passwordHash} from "../helpers/authHelper.js";
 import JWT from 'jsonwebtoken';
 import crypto from "crypto";
 import { sendVerifyEmail, suspendOwner } from "../helpers/mailer.js";
+import {isStrongPassword } from "../helpers/validator.js"
 
 //register as a normal user
 export const registerUser = async (req, res) => {
     try {
-        const { first_name, last_name, email, contactNumber, password} = req.body; 
-
-        if(!first_name || !last_name || !email || !password || !contactNumber){
+        const { first_name, last_name, email, userType, contactNumber, password} = req.body; 
+        const role = 1;
+        if(!first_name || !last_name || !email || !password || !contactNumber || !userType){
             res.status(404).json({
                 success: false,
                 message: "All field must need to fill."
             })
         }
+        //check password
+        if (!isStrongPassword(password)) {
+          return res.status(400).json({
+            success: false,
+            message:
+              "Password must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character (@ ! # $ % &).",
+          });
+        }
+        if(userType === "owner"){
+          role = 2;
+        }
+
+
 
         const existingUser = await User.findOne({email})
 
@@ -36,6 +50,7 @@ export const registerUser = async (req, res) => {
             last_name,
             email,
             contactNumber,
+            role,
             password: hashed,
             status: "pending",
             emailVerifyTokenHash: tokenHash,
