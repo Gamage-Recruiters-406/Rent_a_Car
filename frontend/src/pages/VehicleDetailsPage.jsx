@@ -6,6 +6,18 @@ import DropdownCard from "../components/vehicle/DropdownCard";
 import MiniCalendar from "../components/vehicle/MiniCalendar";
 import { SimpleRow, BulletRow, LegendItem } from "../components/vehicle/Rows";
 
+import {
+  SettingsIcon,
+  NotebookIcon,
+  VehicleIcon,
+  CalendarIcon,
+  FuelStationIcon,
+  WorldIcon,
+} from "../components/vehicle/Icons";
+
+import Header from "../layouts/Header";
+import Footer from "../layouts/Footer";
+
 // helpers
 function toYYYYMM(date = new Date()) {
   const y = date.getFullYear();
@@ -79,9 +91,19 @@ export default function VehicleDetailsPage() {
     return photos
       .map((p) => {
         if (!p?.url) return null;
-        // if backend already gives full url, keep it
-        if (p.url.startsWith("http")) return p.url;
-        return `${base}${p.url}`;
+
+        let u = p.url;
+
+        // fix old db urls like "./uploads/..."
+        u = u.replace("./uploads", "/uploads");
+
+        // keep full urls
+        if (u.startsWith("http")) return u;
+
+        // ensure leading slash
+        if (!u.startsWith("/")) u = "/" + u;
+
+        return `${base}${u}`;
       })
       .filter(Boolean);
   }, [vehicle]);
@@ -125,195 +147,207 @@ export default function VehicleDetailsPage() {
   }
 
   return (
-    <div className="w-full px-3 sm:px-6 lg:px-10 py-6 font-nunito bg-white">
-      {/* Title */}
-      <h1 className="text-[24px] font-bold text-[#0b2b5a] mb-4">{titleText}</h1>
+    <>
+      <Header />
+      <div className="w-full px-3 sm:px-6 lg:px-10 py-6 font-nunito bg-white">
+        {/* Title */}
+        <h1 className="text-[24px] font-bold text-[#0d3778] mb-4">
+          {titleText}
+        </h1>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.95fr] gap-5 items-start">
-        {/* LEFT */}
-        <div className="space-y-5">
-          {/* Gallery */}
-          <div className="border-2 border-[#0b2b5a] rounded-2xl p-3 bg-white shadow-sm">
-            <div className="rounded-xl overflow-hidden bg-slate-100 h-[220px] sm:h-[300px] lg:h-[340px] flex items-center justify-center">
-              {photoUrls[activeImg] ? (
-                <img
-                  src={photoUrls[activeImg]}
-                  alt="Vehicle"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-slate-500 text-sm">No image</div>
-              )}
-            </div>
-
-            {/* dots */}
-            <div className="flex justify-center gap-2 my-3">
-              {photoUrls.slice(0, 6).map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImg(idx)}
-                  className={`w-2 h-2 rounded-full ${
-                    idx === activeImg ? "bg-[#0b2b5a]" : "bg-slate-300"
-                  }`}
-                />
-              ))}
-            </div>
-
-            {/* thumbs */}
-            <div className="grid grid-cols-4 gap-3">
-              {photoUrls.slice(0, 4).map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImg(idx)}
-                  className={`h-[62px] sm:h-[72px] rounded-xl overflow-hidden border-2 border-[#0b2b5a] bg-white ${
-                    idx === activeImg ? "ring-4 ring-[#0b2b5a]/20" : ""
-                  }`}
-                >
+        <div className="grid grid-cols-1 xl:grid-cols-[1.55fr_0.95fr] gap-5 items-start">
+          {/* LEFT */}
+          <div className="space-y-5">
+            {/* Gallery */}
+            <div className="border-2 border-[#0d3778] rounded-2xl p-3 bg-white shadow-sm">
+              <div className="rounded-xl overflow-hidden bg-slate-100 h-[220px] sm:h-[300px] lg:h-[340px] flex items-center justify-center">
+                {photoUrls[activeImg] ? (
                   <img
-                    src={img}
-                    alt=""
+                    src={photoUrls[activeImg]}
+                    alt="Vehicle"
                     className="w-full h-full object-cover"
                   />
-                </button>
-              ))}
-
-              {photoUrls.length < 4 &&
-                Array.from({ length: 4 - photoUrls.length }).map((_, i) => (
-                  <div
-                    key={`ph-${i}`}
-                    className="h-[62px] sm:h-[72px] rounded-xl border-2 border-dashed border-slate-300 bg-slate-50"
-                  />
-                ))}
-            </div>
-          </div>
-
-          {/* Specs */}
-          <DropdownCard
-            title="Vehicle Specification"
-            open={open.specs}
-            onToggle={() => setOpen((p) => ({ ...p, specs: !p.specs }))}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {specItems.map((it) => (
-                <BulletRow key={it.label} label={it.label} value={it.value} />
-              ))}
-            </div>
-          </DropdownCard>
-
-          {/* Description */}
-          <DropdownCard
-            title="Description"
-            open={open.description}
-            onToggle={() =>
-              setOpen((p) => ({ ...p, description: !p.description }))
-            }
-          >
-            <p className="text-[14px] text-slate-700 leading-relaxed">
-              {vehicle?.description || "—"}
-            </p>
-          </DropdownCard>
-        </div>
-
-        {/* RIGHT */}
-        <div className="space-y-5">
-          {/* Registration */}
-          <DropdownCard
-            title="Registration"
-            open={open.registration}
-            onToggle={() =>
-              setOpen((p) => ({ ...p, registration: !p.registration }))
-            }
-          >
-            <div className="space-y-2">
-              <SimpleRow
-                label="Number Plate"
-                value={vehicle?.numberPlate || "—"}
-              />
-            </div>
-          </DropdownCard>
-
-          {/* Availability (dummy UI only) */}
-          <DropdownCard
-            title="Availability"
-            open={open.availability}
-            onToggle={() =>
-              setOpen((p) => ({ ...p, availability: !p.availability }))
-            }
-          >
-            <div className="flex items-center justify-between mb-3">
-              <button
-                className="w-9 h-9 rounded-full border-2 border-[#0b2b5a] text-[#0b2b5a] font-bold"
-                onClick={() => setMonth((m) => addMonths(m, -1))}
-              >
-                ‹
-              </button>
-
-              <div className="text-[#0b2b5a] font-semibold text-[14px]">
-                {formatMonthLabel(month)}
+                ) : (
+                  <div className="text-slate-500 text-sm">No image</div>
+                )}
               </div>
 
+              {/* dots */}
+              <div className="flex justify-center gap-2 my-3">
+                {photoUrls.slice(0, 6).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImg(idx)}
+                    className={`w-2 h-2 rounded-full ${
+                      idx === activeImg ? "bg-[#0d3778]" : "bg-slate-300"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* thumbs */}
+              <div className="grid grid-cols-4 gap-3">
+                {photoUrls.slice(0, 4).map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImg(idx)}
+                    className={`h-[62px] sm:h-[72px] rounded-xl overflow-hidden border-2 border-[#0d3778] bg-white ${
+                      idx === activeImg ? "ring-4 ring-[#0d3778]/20" : ""
+                    }`}
+                  >
+                    <img
+                      src={img}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+
+                {photoUrls.length < 4 &&
+                  Array.from({ length: 4 - photoUrls.length }).map((_, i) => (
+                    <div
+                      key={`ph-${i}`}
+                      className="h-[62px] sm:h-[72px] rounded-xl border-2 border-dashed border-slate-300 bg-slate-50"
+                    />
+                  ))}
+              </div>
+            </div>
+
+            {/* Specs */}
+            <DropdownCard
+              title="Vehicle Specification"
+              icon={<SettingsIcon />}
+              open={open.specs}
+              onToggle={() => setOpen((p) => ({ ...p, specs: !p.specs }))}
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ">
+                {specItems.map((it) => (
+                  <BulletRow key={it.label} label={it.label} value={it.value} />
+                ))}
+              </div>
+            </DropdownCard>
+
+            {/* Description */}
+            <DropdownCard
+              title="Description"
+              icon={<NotebookIcon />}
+              open={open.description}
+              onToggle={() =>
+                setOpen((p) => ({ ...p, description: !p.description }))
+              }
+            >
+              <p className="text-[14px] text-slate-700 leading-relaxed">
+                {vehicle?.description || "—"}
+              </p>
+            </DropdownCard>
+          </div>
+
+          {/* RIGHT */}
+          <div className="space-y-5">
+            {/* Registration */}
+            <DropdownCard
+              title="Registration"
+              icon={<VehicleIcon />}
+              open={open.registration}
+              onToggle={() =>
+                setOpen((p) => ({ ...p, registration: !p.registration }))
+              }
+            >
+              <div className="space-y-2">
+                <SimpleRow
+                  label="Number Plate"
+                  value={vehicle?.numberPlate || "—"}
+                />
+              </div>
+            </DropdownCard>
+
+            {/* Availability (dummy UI only) */}
+            <DropdownCard
+              title="Availability"
+              icon={<CalendarIcon />}
+              open={open.availability}
+              onToggle={() =>
+                setOpen((p) => ({ ...p, availability: !p.availability }))
+              }
+            >
+              <div className="flex items-center justify-between mb-3">
+                <button
+                  className="w-9 h-9 rounded-full border-2 border-[#0d3778] text-[#0d3778] font-bold"
+                  onClick={() => setMonth((m) => addMonths(m, -1))}
+                >
+                  ‹
+                </button>
+
+                <div className="text-[#0d3778] font-semibold text-[14px]">
+                  {formatMonthLabel(month)}
+                </div>
+
+                <button
+                  className="w-9 h-9 rounded-full border-2 border-[#0d3778] text-[#0d3778] font-bold"
+                  onClick={() => setMonth((m) => addMonths(m, 1))}
+                >
+                  ›
+                </button>
+              </div>
+
+              <MiniCalendar month={month} />
+
+              <div className="flex gap-4 items-center mt-3 text-[12px] text-slate-700">
+                <LegendItem
+                  color="bg-emerald-100 border-emerald-300"
+                  label="Available"
+                />
+                <LegendItem color="bg-red-100 border-red-300" label="Blocked" />
+              </div>
+            </DropdownCard>
+
+            {/* Rental */}
+            <DropdownCard
+              title="Rental"
+              icon={<FuelStationIcon />}
+              open={open.rental}
+              onToggle={() => setOpen((p) => ({ ...p, rental: !p.rental }))}
+            >
+              <div className="space-y-2">
+                <SimpleRow
+                  label="Price Per Day"
+                  value={vehicle?.pricePerDay ?? "—"}
+                />
+                <SimpleRow
+                  label="Price Per Km"
+                  value={vehicle?.pricePerKm ?? "—"}
+                />
+              </div>
+            </DropdownCard>
+
+            {/* Location */}
+            <DropdownCard
+              title="Location"
+              icon={<WorldIcon />}
+              open={open.location}
+              onToggle={() => setOpen((p) => ({ ...p, location: !p.location }))}
+            >
+              <div className="space-y-2">
+                <SimpleRow
+                  label="Available in"
+                  value={vehicle?.location?.address || "—"}
+                />
+              </div>
+            </DropdownCard>
+
+            {/* Book Now */}
+            <div className="flex justify-stretch">
               <button
-                className="w-9 h-9 rounded-full border-2 border-[#0b2b5a] text-[#0b2b5a] font-bold"
-                onClick={() => setMonth((m) => addMonths(m, 1))}
+                className="w-full h-[48px] rounded-xl bg-[#0d3778] text-white font-semibold text-[14px] hover:opacity-95"
+                onClick={() => alert("Book Now ")}
               >
-                ›
+                Book Now
               </button>
             </div>
-
-            <MiniCalendar month={month} />
-
-            <div className="flex gap-4 items-center mt-3 text-[12px] text-slate-700">
-              <LegendItem
-                color="bg-emerald-100 border-emerald-300"
-                label="Available"
-              />
-              <LegendItem color="bg-red-100 border-red-300" label="Blocked" />
-            </div>
-          </DropdownCard>
-
-          {/* Rental */}
-          <DropdownCard
-            title="Rental"
-            open={open.rental}
-            onToggle={() => setOpen((p) => ({ ...p, rental: !p.rental }))}
-          >
-            <div className="space-y-2">
-              <SimpleRow
-                label="Price Per Day"
-                value={vehicle?.pricePerDay ?? "—"}
-              />
-              <SimpleRow
-                label="Price Per Km"
-                value={vehicle?.pricePerKm ?? "—"}
-              />
-            </div>
-          </DropdownCard>
-
-          {/* Location */}
-          <DropdownCard
-            title="Location"
-            open={open.location}
-            onToggle={() => setOpen((p) => ({ ...p, location: !p.location }))}
-          >
-            <div className="space-y-2">
-              <SimpleRow
-                label="Available in"
-                value={vehicle?.location?.address || "—"}
-              />
-            </div>
-          </DropdownCard>
-
-          {/* Book Now */}
-          <div className="flex justify-stretch">
-            <button
-              className="w-full h-[48px] rounded-xl bg-[#0b2b5a] text-white font-semibold text-[14px] hover:opacity-95"
-              onClick={() => alert("Book Now (connect later)")}
-            >
-              Book Now
-            </button>
           </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }

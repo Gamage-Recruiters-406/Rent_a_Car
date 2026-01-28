@@ -1,8 +1,8 @@
 export function SimpleRow({ label, value }) {
   return (
-    <div className="text-[14px] text-slate-700">
-      <span className="font-semibold text-[#0b2b5a]">•</span>{" "}
-      <span className="font-semibold">{label} :</span>{" "}
+    <div className="text-[14px] text-[#0d3778]">
+      <span className="font-semibold text-[#0d3778]">•</span>{" "}
+      <span className="font-bold">{label} :</span>{" "}
       <span className="font-normal">{String(value)}</span>
     </div>
   );
@@ -10,9 +10,9 @@ export function SimpleRow({ label, value }) {
 
 export function BulletRow({ label, value }) {
   return (
-    <div className="text-[14px] text-slate-700">
-      <span className="font-semibold text-[#0b2b5a]">•</span>{" "}
-      <span className="font-semibold">{label} :</span>{" "}
+    <div className="text-[14px] text-[#0d3778]">
+      <span className="font-semibold text-[#0d3778]">•</span>{" "}
+      <span className="font-bold">{label} :</span>{" "}
       <span className="font-normal">{String(value)}</span>
     </div>
   );
