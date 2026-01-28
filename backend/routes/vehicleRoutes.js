@@ -25,6 +25,6 @@ router.put("/update/:id", requiredSignIn, isOwner, uploadVehiclePhotos.array("ph
 // Update vehicle status (Approved/Rejected) - ADMIN
 router.patch("/admin/status/:id", requiredSignIn, isAdmin, updateVehicleStatus);
 // Get all vehicle listings - ADMIN
-router.get("/admin/get-all", requiredSignIn, getAllVehicleListings);
+router.get("/admin/get-all", requiredSignIn, isAdmin, getAllVehicleListings);
 
 export default router;
