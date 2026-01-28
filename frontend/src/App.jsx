@@ -3,13 +3,16 @@ import { Toaster } from 'react-hot-toast';
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import { SignInPage } from "./pages/login/SignInPage";
 import{SignUpPage} from "./pages/login/SignupPage";
+import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
+
 function App() {
 
   return (
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
-        <Route path="/" element={<h1>Home</h1>} />
+        <Route path="/" element={<CustomerVehicleListPage />} />
+        <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
 
 
