@@ -46,6 +46,11 @@ const userSchema = new mongoose.Schema({
     },
     suspendExpires: {
         type: Date
+    },
+    emailNotify: {
+        type: String,
+        enum: ["on", "off"],
+        default: "off"
     }
 
 },{timestamps: true})
