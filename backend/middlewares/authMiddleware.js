@@ -58,6 +58,17 @@ export const isOwner = async(req, res, next) => {
     next();
 }
 
+//check user is owner or admin
+export const isAdminOrOwner = async (req, res, next) => {
+    if(req.user.role !== 2 && req.user.role !== 3){
+        return res.status(403).json({
+            success: false,
+            message: "Access denied. Admin or Owner required."
+        })
+    }
+}
+
+//check user account is verified or not
 export const isVerifiedUser = async (req, res, next) => {
     if(req.user.status !== "verified"){
         return res.status(403).json({
