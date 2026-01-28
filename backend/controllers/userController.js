@@ -9,7 +9,7 @@ import {isStrongPassword } from "../helpers/validator.js"
 export const registerUser = async (req, res) => {
     try {
         const { first_name, last_name, email, userType, contactNumber, password} = req.body; 
-        const role = 1;
+        let role = 1;
         if(!first_name || !last_name || !email || !password || !contactNumber || !userType){
             res.status(404).json({
                 success: false,
