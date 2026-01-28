@@ -53,13 +53,10 @@ export function SignUpPage() {
       if (response.ok) {
         const data = await response.json();
         toast.success('Registration successful! Please verify your email');
-
-          if(formData.userType === 'owner'){
-            navigate('https://mail.google.com/mail');
-          }else{
-            navigate('/login');
-          }
-      } else 
+        navigate('/login');
+         
+      } 
+      else 
         {
         const errorData = await response.json().catch(() => ({}));
         console.error('Registration failed:', response.status, errorData);
