@@ -76,34 +76,56 @@ export async function suspendOwner(to, name, Date) {
 
 /**
  * BOOKING EMAIL
- * type = approved | rejected
+ * type = approved | rejected | updated | cancelled
  */
 export async function sendBookingEmail({ type, booking, customer, owner, vehicle }) {
-  const title =
-    type === "approved"
-      ? "Booking Approved – Rent My Car"
-      : "Booking Rejected – Rent My Car";
 
-  const message =
-    type === "approved"
-      ? `Dear ${customer.first_name}, your booking has been approved.`
-      : `Dear ${customer.first_name}, your booking has been rejected.`;
+  let title = "Booking Update - Rent My Car";
+  let message = "";
+  let statusText = "";
+
+  switch (type) {
+    case "approved":
+      title = "Booking Approved - Rent My Car";
+      message = `Dear ${customer.first_name}, your booking has been approved.`;
+      statusText = "Approved";
+      break;
+
+    case "rejected":
+      title = "Booking Rejected - Rent My Car";
+      message = `Dear ${customer.first_name}, your booking has been rejected.`;
+      statusText = "Rejected";
+      break;
+
+    case "updated":
+      title = "Booking Updated - Rent My Car";
+      message = `Dear ${owner.first_name}, a booking has been updated by the customer.`;
+      statusText = "Updated";
+      break;
+
+    case "cancelled":
+      title = "Booking Cancelled - Rent My Car";
+      message = `Dear ${owner.first_name}, a booking has been cancelled by the customer.`;
+      statusText = "Cancelled";
+      break;
+  }
 
   const details = `
     <h3>Booking Details</h3>
-    <p><strong>Booking ID:</strong> ${booking._id}</p>
-    <p><strong>Status:</strong> ${booking.status}</p>
-    <p><strong>Start:</strong> ${booking.startingDate.toDateString()}</p>
-    <p><strong>End:</strong> ${booking.endDate.toDateString()}</p>
-
-    <h3>Vehicle</h3>
-    <p>${vehicle.title} - ${vehicle.model} (${vehicle.year})</p>
-    <p>${vehicle.numberPlate}</p>
+    <p><strong>Vehicle:</strong> ${vehicle.title} (${vehicle.numberPlate})</p>
+    <p><strong>Booking Dates:</strong> ${booking.startingDate.toDateString()} to ${booking.endDate.toDateString()}</p>
+    <p><strong>Status:</strong> ${statusText}</p>
   `;
+
+  // Decide receiver
+  const toEmail =
+    type === "approved" || type === "rejected"
+      ? customer.email     // customer emails
+      : owner.email;       // owner emails
 
   await transporter.sendMail({
     from: process.env.MAIL_FROM,
-    to: customer.email,
+    to: toEmail,
     subject: title,
     html: generateEmailTemplate({ title, message, details }),
   });
@@ -116,19 +138,21 @@ export async function sendBookingEmail({ type, booking, customer, owner, vehicle
 export async function sendVehicleEmail({ type, vehicle, owner }) {
   const title =
     type === "approved"
-      ? "Vehicle Approved – Rent My Car"
-      : "Vehicle Rejected – Rent My Car";
+      ? "Vehicle Approved - Rent My Car"
+      : "Vehicle Rejected - Rent My Car";
 
   const message =
     type === "approved"
-      ? `Dear ${owner.first_name}, your vehicle has been approved.`
-      : `Dear ${owner.first_name}, your vehicle has been rejected.`;
+      ? `Dear ${owner.first_name}, your vehicle has been approved and is now visible to customers.`
+      : `Dear ${owner.first_name}, your vehicle has been rejected. Please check the details and resubmit if needed.`;
+
 
   const details = `
     <h3>Vehicle Details</h3>
-    <p>${vehicle.title}</p>
-    <p>${vehicle.model} (${vehicle.year})</p>
-    <p>${vehicle.numberPlate}</p>
+    <p><strong>Title:</strong> ${vehicle.title}</p>
+    <p><strong>Model:</strong> ${vehicle.model} (${vehicle.year})</p>
+    <p><strong>Number Plate:</strong> ${vehicle.numberPlate}</p>
+    <p><strong>Status:</strong> ${type === "approved" ? "Approved" : "Rejected"}</p>
   `;
 
   await transporter.sendMail({
@@ -138,3 +162,65 @@ export async function sendVehicleEmail({ type, vehicle, owner }) {
     html: generateEmailTemplate({ title, message, details }),
   });
 }
+
+// Notify owner of new booking request
+export async function sendNewBookingRequestEmail({ booking, owner, customer, vehicle }) {
+  const title = "New Booking Request - Rent My Car";
+  const message = `Dear ${owner.first_name}, ${customer.first_name} requested to book your vehicle.`;
+
+  const details = `
+    <h3>Booking Details</h3>
+    <p><strong>Customer:</strong> ${customer.first_name} ${customer.last_name} (${customer.email})</p>
+    <p><strong>Vehicle:</strong> ${vehicle.title} (${vehicle.numberPlate})</p>
+    <p><strong>Booking Dates:</strong> ${booking.startingDate.toDateString()} to ${booking.endDate.toDateString()}</p>
+    <p><strong>Status:</strong> Pending</p>
+  `;
+
+  await transporter.sendMail({
+    from: process.env.MAIL_FROM,
+    to: owner.email,
+    subject: title,
+    html: generateEmailTemplate({ title, message, details }),
+  });
+}
+
+// Notify admin of vehicle changes (new, updated, deleted)
+export async function sendAdminVehicleNotificationEmail({ vehicle, owner, adminEmail, type }) {
+  let title = "";
+  let message = "";
+
+  switch(type) {
+    case "new":
+      title = "New Vehicle Approval Request - Rent My Car";
+      message = `Dear Admin, a new vehicle has been submitted by ${owner.first_name} and requires your approval.`;
+      break;
+
+    case "updated":
+      title = "Vehicle Updated - Rent My Car";
+      message = `Dear Admin, ${owner.first_name} updated their vehicle "${vehicle.title}". Please review the changes.`;
+      break;
+
+    case "deleted":
+      title = "Vehicle Deleted - Rent My Car";
+      message = `Dear Admin, ${owner.first_name} deleted their vehicle "${vehicle.title}" (${vehicle.numberPlate}).`;
+      break;
+  }
+
+  const details = `
+    <h3>Vehicle Details</h3>
+    <p><strong>Owner:</strong> ${owner.first_name} ${owner.last_name} (${owner.email})</p>
+    <p><strong>Title:</strong> ${vehicle.title}</p>
+    <p><strong>Model:</strong> ${vehicle.model} (${vehicle.year})</p>
+    <p><strong>Number Plate:</strong> ${vehicle.numberPlate}</p>
+    <p><strong>Status:</strong> ${type === "new" ? "Pending Approval" : type === "updated" ? "Updated" : "Deleted"}</p>
+  `;
+
+  await transporter.sendMail({
+    from: process.env.MAIL_FROM,
+    to: adminEmail,
+    subject: title,
+    html: generateEmailTemplate({ title, message, details }),
+  });
+}
+
+
