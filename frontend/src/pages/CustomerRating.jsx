@@ -23,7 +23,7 @@ export default function CustomerReviews() {
       rating: 4,
       comment:
         "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=12",
+      img: "",
     },
     {
       name: "Person Name",
@@ -143,6 +143,11 @@ export default function CustomerReviews() {
       sliderRef.current = null;
     }
   };
+
+  const getInitial = (name)=>{
+    if(!name) return "?";
+    return name.charAt(0).toUpperCase();
+  }
   
   
 
@@ -282,11 +287,18 @@ export default function CustomerReviews() {
                   >
                     <div className="bg-white rounded-xl shadow pb-6 max-w-md w-full">
                       <div className="bg-gray-200 border-b-2 border-[#0D3778] rounded-t-xl flex shadow p-6 gap-4">
-                        <img
-                          src={review.img}
-                          alt="profile"
-                          className="w-14 h-14 rounded-full"
-                        />
+                        {review.img ? (
+                          <img
+                              src={review.img}
+                              alt={review.name}
+                              className="w-14 h-14 rounded-full object-cover"
+                          />
+                        ):(
+                          <div className="w-14 h-14 rounded-full bg-[#0D3778] flex items-center justify-center text-white font-semibold text-xl shadow-sm ring-2 ring-white">
+                            {getInitial(review.name)}
+                          </div>
+                       )}
+                        
                         <div className="overflow-hidden">
                           <h4 className="font-semibold text-[#0D3778]">
                             {review.name}
