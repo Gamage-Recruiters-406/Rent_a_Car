@@ -141,7 +141,7 @@ export default function Header({
 					<Logo />
 				</Link>
 
-				{normalizedRole === "customer" && (
+{(normalizedRole === "customer" || !isAuthenticated) && (
 					<nav className="flex items-center gap-4">
 						<div className="hidden items-center gap-2 md:flex">
 							<NavLink to="/cars">Browse Cars</NavLink>
@@ -169,7 +169,7 @@ export default function Header({
 					</nav>
 				)}
 
-				{normalizedRole === "owner" && (
+				{normalizedRole === "owner" && isAuthenticated && (
 					<nav className="flex items-center gap-4">
 						<div className="hidden items-center gap-2 lg:flex">
 							<NavLink to="/owner/dashboard" active>
@@ -188,7 +188,7 @@ export default function Header({
 					</nav>
 				)}
 
-				{normalizedRole === "admin" && (
+				{normalizedRole === "admin" && isAuthenticated && (
 					<nav className="flex items-center gap-4">
 						<div className="hidden items-center gap-2 lg:flex">
 							<NavLink to="/admin/dashboard" active>
