@@ -526,3 +526,36 @@ export const getAllVehicleListings = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+// CUSTOMER
+// GET ALL VEHICLE LISTINGS (for Customers)
+export const getAllAvailableVehicles = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find({ status: "Approved" })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "ownerId",
+        match: { status: "verified" },
+        select: "first_name last_name email contactNumber status"
+      })
+      .lean();
+
+    const filtered = vehicles.filter((v) => v.ownerId);
+
+    return res.status(200).json({ 
+      success: true, 
+      count: filtered.length,
+      vehicles: filtered 
+    });
+  } catch (error) {
+    console.log("GET VEHICLE LISTING ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
