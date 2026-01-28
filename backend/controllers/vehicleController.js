@@ -35,9 +35,9 @@ export const createVehicleListing = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, address, lat, lng } = req.body;
+    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, km, pricePerKm, address, lat, lng } = req.body;
 
-    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
+    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || km === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
@@ -64,12 +64,13 @@ export const createVehicleListing = async (req, res) => {
     }
 
     const ppd = Number(pricePerDay);
+    const Km = Number(km);
     const ppk = Number(pricePerKm);
-    if (Number.isNaN(ppd) || ppd < 0 || Number.isNaN(ppk) || ppk < 0) {
+    if (Number.isNaN(ppd) || ppd < 0 || Number.isNaN(Km) || Km < 0 || Number.isNaN(ppk) || ppk < 0) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
-        message: "pricePerDay and pricePerKm must be valid non-negative numbers.",
+        message: "pricePerDay, km and pricePerKm must be valid non-negative numbers.",
       });
     }
 
@@ -85,6 +86,7 @@ export const createVehicleListing = async (req, res) => {
       fuelType,
       transmission,
       pricePerDay: ppd,
+      km: Km,
       pricePerKm: ppk,
       photos: [],
       location: {
@@ -312,6 +314,7 @@ export const updateVehicleListing = async (req,res) => {
       fuelType,
       transmission,
       pricePerDay,
+      km,
       pricePerKm,
       address,
       lat,
@@ -344,6 +347,15 @@ export const updateVehicleListing = async (req,res) => {
         return res.status(400).json({ success: false, message: "pricePerDay must be a valid non-negative number." });
       }
       vehicle.pricePerDay = ppd;
+    }
+
+    if (km !== undefined) {
+      const Km = Number(km);
+      if (Number.isNaN(Km) || Km < 0) {
+        if (tempDir) removeDirSafe(tempDir);
+        return res.status(400).json({ success: false, message: "km must be a valid non-negative number." });
+      }
+      vehicle.km = Km;
     }
 
     if (pricePerKm !== undefined) {
