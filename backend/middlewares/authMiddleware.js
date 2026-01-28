@@ -57,3 +57,12 @@ export const isOwner = async(req, res, next) => {
     };
     next();
 }
+
+export const isVerifiedUser = async (req, res, next) => {
+    if(req.user.status !== "verified"){
+        return res.status(403).json({
+            success: true,
+            message: "You need to verify your account."
+        })
+    }
+}
