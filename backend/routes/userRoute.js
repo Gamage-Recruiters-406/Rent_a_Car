@@ -1,7 +1,6 @@
 import express from 'express';
 import {registerUser,
     SignIn,
-    registerOwner,
     verifyEmail,
     ReSendVerificationMail,
     logout,
@@ -33,8 +32,6 @@ router.post("/login", SignIn);
 //logout function
 router.post("/logout", requiredSignIn, logout);
 
-//register as a vehicle owner
-// router.post("/OwnerRegistration", registerOwner);
 //vehicle owner verificaton route
 router.get("/verify-email", verifyEmail);
 
