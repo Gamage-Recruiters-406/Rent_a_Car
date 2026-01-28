@@ -700,3 +700,94 @@ export const otp = async (req,res) => {
     })
   }
 }
+
+//Get new OTP code
+export const RestOTP = async (req,res) => {
+  try {
+    const {email} = req.body;
+    const user = await User.findOne({email});
+
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: "Account not found."
+      })
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString(); // "100000" - "999999"
+
+    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    user.resetOtpHash = otpHash;
+    user.resetOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // expire with in 10 minutes
+
+    await user.save();
+    await sendOtpEmail(user.email, user.first_name, otp);
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to your email.",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    })
+  }
+}
+
+//OTP verification part
+export const verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required.",
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    if (!user.resetOtpHash || !user.resetOtpExpires) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP request found. Please request a new OTP.",
+      });
+    }
+
+    // check OTP is expired or not
+    if (user.resetOtpExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired. Please request a new OTP.",
+      });
+    }
+
+    const otpHash = crypto.createHash("sha256").update(String(otp)).digest("hex");
+
+    //compare OTP code
+    if (otpHash !== user.resetOtpHash) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP.",
+      });
+    }
+
+    //remove otp code and otp expire date from DB
+    user.resetOtpHash = undefined;
+    user.resetOtpExpires = undefined
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP is correct.",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Server Side Error." });
+  }
+};

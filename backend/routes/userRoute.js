@@ -15,7 +15,9 @@ import {registerUser,
     emailNotify,
     deleteAccount,
     AdminDeleteAccount,
-    otp
+    otp,
+    verifyResetOtp,
+    RestOTP
 } from "../controllers/userController.js"
 
 import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
@@ -39,7 +41,9 @@ router.get("/verify-email", verifyEmail);
 router.patch("/getVerificationMail",requiredSignIn, isOwner, ReSendVerificationMail);
 
 //password reset otp code
-router.post("/passwordRest",otp)
+router.post("/passwordRest",otp);
+router.patch("/RestOTP",RestOTP);
+router.get("/verifyResetOtp",verifyResetOtp); //comapre OTP code
 
 //get all users except admins
 router.get("/getAllUsers",requiredSignIn, isAdmin, getAllUsers);
