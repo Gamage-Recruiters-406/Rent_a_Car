@@ -25,12 +25,13 @@ export function SignInPage() {
       method: 'POST',
       headers: {'Content-Type': 'application/json',},
       body: JSON.stringify(formData),
-    });
-    toast.success("loging success");
+      
+    });  
     
     if(!response.ok){
-      throw new Error('Network response was not ok');
-    }
+      throw new Error('please enter valid email and password');
+    }toast.success("loging success");
+    
     const data = await response.json();
     if(data.success || data.token){ 
           localStorage.setItem('token', data.token); 
@@ -72,7 +73,7 @@ export function SignInPage() {
         </div>
       </div>
 
-      {/* Right Panel - Form Content */}
+      {/* Right Panel - Form Conten*/}
       <div className="w-full lg:w-[60%] bg-white flex flex-col justify-center items-center p-6 lg:p-12 overflow-y-auto">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2">
