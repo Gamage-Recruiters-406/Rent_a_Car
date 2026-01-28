@@ -1,11 +1,12 @@
 import express from 'express';
-import { requiredSignIn, isOwner } from '../middlewares/authMiddleware.js';
+import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
 import { uploadVehiclePhotos } from '../middlewares/uploadMiddleware.js';
 import { createVehicleListing, 
         deleteVehicleListing, 
         getSingleVehicleListing, 
         getMyVehicleListings,
-        updateVehicleListing } from '../controllers/vehicleController.js';
+        updateVehicleListing,
+        updateVehicleStatus } from '../controllers/vehicleController.js';
 
 const router = express.Router();
 
@@ -20,5 +21,7 @@ router.get("/get/:id", requiredSignIn, isOwner, getSingleVehicleListing);
 router.get("/get-my-all", requiredSignIn, isOwner, getMyVehicleListings);
 // Update vehicle listing
 router.put("/update/:id", requiredSignIn, isOwner, uploadVehiclePhotos.array("photos", 10), updateVehicleListing);
+// Update vehicle status (Approved/Rejected) - ADMIN
+router.patch("/admin/status/:id", requiredSignIn, isAdmin, updateVehicleStatus);
 
 export default router;
