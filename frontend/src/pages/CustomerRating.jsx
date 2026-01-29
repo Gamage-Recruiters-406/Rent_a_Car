@@ -222,6 +222,8 @@ export default function CustomerReviews() {
     return name.charAt(0).toUpperCase();
   }
 
+  console.log("Token: ",localStorage.getItem("token"));
+
   const handleSubmitReview = async () => {
     if(!rating || !feedback.trim()) return;
 
@@ -236,7 +238,9 @@ export default function CustomerReviews() {
           feedback: feedback,
         },
         {
-          withCredentials:true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       setRating(0);
