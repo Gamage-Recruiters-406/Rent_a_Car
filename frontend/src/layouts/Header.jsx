@@ -241,7 +241,7 @@ export default function Header({
 									Dashboard
 								</NavLink>
 								<NavLink to="/admin/users">User</NavLink>
-								<NavLink to="/admin/vehicles">Vehicles</NavLink>
+								<NavLink to="/admin/vehicles">Vehicle</NavLink>
 								<NavLink to="/admin/bookings">Booking</NavLink>
 								<NavLink to="/admin/reports">Reports</NavLink>
 								<NavLink to="/admin/settings">Settings</NavLink>
