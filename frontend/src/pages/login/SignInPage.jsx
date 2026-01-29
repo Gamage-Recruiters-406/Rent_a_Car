@@ -20,30 +20,36 @@ export function SignInPage() {
     e.preventDefault();
     setIsLoading(true);
     
-  try{
-    const url = `${baseUrl}${apiVersion}/authUser/login`;
-    const response = await fetch(url,{
-      method: 'POST',
-      headers: {'Content-Type': 'application/json',},
-      body: JSON.stringify(formData),
-      
-    });  
-    
-    if(!response.ok){
-      throw new Error('please enter valid email and password');
-    }toast.success("loging success");
-    
-    const data = await response.json();
-    if(data.success || data.token){ 
-          localStorage.setItem('token', data.token); 
-          localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard');
-    } else {
-        toast.error(data.message || 'Login failed'); }
-  } 
-  catch(error){
-    setIsLoading(false);
-    toast.error(error.message);
+    try {
+      const url = `${baseUrl}${apiVersion}/authUser/login`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Login API Response:', data); 
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      if (data.success) {
+        toast.success(data.message || "Login Successfully");
+        localStorage.setItem('token', data.token);
+  
+        localStorage.setItem('user', JSON.stringify(data));
+        navigate('/dashboard');
+
+     
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      toast.error(error.message || "Server Side Error");
     }
   };
 
@@ -74,7 +80,7 @@ export function SignInPage() {
         </div>
       </div>
 
-      {/* Right Panel - Form Content */}
+      {/* Right Panel - Form Conten*/}
       <div className="w-full lg:w-[60%] bg-white flex flex-col justify-center items-center p-6 lg:p-12 overflow-y-auto">
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-2">
