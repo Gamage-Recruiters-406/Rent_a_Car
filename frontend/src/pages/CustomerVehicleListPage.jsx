@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Fuel, Zap, Users } from 'lucide-react';
+import { MapPin, Star, Fuel, Zap, Users, X, Calendar, DollarSign, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Layout from '../layouts/Layout';
 
@@ -11,6 +11,8 @@ export function CustomerVehicleListPage() {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     location: '',
     startDate: '',
@@ -87,7 +89,16 @@ export function CustomerVehicleListPage() {
   };
 
   const handleViewDetails = (vehicleId) => {
-    navigate(`/vehicle/${vehicleId}`);
+    const vehicle = vehicles.find(v => (v._id || v.id) === vehicleId);
+    if (vehicle) {
+      setSelectedVehicle(vehicle);
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedVehicle(null), 300);
   };
 
   const filteredVehicles = vehicles.filter(vehicle => {
@@ -378,6 +389,178 @@ export function CustomerVehicleListPage() {
           )}
         </div>
       </div>
+
+      {/* Vehicle Details Modal */}
+      {isModalOpen && selectedVehicle && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={closeModal}
+          ></div>
+
+          {/* Modal Container */}
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+              >
+                <X className="w-6 h-6 text-gray-600" />
+              </button>
+
+              {/* Image Gallery */}
+              <div className="relative h-80 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400 rounded-t-3xl overflow-hidden">
+                {selectedVehicle.photos && selectedVehicle.photos.length > 0 ? (
+                  <img
+                    src={selectedVehicle.photos[0]}
+                    alt={selectedVehicle.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <span className="text-6xl">🚗</span>
+                      <p className="text-lg text-gray-600 mt-3">No Image Available</p>
+                    </div>
+                  </div>
+                )}
+                {/* Rating Badge */}
+                <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2 shadow-xl">
+                  <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                  <span className="text-lg font-bold text-gray-800">4.2</span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-8">
+                {/* Title Section */}
+                <div className="mb-6">
+                  <h2 className="text-4xl font-bold text-gray-900 mb-2">{selectedVehicle.title || 'Vehicle'}</h2>
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <span className="text-lg font-medium">{selectedVehicle.year || 'N/A'}</span>
+                    <span className="text-gray-400">•</span>
+                    <span className="text-lg">{selectedVehicle.vehicleType || 'N/A'}</span>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="flex items-start gap-3 mb-6 p-4 bg-red-50 rounded-xl border border-red-100">
+                  <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />
+                  <div>
+                    <p className="text-sm text-gray-600 font-medium">Location</p>
+                    <p className="text-base text-gray-900">{selectedVehicle.address || 'Location not specified'}</p>
+                  </div>
+                </div>
+
+                {/* Specifications Grid */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Info className="w-5 h-5 text-[#0D3778]" />
+                    Specifications
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-200">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white rounded-lg p-2">
+                          <Fuel className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 font-medium">Fuel Type</p>
+                          <p className="text-lg font-bold text-gray-900">{selectedVehicle.fuelType || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 border border-purple-200">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white rounded-lg p-2">
+                          <Zap className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 font-medium">Transmission</p>
+                          <p className="text-lg font-bold text-gray-900">{selectedVehicle.transmission || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-4 border border-green-200">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white rounded-lg p-2">
+                          <Users className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 font-medium">Capacity</p>
+                          <p className="text-lg font-bold text-gray-900">{selectedVehicle.capacity || 'N/A'} Seats</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedVehicle.description && (
+                  <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Description</h3>
+                    <p className="text-gray-700 leading-relaxed">{selectedVehicle.description}</p>
+                  </div>
+                )}
+
+                {/* Pricing Section */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-[#0D3778]" />
+                    Pricing Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-[#0D3778]/5 to-[#0D3778]/10 rounded-xl p-6 border-2 border-[#0D3778]/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm text-gray-600 font-medium">Per Day Rate</p>
+                        <Calendar className="w-5 h-5 text-[#0D3778]" />
+                      </div>
+                      <p className="text-4xl font-bold text-[#0D3778]">
+                        {selectedVehicle.pricePerDay?.toLocaleString() || '0'}
+                        <span className="text-lg text-gray-600 ml-2">LKR</span>
+                      </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm text-gray-600 font-medium">Per KM Rate</p>
+                        <MapPin className="w-5 h-5 text-gray-600" />
+                      </div>
+                      <p className="text-4xl font-bold text-gray-900">
+                        {selectedVehicle.pricePerKm?.toLocaleString() || '0'}
+                        <span className="text-lg text-gray-600 ml-2">LKR</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={closeModal}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 rounded-xl transition-all duration-300"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => {
+                      closeModal();
+                      navigate(`/vehicle/${selectedVehicle._id || selectedVehicle.id}/book`);
+                    }}
+                    className="flex-1 bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] hover:from-[#0a2959] hover:to-[#081f3d] text-white font-semibold py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  >
+                    Book Now
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
