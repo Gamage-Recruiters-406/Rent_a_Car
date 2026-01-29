@@ -111,17 +111,17 @@ export function CustomerVehicleListPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-[#0A2E5C] to-[#1a3a52] text-white py-12 px-4 md:px-8">
+        <div className="bg-gradient-to-br from-[#0D3778] via-[#0A2E5C] to-[#1a3a52] text-white py-16 px-4 md:px-8 shadow-xl">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl md:text-5xl font-bold mb-2">Find Your Perfect Ride</h1>
-            <p className="text-blue-100 text-lg">Choose from our wide selection of quality vehicles</p>
+            <h1 className="text-4xl md:text-6xl font-bold mb-3 tracking-tight">Find Your Perfect Ride</h1>
+            <p className="text-blue-100 text-lg md:text-xl font-light">Choose from our wide selection of quality vehicles</p>
           </div>
         </div>
 
         {/* Filter Section */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="bg-white shadow-lg sticky top-0 z-10">
           <div className="max-w-7xl mx-auto p-4 md:p-8">
             <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1">
@@ -169,9 +169,12 @@ export function CustomerVehicleListPage() {
         </div>
 
         {/* Advanced Filter Results Section */}
-        <div className="bg-white border-b-2 border-[#0D3778]">
+        <div className="bg-gradient-to-r from-white to-gray-50 border-b-2 border-[#0D3778] shadow-md">
           <div className="max-w-7xl mx-auto p-4 md:p-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Filter Results</h3>
+            <h3 className="text-xl font-bold text-[#0D3778] mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-[#0D3778] rounded-full"></span>
+              Filter Results
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Vehicle Type Filter */}
               <div>
@@ -233,7 +236,7 @@ export function CustomerVehicleListPage() {
                   value={filters.maxPrice}
                   onChange={handleFilterChange}
                   placeholder="Max price"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0D3778] focus:border-[#0D3778] outline-none hover:border-gray-400 transition-all duration-200 shadow-sm"
                 />
               </div>
             </div>
@@ -245,28 +248,31 @@ export function CustomerVehicleListPage() {
           {isLoading ? (
             <div className="flex justify-center items-center min-h-96">
               <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <p className="mt-4 text-gray-600">Loading vehicles...</p>
+                <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#0D3778]"></div>
+                <p className="mt-6 text-gray-700 font-semibold text-lg">Loading vehicles...</p>
               </div>
             </div>
           ) : filteredVehicles.length > 0 ? (
             <>
               {/* Filter Results Info */}
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {filteredVehicles.length} Vehicle{filteredVehicles.length !== 1 ? 's' : ''} Available
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold flex items-center gap-3">
+                  <span className="w-1.5 h-8 bg-gradient-to-b from-[#0D3778] to-[#0A2E5C] rounded-full shadow-md"></span>
+                  <span className="bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] bg-clip-text text-transparent">
+                    {filteredVehicles.length} Vehicle{filteredVehicles.length !== 1 ? 's' : ''} Available
+                  </span>
                 </h2>
               </div>
 
               {/* Vehicles Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredVehicles.map((vehicle) => (
                   <div
                     key={vehicle._id || vehicle.id}
-                    className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 group"
+                    className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-gray-100 hover:border-[#0D3778] group transform hover:-translate-y-1"
                   >
                     {/* Vehicle Image Container */}
-                    <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-300 overflow-hidden">
+                    <div className="relative h-52 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 overflow-hidden">
                       {vehicle.photos && vehicle.photos.length > 0 ? (
                         <img
                           src={vehicle.photos[0]}
@@ -356,17 +362,17 @@ export function CustomerVehicleListPage() {
             </>
           ) : (
             // Empty State
-            <div className="text-center py-16">
-              <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl">🚗</span>
+            <div className="flex flex-col items-center justify-center py-16 bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl border-2 border-gray-100">
+              <div className="bg-gradient-to-br from-[#0D3778]/10 to-[#0A2E5C]/5 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-8 shadow-lg">
+                <span className="text-6xl">🚗</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">No Vehicles Available</h3>
-              <p className="text-gray-600 mb-8">For Your Search</p>
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] bg-clip-text text-transparent mb-3">No Vehicles Available</h3>
+              <p className="text-gray-600 text-lg mb-10 max-w-md text-center">For Your Search. Try adjusting your filters or check back later for new vehicles.</p>
               <button
                 onClick={fetchVehicles}
-                className="bg-[#0D3778] hover:bg-[#0a2959] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] hover:from-[#0a2959] hover:to-[#081f3d] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                Try Again
+                🔄 Try Again
               </button>
             </div>
           )}
