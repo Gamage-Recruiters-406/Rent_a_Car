@@ -5,12 +5,12 @@ import logoBlue from "../assets/Rent My Car(Blue).png";
 const Logo = () => (
 	<div className="flex items-center gap-2">
 		<img src={logoBlue} alt="Rent My Car" className="h-7 w-auto" />
-		<span className="text-lg font-semibold text-blue-700">Rent My Car</span>
+		<span className="text-lg font-semibold text-[#0D3778]">Rent My Car</span>
 	</div>
 );
 
 const Avatar = ({ name }) => (
-	<div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+	<div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0D3778] text-sm font-semibold text-white">
 		{name?.slice(0, 1)?.toUpperCase() || "U"}
 	</div>
 );
@@ -50,7 +50,7 @@ const NavLink = ({ to, children, active }) => (
 		to={to}
 		className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
 			active
-				? "bg-blue-50 text-blue-700"
+				? "bg-[#dbeafe] text-[#0D3778]"
 				: "text-slate-600 hover:bg-slate-100"
 		}`}
 	>
@@ -58,55 +58,83 @@ const NavLink = ({ to, children, active }) => (
 	</Link>
 );
 
-const ProfileMenu = ({ user, roleLabel, onLogout }) => {
+const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => {
 	const [open, setOpen] = useState(false);
+
+	const AvatarDiv = () => (
+		<div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
+			{user?.avatar || user?.profile_image ? (
+				<img
+					src={user.avatar || user.profile_image}
+					alt={user?.first_name || "User"}
+					className="h-full w-full object-cover"
+				/>
+			) : (
+				<span className="text-sm">
+					{`${user?.first_name?.slice(0, 1) || ""}${user?.last_name?.slice(0, 1) || ""}`.toUpperCase() || "U"}
+				</span>
+			)}
+		</div>
+	);
 
 	return (
 		<div className="relative">
 			<button
 				type="button"
 				onClick={() => setOpen((prev) => !prev)}
-				className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-300"
+				className="flex items-center gap-2.5 bg-transparent text-sm transition hover:opacity-80"
 			>
-				<Avatar name={user?.first_name || user?.name} />
-				<div className="flex flex-col items-start text-xs">
-					<span className="font-semibold">
+				{!avatarAfterName && <AvatarDiv />}
+				<div className="flex flex-col items-start">
+					<span className="text-sm font-medium text-[#0D3778]">
 						{user?.first_name ? `${user.first_name} ${user.last_name || ""}`.trim() : "User"}
 					</span>
-					<span className="text-[10px] uppercase tracking-wide text-slate-400">
-						{roleLabel}
-					</span>
+					<div className="flex items-center gap-1">
+						<span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+						<span className="text-xs text-green-600 font-medium">Online</span>
+					</div>
 				</div>
+				{avatarAfterName && <AvatarDiv />}
 				<svg
 					viewBox="0 0 20 20"
-					className="h-4 w-4 text-slate-500"
+					className="h-3.5 w-3.5 text-slate-900 shrink-0"
 					fill="currentColor"
 					aria-hidden="true"
 				>
 					<path d="M5.25 7.5 10 12.25 14.75 7.5" />
 				</svg>
-			</button>
+		</button>
 
 			{open && (
-				<div className="absolute right-0 mt-2 w-40 rounded-xl border border-slate-200 bg-white py-2 text-sm shadow-lg">
+				<div className="absolute right-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1.5 shadow-lg">
 					<Link
 						to="/profile"
-						className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50"
+						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
+						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+							<path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.3 0-6 2-6 4.5V20h12v-1.5c0-2.5-2.7-4.5-6-4.5Z" />
+						</svg>
 						<span>Profile</span>
 					</Link>
 					<Link
 						to="/settings"
-						className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50"
+						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
+						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+							<path d="M12 8a1 1 0 0 1 1 1v2h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0v-2H9a1 1 0 0 1 0-2h2V9a1 1 0 0 1 1-1Zm0-6a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z" />
+						</svg>
 						<span>Settings</span>
 					</Link>
+					<hr className="my-1.5 border-slate-200" />
 					<button
 						type="button"
 						onClick={onLogout}
-						className="flex w-full items-center gap-2 px-4 py-2 text-left text-red-500 hover:bg-red-50"
+						className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
 					>
-						Logout
+						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+							<path d="M16 13v-2H7V8l-5 4 5 4v-3h9ZM20 3h-9c-1.1 0-2 .9-2 2v4h2V5h9v14h-9v-4H9v4c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2Z" />
+						</svg>
+						<span>Logout</span>
 					</button>
 				</div>
 			)}
@@ -135,8 +163,8 @@ export default function Header({
 	}, [normalizedRole]);
 
 	return (
-		<header className="w-full bg-white">
-			<div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+		<header className="sticky top-0 z-50 w-full bg-white shadow-sm">
+			<div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
 				<Link to="/" className="flex items-center">
 					<Logo />
 				</Link>
@@ -149,18 +177,18 @@ export default function Header({
 							<NavLink to="/become-a-host">Become a Host</NavLink>
 						</div>
 						{isAuthenticated ? (
-							<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} />
+						<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} avatarAfterName={true} />
 						) : (
 							<div className="flex items-center gap-3">
 								<Link
 									to="/login"
-									className="rounded-full border border-blue-700 px-4 py-1.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+									className="rounded-full border-2 border-[#0D3778] px-4 py-1.5 text-sm font-semibold text-[#0D3778] transition hover:bg-[#dbeafe]"
 								>
 									Login
 								</Link>
 								<Link
 									to="/signup"
-									className="rounded-full bg-blue-700 px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
+									className="rounded-full bg-[#0D3778] px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0B2F68]"
 								>
 									Sign Up
 								</Link>
@@ -183,7 +211,7 @@ export default function Header({
 						</div>
 						<div className="flex items-center gap-4">
 							<NotificationBell count={notifications} />
-							<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} />
+						<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} avatarAfterName={false} />
 						</div>
 					</nav>
 				)}
@@ -202,11 +230,10 @@ export default function Header({
 						</div>
 						<div className="flex items-center gap-4">
 							<NotificationBell count={notifications} />
-							<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} />
-						</div>
-					</nav>
-				)}
-			</div>
-		</header>
-	);
+						<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} avatarAfterName={false} />
+					</div>
+				</nav>
+			)}
+		</div>
+	</header>	);
 }
