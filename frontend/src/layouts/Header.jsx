@@ -149,12 +149,17 @@ export default function Header({
 	onLogout,
 	notifications = 0,
 }) {
+	const [mobileOpen, setMobileOpen] = useState(false);
+
 	const normalizedRole = useMemo(() => {
 		if (typeof role === "string") return role.toLowerCase();
 		if (role === 3) return "admin";
 		if (role === 2) return "owner";
 		return "customer";
 	}, [role]);
+
+	const mobileHiddenClass =
+		normalizedRole === "customer" || !isAuthenticated ? "md:hidden" : "lg:hidden";
 
 	const roleLabel = useMemo(() => {
 		if (normalizedRole === "admin") return "Admin";
@@ -169,71 +174,215 @@ export default function Header({
 					<Logo />
 				</Link>
 
-{(normalizedRole === "customer" || !isAuthenticated) && (
-					<nav className="flex items-center gap-4">
-						<div className="hidden items-center gap-2 md:flex">
-							<NavLink to="/cars">Browse Cars</NavLink>
-							<NavLink to="/how-it-works">How It Works</NavLink>
-							<NavLink to="/become-a-host">Become a Host</NavLink>
-						</div>
-						{isAuthenticated ? (
-						<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} avatarAfterName={true} />
+				<div className="flex items-center gap-4">
+					{(normalizedRole === "customer" || !isAuthenticated) && (
+						<nav className="flex items-center gap-4">
+							<div className="hidden items-center gap-2 md:flex">
+								<NavLink to="/cars">Browse Cars</NavLink>
+								<NavLink to="/how-it-works">How It Works</NavLink>
+								<NavLink to="/become-a-host">Become a Host</NavLink>
+							</div>
+							{isAuthenticated ? (
+								<div className="hidden md:flex">
+									<ProfileMenu
+										user={user}
+										roleLabel={roleLabel}
+										onLogout={onLogout}
+										avatarAfterName={true}
+									/>
+								</div>
+							) : (
+								<div className="hidden items-center gap-3 md:flex">
+									<Link
+										to="/login"
+										className="rounded-full border-2 border-[#0D3778] px-4 py-1.5 text-sm font-semibold text-[#0D3778] transition hover:bg-[#dbeafe]"
+									>
+										Login
+									</Link>
+									<Link
+										to="/signup"
+										className="rounded-full bg-[#0D3778] px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0B2F68]"
+									>
+										Sign Up
+									</Link>
+								</div>
+							)}
+						</nav>
+					)}
+
+					{normalizedRole === "owner" && isAuthenticated && (
+						<nav className="flex items-center gap-4">
+							<div className="hidden items-center gap-2 lg:flex">
+								<NavLink to="/owner/dashboard" active>
+									Dashboard
+								</NavLink>
+								<NavLink to="/owner/vehicles">My Vehicles</NavLink>
+								<NavLink to="/owner/vehicles/new">Add Vehicle</NavLink>
+								<NavLink to="/owner/bookings">Bookings</NavLink>
+								<NavLink to="/owner/earnings">Earnings</NavLink>
+								<NavLink to="/owner/reviews">Reviews</NavLink>
+							</div>
+							<div className="hidden items-center gap-4 lg:flex">
+								<NotificationBell count={notifications} />
+								<ProfileMenu
+									user={user}
+									roleLabel={roleLabel}
+									onLogout={onLogout}
+									avatarAfterName={false}
+								/>
+							</div>
+						</nav>
+					)}
+
+					{normalizedRole === "admin" && isAuthenticated && (
+						<nav className="flex items-center gap-4">
+							<div className="hidden items-center gap-2 lg:flex">
+								<NavLink to="/admin/dashboard" active>
+									Dashboard
+								</NavLink>
+								<NavLink to="/admin/users">User</NavLink>
+								<NavLink to="/admin/vehicles">Vehicle</NavLink>
+								<NavLink to="/admin/bookings">Booking</NavLink>
+								<NavLink to="/admin/reports">Reports</NavLink>
+								<NavLink to="/admin/settings">Settings</NavLink>
+							</div>
+							<div className="hidden items-center gap-4 lg:flex">
+								<NotificationBell count={notifications} />
+								<ProfileMenu
+									user={user}
+									roleLabel={roleLabel}
+									onLogout={onLogout}
+									avatarAfterName={false}
+								/>
+							</div>
+						</nav>
+					)}
+
+					<button
+						type="button"
+						onClick={() => setMobileOpen((prev) => !prev)}
+						className={`${mobileHiddenClass} inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:bg-slate-100`}
+						aria-label="Toggle navigation"
+					>
+						{mobileOpen ? (
+							<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+								<path d="M6 6l12 12M18 6l-12 12" />
+							</svg>
 						) : (
-							<div className="flex items-center gap-3">
-								<Link
-									to="/login"
-									className="rounded-full border-2 border-[#0D3778] px-4 py-1.5 text-sm font-semibold text-[#0D3778] transition hover:bg-[#dbeafe]"
-								>
-									Login
+							<svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+								<path d="M4 6h16M4 12h16M4 18h16" />
+							</svg>
+						)}
+					</button>
+				</div>
+			</div>
+
+			{mobileOpen && (
+				<div className={`${mobileHiddenClass} border-t border-slate-200 bg-white`}>
+					<div className="mx-auto flex max-w-7xl flex-col gap-3 px-8 py-4">
+						{(normalizedRole === "customer" || !isAuthenticated) && (
+							<div className="flex flex-col gap-2">
+								<Link to="/cars" className="text-sm font-medium text-slate-700">
+									Browse Cars
 								</Link>
-								<Link
-									to="/signup"
-									className="rounded-full bg-[#0D3778] px-4 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0B2F68]"
-								>
-									Sign Up
+								<Link to="/how-it-works" className="text-sm font-medium text-slate-700">
+									How It Works
 								</Link>
+								<Link to="/become-a-host" className="text-sm font-medium text-slate-700">
+									Become a Host
+								</Link>
+								{isAuthenticated ? (
+									<ProfileMenu
+										user={user}
+										roleLabel={roleLabel}
+										onLogout={onLogout}
+										avatarAfterName={true}
+									/>
+								) : (
+									<div className="flex flex-col gap-2 pt-2">
+										<Link
+											to="/login"
+											className="rounded-full border-2 border-[#0D3778] px-4 py-1.5 text-center text-sm font-semibold text-[#0D3778]"
+										>
+											Login
+										</Link>
+										<Link
+											to="/signup"
+											className="rounded-full bg-[#0D3778] px-4 py-1.5 text-center text-sm font-semibold text-white"
+										>
+											Sign Up
+										</Link>
+									</div>
+								)}
 							</div>
 						)}
-					</nav>
-				)}
 
-				{normalizedRole === "owner" && isAuthenticated && (
-					<nav className="flex items-center gap-4">
-						<div className="hidden items-center gap-2 lg:flex">
-							<NavLink to="/owner/dashboard" active>
-								Dashboard
-							</NavLink>
-							<NavLink to="/owner/vehicles">My Vehicles</NavLink>
-							<NavLink to="/owner/vehicles/new">Add Vehicle</NavLink>
-							<NavLink to="/owner/bookings">Bookings</NavLink>
-							<NavLink to="/owner/earnings">Earnings</NavLink>
-							<NavLink to="/owner/reviews">Reviews</NavLink>
-						</div>
-						<div className="flex items-center gap-4">
-							<NotificationBell count={notifications} />
-						<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} avatarAfterName={false} />
-						</div>
-					</nav>
-				)}
+						{normalizedRole === "owner" && isAuthenticated && (
+							<div className="flex flex-col gap-2">
+								<Link to="/owner/dashboard" className="text-sm font-medium text-slate-700">
+									Dashboard
+								</Link>
+								<Link to="/owner/vehicles" className="text-sm font-medium text-slate-700">
+									My Vehicles
+								</Link>
+								<Link to="/owner/vehicles/new" className="text-sm font-medium text-slate-700">
+									Add Vehicle
+								</Link>
+								<Link to="/owner/bookings" className="text-sm font-medium text-slate-700">
+									Bookings
+								</Link>
+								<Link to="/owner/earnings" className="text-sm font-medium text-slate-700">
+									Earnings
+								</Link>
+								<Link to="/owner/reviews" className="text-sm font-medium text-slate-700">
+									Reviews
+								</Link>
+								<div className="flex items-center gap-3 pt-2">
+									<NotificationBell count={notifications} />
+									<ProfileMenu
+										user={user}
+										roleLabel={roleLabel}
+										onLogout={onLogout}
+										avatarAfterName={false}
+									/>
+								</div>
+							</div>
+						)}
 
-				{normalizedRole === "admin" && isAuthenticated && (
-					<nav className="flex items-center gap-4">
-						<div className="hidden items-center gap-2 lg:flex">
-							<NavLink to="/admin/dashboard" active>
-								Dashboard
-							</NavLink>
-							<NavLink to="/admin/users">User</NavLink>
-							<NavLink to="/admin/vehicles">Vehicle</NavLink>
-							<NavLink to="/admin/bookings">Booking</NavLink>
-							<NavLink to="/admin/reports">Reports</NavLink>
-							<NavLink to="/admin/settings">Settings</NavLink>
-						</div>
-						<div className="flex items-center gap-4">
-							<NotificationBell count={notifications} />
-						<ProfileMenu user={user} roleLabel={roleLabel} onLogout={onLogout} avatarAfterName={false} />
+						{normalizedRole === "admin" && isAuthenticated && (
+							<div className="flex flex-col gap-2">
+								<Link to="/admin/dashboard" className="text-sm font-medium text-slate-700">
+									Dashboard
+								</Link>
+								<Link to="/admin/users" className="text-sm font-medium text-slate-700">
+									User
+								</Link>
+								<Link to="/admin/vehicles" className="text-sm font-medium text-slate-700">
+									Vehicle
+								</Link>
+								<Link to="/admin/bookings" className="text-sm font-medium text-slate-700">
+									Booking
+								</Link>
+								<Link to="/admin/reports" className="text-sm font-medium text-slate-700">
+									Reports
+								</Link>
+								<Link to="/admin/settings" className="text-sm font-medium text-slate-700">
+									Settings
+								</Link>
+								<div className="flex items-center gap-3 pt-2">
+									<NotificationBell count={notifications} />
+									<ProfileMenu
+										user={user}
+										roleLabel={roleLabel}
+										onLogout={onLogout}
+										avatarAfterName={false}
+									/>
+								</div>
+							</div>
+						)}
 					</div>
-				</nav>
+				</div>
 			)}
-		</div>
-	</header>	);
+		</header>
+	);
 }
