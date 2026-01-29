@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Fuel, Zap, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Layout from '../layouts/Layout';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -15,6 +14,10 @@ export function CustomerVehicleListPage() {
     location: '',
     startDate: '',
     endDate: '',
+    vehicleType: '',
+    transmission: '',
+    fuelType: '',
+    maxPrice: '',
   });
 
   // Fetch vehicles on component mount
@@ -78,12 +81,23 @@ export function CustomerVehicleListPage() {
     if (filters.location && !vehicle.address?.toLowerCase().includes(filters.location.toLowerCase())) {
       return false;
     }
+    if (filters.vehicleType && vehicle.vehicleType !== filters.vehicleType) {
+      return false;
+    }
+    if (filters.transmission && vehicle.transmission !== filters.transmission) {
+      return false;
+    }
+    if (filters.fuelType && vehicle.fuelType !== filters.fuelType) {
+      return false;
+    }
+    if (filters.maxPrice && vehicle.pricePerDay > parseFloat(filters.maxPrice)) {
+      return false;
+    }
     return true;
   });
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-[#0A2E5C] to-[#1a3a52] text-white py-12 px-4 md:px-8">
           <div className="max-w-7xl mx-auto">
@@ -132,11 +146,83 @@ export function CustomerVehicleListPage() {
 
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors w-full md:w-auto"
+                className="bg-[#0D3778] hover:bg-[#0a2959] text-white px-8 py-3 rounded-lg font-medium transition-colors w-full md:w-auto"
               >
                 Search
               </button>
             </form>
+          </div>
+        </div>
+
+        {/* Advanced Filter Results Section */}
+        <div className="bg-white border-b-2 border-blue-400">
+          <div className="max-w-7xl mx-auto p-4 md:p-8">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Filter Results</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Vehicle Type Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Type</label>
+                <select
+                  name="vehicleType"
+                  value={filters.vehicleType}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="">All Types</option>
+                  <option value="Sedan">Sedan</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Coupe">Coupe</option>
+                  <option value="Hatchback">Hatchback</option>
+                  <option value="Truck">Truck</option>
+                  <option value="Van">Van</option>
+                </select>
+              </div>
+
+              {/* Transmission Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Transmission</label>
+                <select
+                  name="transmission"
+                  value={filters.transmission}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="">All</option>
+                  <option value="Manual">Manual</option>
+                  <option value="Automatic">Automatic</option>
+                </select>
+              </div>
+
+              {/* Fuel Type Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fuel Type</label>
+                <select
+                  name="fuelType"
+                  value={filters.fuelType}
+                  onChange={handleFilterChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="">All</option>
+                  <option value="Petrol">Petrol</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Electric">Electric</option>
+                </select>
+              </div>
+
+              {/* Price Range Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Price Range (LKR/Day)</label>
+                <input
+                  type="number"
+                  name="maxPrice"
+                  value={filters.maxPrice}
+                  onChange={handleFilterChange}
+                  placeholder="Max price"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -264,7 +350,7 @@ export function CustomerVehicleListPage() {
               <p className="text-gray-600 mb-8">For Your Search</p>
               <button
                 onClick={fetchVehicles}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className="bg-[#0D3778] hover:bg-[#0a2959] text-white px-6 py-3 rounded-lg font-medium transition-colors"
               >
                 Try Again
               </button>
@@ -272,7 +358,6 @@ export function CustomerVehicleListPage() {
           )}
         </div>
       </div>
-    </Layout>
   );
 }
 
