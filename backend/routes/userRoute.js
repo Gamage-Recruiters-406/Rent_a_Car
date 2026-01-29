@@ -1,7 +1,6 @@
 import express from 'express';
 import {registerUser,
     SignIn,
-    registerOwner,
     verifyEmail,
     ReSendVerificationMail,
     logout,
@@ -17,7 +16,6 @@ import {registerUser,
     AdminDeleteAccount,
     otp,
     verifyResetOtp,
-    RestOTP,
     ResetPassword
 } from "../controllers/userController.js"
 
@@ -33,8 +31,6 @@ router.post("/login", SignIn);
 //logout function
 router.post("/logout", requiredSignIn, logout);
 
-//register as a vehicle owner
-// router.post("/OwnerRegistration", registerOwner);
 //vehicle owner verificaton route
 router.get("/verify-email", verifyEmail);
 
@@ -43,8 +39,7 @@ router.patch("/getVerificationMail",requiredSignIn, isOwner, ReSendVerificationM
 
 //password reset otp code
 router.post("/passwordRestOTP",otp);
-router.patch("/RestOTP",RestOTP);
-router.get("/verifyResetOtp",verifyResetOtp); //comapre OTP code
+router.post("/verifyOTP",verifyResetOtp); //comapre OTP code
 router.patch("/ResetPassword",ResetPassword); //reset password
 
 //get all users except admins
