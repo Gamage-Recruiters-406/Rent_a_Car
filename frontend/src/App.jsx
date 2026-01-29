@@ -10,6 +10,7 @@ import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordP
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
+import { HomePage } from "./pages/HomePage";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
 
 function App() {
@@ -20,7 +21,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
-        <Route path="/" element={<CustomerVehicleListPage />} />
+        <Route path="/CustomerVehicleListPage" element={<CustomerVehicleListPage />} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage />} />
