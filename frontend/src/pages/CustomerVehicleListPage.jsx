@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Fuel, Zap, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Layout from '../layouts/Layout';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -97,7 +98,8 @@ export function CustomerVehicleListPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Layout>
+      <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-[#0A2E5C] to-[#1a3a52] text-white py-12 px-4 md:px-8">
           <div className="max-w-7xl mx-auto">
@@ -358,6 +360,7 @@ export function CustomerVehicleListPage() {
           )}
         </div>
       </div>
+    </Layout>
   );
 }
 
