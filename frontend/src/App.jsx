@@ -9,8 +9,7 @@ import ContactPage from "./pages/ContactPage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
-
-
+import AdminBooking from "./pages/admin/AdminBooking";
 
 function App() {
   return (
@@ -24,6 +23,7 @@ function App() {
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/admin/booking" element={<AdminBooking/>} />
 
         {/* login */}
 
