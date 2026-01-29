@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Star, ChevronRight } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
+
+const location = useLocation();
+const navigate = useNavigate();
+
+const {vehicleId, vehicleName, vehicleImage } = location.state || {};
 
 export default function CustomerReviews() {
   const [rating, setRating] = useState(0);
@@ -13,91 +19,96 @@ export default function CustomerReviews() {
   const AUTO_SLIDE_DELAY = 4000; // 4 seconds
   const sliderRef = useRef(null);
 
-
+  useEffect(() => {
+    if (!vehicleId) {
+      navigate("/dashboard");
+    }
+  }, [vehicleId, navigate]);
 
   // Dummy data - Needs to replace with APIs
-  const reviews = [
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 4,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 5,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=32",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 3,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=30",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 4,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=15",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 5,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=20",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 4,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=12",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 5,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=32",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 3,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=30",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 4,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=15",
-    },
-    {
-      name: "Person Name",
-      role: "Profession",
-      rating: 5,
-      comment:
-        "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-      img: "https://i.pravatar.cc/100?img=20",
-    },
-  ];
+  // const reviews = [
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 4,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 5,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=32",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 3,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=30",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 4,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=15",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 5,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=20",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 4,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=12",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 5,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=32",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 3,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=30",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 4,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=15",
+  //   },
+  //   {
+  //     name: "Person Name",
+  //     role: "Profession",
+  //     rating: 5,
+  //     comment:
+  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
+  //     img: "https://i.pravatar.cc/100?img=20",
+  //   },
+  // ];
+  const reviews = [];
 
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const isSubmitDisabled = rating === 0 || feedback.trim() ==="";
@@ -163,14 +174,14 @@ export default function CustomerReviews() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         {/* Car Image */}
         <img
-          src="https://images.unsplash.com/photo-1549924231-f129b911e442"
-          alt="Car"
+          src={vehicleImage || "https://images.unsplash.com/photo-1549924231-f129b911e442"}
+          alt={vehicleName || "Vehicle"}
           className="rounded-lg shadow"
         />
 
         {/* Rating Box */}
         <div className="border-2 border-[#0D3778] rounded-3xl p-5 md:p-6 text-center shadow-sm max-w-sm md:max-w-lg mx-auto">
-          <h2 className="text-md md:text-lg lg:text-xl font-medium mb-4">Toyota Prius (ABC-1234)</h2>
+          <h2 className="text-md md:text-lg lg:text-xl font-medium mb-4">{vehicleName || "Toyota Prius (ABC-1234)"}</h2>
           <div className="flex items-center justify-center gap-6">
             <div>
               <p className="text-3xl md:text-4xl lg:text-5xl font-semibold text-yellow-500">0.0</p>
