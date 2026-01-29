@@ -39,27 +39,19 @@ const ContactPage = () => {
             style={{ backgroundImage: `url(${bgImg})` }}
           />
 
-          {/* Hero content */}
-          <div className="relative z-10 flex h-full items-center justify-center px-4 text-center">
-            <div>
-              <a
-                href="#contact-section"
-                className="hover:text-white no-underline"
-              >
-                <h1 className="text-4xl font-semibold tracking-wide text-white md:text-5xl">
-                  Contact Us
-                </h1>
-              </a>
-              <p className="mt-4 text-lg text-white/80 md:text-xl">
-                <Link to="/" className="hover:text-white no-underline">
-                  Home
-                </Link>
-
-                {/* SECTION TITLE */}
-                <section className="mx-auto max-w-6xl px-4 py-12" />
-                <h2 className="text-center text-2xl font-semibold text-slate-800">
-                  Contact Us
-                </h2>
+                    {/* Hero content */}
+                    <div className="relative z-10 flex h-full items-center justify-center px-4 text-center">
+                    <div>
+                        <a href="#contact-section" className="hover:text-white no-underline">
+                            <h1 className="text-4xl font-semibold tracking-wide text-white md:text-5xl">
+                            Contact Us
+                            </h1>
+                        </a>
+                        <p className="mt-4 text-lg text-white/80 md:text-xl">
+                            <Link to="/" className="hover:text-white no-underline">
+                                Home
+                            </Link>
+                            <span className="mx-2">/</span>
 
                 <a href="#" className="hover:text-white no-underline">
                   Page
