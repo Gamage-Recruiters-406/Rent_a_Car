@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Star, ChevronRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
-const location = useLocation();
-const navigate = useNavigate();
 
-const {vehicleId, vehicleName, vehicleImage } = location.state || {};
 
 export default function CustomerReviews() {
   const [rating, setRating] = useState(0);
@@ -14,16 +12,77 @@ export default function CustomerReviews() {
   const [currentPage, setCurrentPage] = useState(0);
   const [reviewsPerPage, setReviewsPerPage] = useState(window.innerWidth < 768 ? 1 : 2);
   const [feedback, setFeedback] = useState("");
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const {vehicleId, vehicleName, vehicleImage } = location.state || {};
 
 
   const AUTO_SLIDE_DELAY = 4000; // 4 seconds
   const sliderRef = useRef(null);
 
-  useEffect(() => {
-    if (!vehicleId) {
-      navigate("/dashboard");
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_VERSION = import.meta.env.VITE_API_VERSION;
+
+  console.log("Vehicle ID: ",vehicleId);
+
+  useEffect(()=> {
+    const loadReviews = async () =>{
+      try {
+        setLoadingReviews(true);
+        const response = await axios.get(
+          `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}`,
+          {withCredentials:true}
+        );
+        setReviews(response.data);
+        console.log("Responses: ",response)
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    if (vehicleId) {
+      loadReviews();
     }
-  }, [vehicleId, navigate]);
+  }, [vehicleId]);
+
+  useEffect(()=>{
+    const loadReviewSummary = async ()=>{
+      try {
+        setLoadingSummary(true);
+        const res = await axios.get(
+          `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}/rating`,
+          {withCredentials:true}
+        );
+        console.log("Summary: ", res);
+        setAverageRating(res.data.averageRating || 4.5);
+        setTotalReviews(res.data.totalReviews || 0);
+      } catch (error) {
+        console.error("Failed to load review summary", error);
+      } finally {
+        setLoadingSummary(false);
+      }
+    };
+
+    if (vehicleId) {
+      loadReviewSummary();
+    }
+  }, [vehicleId]);
+
+  // useEffect(() => {
+  //   if (!vehicleId) {
+  //     navigate("/customer-reviews");
+  //   }
+  // }, [vehicleId, navigate]);
 
   // Dummy data - Needs to replace with APIs
   // const reviews = [
@@ -108,8 +167,7 @@ export default function CustomerReviews() {
   //     img: "https://i.pravatar.cc/100?img=20",
   //   },
   // ];
-  const reviews = [];
-
+  
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const isSubmitDisabled = rating === 0 || feedback.trim() ==="";
   
@@ -184,10 +242,15 @@ export default function CustomerReviews() {
           <h2 className="text-md md:text-lg lg:text-xl font-medium mb-4">{vehicleName || "Toyota Prius (ABC-1234)"}</h2>
           <div className="flex items-center justify-center gap-6">
             <div>
-              <p className="text-3xl md:text-4xl lg:text-5xl font-semibold text-yellow-500">0.0</p>
+              <p className="text-3xl md:text-4xl lg:text-5xl font-semibold text-yellow-500">{loadingSummary ? "—" : averageRating.toFixed(1)}</p>
               <div className="flex justify-center mt-2">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-yellow-400 fill-yellow-400 ">
+                  <span key={i} 
+                  className={
+                    i< Math.round(averageRating)
+                      ? "text-yellow-400 fill-yellow-400 "
+                      : "text-yellow-400"
+                      }>
                     <Star className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10" />
 
                   </span>
@@ -196,7 +259,7 @@ export default function CustomerReviews() {
             </div>
             <div className="h-16 w-1 bg-gray-300"></div>
             <div>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#0D3778]">0</p>
+              <p className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#0D3778]">{loadingSummary ? "—" : totalReviews}</p>
               <p className="text-lg text-[#0D3778]">Reviews</p>
             </div>
           </div>
@@ -281,6 +344,16 @@ export default function CustomerReviews() {
             </p>
 
             {/* Slider wrapper */}
+            {loadingReviews && (
+              <p className="text-center text-gray-500">Loading reviews...</p>
+            )}
+
+            {!loadingReviews && reviews.length === 0 && (
+              <p className="text-center text-white">
+                No reviews yet. Be the first to review this vehicle!
+              </p>
+            )}
+
             <div className="overflow-hidden max-w-6xl mx-auto px-4 md:px-6"
                   onMouseEnter={stopAutoSlide}
                   onMouseLeave={startAutoSlide}
@@ -343,7 +416,7 @@ export default function CustomerReviews() {
             <div className="flex justify-center mt-10">
               <button
                 onClick={handleNext}
-                className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full border-2 border-[#0D3778] text-[#0D3778] hover:bg-[#0D3778] hover:text-white transition"
+                className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full border-2 border-white text-[#0D3778] hover:border-0 hover:bg-[#0D3778] hover:text-white transition"
               >
                 <ChevronRight size={28} />
               </button>
