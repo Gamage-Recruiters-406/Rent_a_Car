@@ -3,6 +3,8 @@ import { Car, Hourglass, CheckCircle2, XCircle } from 'lucide-react';
 import StatsCard from './../component/StatusCard';
 import TableHeader from './../component/TableHeader';
 import BookingTable from './../component/TableBooking';
+import Header from '../../layouts/Header';
+import Footer from '../../layouts/Footer';
 
 const bookingData = [
   { name: 'Jason Lee', vNo: 'CA-1234', vName: 'Toyota Corolla', pDate: '2026-01-23', rDate: '2026-01-25', price: '24,000', status: 'Pending', sColor: 'text-status-pending' },
@@ -20,20 +22,32 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-app-bg font-sans">
+    <div className="flex flex-col min-h-screen bg-app-bg font-sans">
+      {/* Top Header */}
+      <Header />
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-10">
-          <h1 className="text-2xl font-bold text-brand-dark">Booking Request</h1>
-          <p className="text-brand-dark mb-8 opacity-80">Manage incoming booking request</p>
+          <div className="max-w-7xl mx-auto"> 
+            <h1 className="text-2xl font-bold text-brand-dark">Booking Request</h1>
+            <p className="text-brand-dark mb-8 opacity-80">Manage incoming booking request</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-            {stats.map((s, i) => <StatsCard key={i} {...s} />)}
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+              {stats.map((s, i) => <StatsCard key={i} {...s} />)}
+            </div>
+
+            {/* Table Section */}
+            <div className="bg-white rounded-lg shadow-sm">
+                <TableHeader />
+                <BookingTable data={bookingData} />
+            </div>
           </div>
-
-          <TableHeader />
-          <BookingTable data={bookingData} />
         </main>
       </div>
+
+      {/* Bottom Footer */}
+      <Footer />
     </div>
   );
 };
