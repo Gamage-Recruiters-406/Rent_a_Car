@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Mail, Phone, Headphones } from "lucide-react";
+import { MapPin, Mail, Phone, PhoneCall } from "lucide-react";
 import bgImg from "../assets/ContactUsBG.jpeg";
 
 const ContactPage = () => {
@@ -21,7 +21,7 @@ const ContactPage = () => {
         },
         {
             title: "Hotline",
-            icon: <Headphones className="h-7 w-7 text-white" />,
+            icon: <PhoneCall className="h-7 w-7 text-white" />,
             lines: ["0777315095", "0777443552"],
         },
     ];
@@ -51,7 +51,7 @@ const ContactPage = () => {
 
             {/* SECTION TITLE */}
             <section className="mx-auto max-w-6xl px-4 py-12">
-                <h2 className="text-center text-2xl font-semibold text-slate-800">
+                <h2 className="text-center text-2xl font-semibold text-[#0A2E5C]">
                 Contact Us
                 </h2>
 
@@ -77,38 +77,6 @@ const ContactPage = () => {
                     </div>
                     </div>
                 ))}
-                </div>
-
-                {/* OPTIONAL: Contact form (if you want, keep it; else delete) */}
-                <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-slate-800">Send a Message</h3>
-
-                <form className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <input
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#0B3B8C]"
-                    placeholder="Your name"
-                    />
-                    <input
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#0B3B8C]"
-                    placeholder="Your email"
-                    type="email"
-                    />
-                    <input
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#0B3B8C] md:col-span-2"
-                    placeholder="Subject"
-                    />
-                    <textarea
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-[#0B3B8C] md:col-span-2"
-                    placeholder="Message"
-                    rows={5}
-                    />
-                    <button
-                    type="button"
-                    className="rounded-xl bg-[#0B3B8C] px-5 py-3 font-semibold text-white hover:opacity-90 md:col-span-2"
-                    >
-                    Submit
-                    </button>
-                </form>
                 </div>
             </section>
         </div>
