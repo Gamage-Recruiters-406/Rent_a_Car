@@ -1,7 +1,7 @@
-import React from "react";
+import React from 'react';
 import { Search, Filter } from 'lucide-react';
 
-const SearchBar = ({ value, onChange, onFilterClick }) => {
+export function SearchBar({ value, onChange, onFilterClick }) {
   return (
     <div className="flex gap-4">
       <div className="flex-1 relative">
@@ -23,6 +23,4 @@ const SearchBar = ({ value, onChange, onFilterClick }) => {
       </button>
     </div>
   );
-};
-
-export default SearchBar;
+}
