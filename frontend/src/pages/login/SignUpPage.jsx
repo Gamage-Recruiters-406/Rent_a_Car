@@ -345,7 +345,7 @@ export function SignUpPage() {
             <p className="text-center text-sm text-gray-500">
               If have an already account?{' '}
               <Link
-                to="/signin"
+                to="/login"
                 className="font-medium text-[#0A2E5C] hover:text-blue-800">
 
                 Sign In
