@@ -10,6 +10,7 @@ import {
 } from
   'lucide-react';
 import { Header } from './HomePageHeader';
+import Layout from '../layouts/Layout';
 // import { RentYourCarPage } from './RentYourCarPage';
 // import { ContactPage } from './ContactPage';
 // import { PaymentModal } from './PaymentModal';
@@ -757,20 +758,16 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900">
-      <Header activeTab={activeTab} onNavigate={setActiveTab} />
+    <Layout>
+      <div className="min-h-screen bg-white font-sans text-gray-900">
+        <Header activeTab={activeTab} onNavigate={setActiveTab} />
 
-      <main>{renderContent()}</main>
+        <main>{renderContent()}</main>
 
-      {/* <PaymentModal
+        {/* <PaymentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)} /> */}
-
-
-      {/* Simple Footer for completeness */}
-      <footer className="bg-[#162c46] text-white py-8 text-center text-sm">
-        <p>&copy; 2026 RentmyCar.lk. All rights reserved.</p>
-      </footer>
-    </div>
+      </div>
+    </Layout>
   );
 }
