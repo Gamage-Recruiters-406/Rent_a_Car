@@ -8,7 +8,7 @@ import Footer from './../../layouts/Footer';
 import { getAllBookings } from '../../services/bookingApi';
 import { useNavigate } from 'react-router-dom';
 
-const Dashboard = () => {
+const AdminBooking = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,4 +180,5 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+
+export default AdminBooking;
