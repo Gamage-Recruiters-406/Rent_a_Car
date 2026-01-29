@@ -4,7 +4,14 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import { SignInPage } from "./pages/login/SignInPage";
 import{SignUpPage} from "./pages/login/SignupPage";
+
 import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
+
+import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
+import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
+import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
+
+
 
 function App() {
   return (
@@ -19,9 +26,15 @@ function App() {
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
 
         {/* login */}
-        <Route path="/login" element={<SignInPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
+
+        <Route path="/login" element={<SignInPage/>} />
+        <Route path="/signup" element={<SignUpPage/>} />
+        <Route path="/verify-email" element={<VerifyEmailPage/>} />
+
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-code" element={<VerifyCodePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
       </Routes>
     </Router>
   );
