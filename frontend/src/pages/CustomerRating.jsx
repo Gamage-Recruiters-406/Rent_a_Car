@@ -231,9 +231,9 @@ export default function CustomerReviews() {
       const res = await axios.post(
         `${API_BASE_URL}${API_VERSION}/reviews/create`,
         {
-          vehicleId,
-          rating,
-          feedback,
+          vehicle_id: vehicleId,
+          rate: rating,
+          feedback: feedback,
         },
         {
           withCredentials:true,
