@@ -17,14 +17,16 @@ export default function CustomerReviews() {
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
 
 
   const location = useLocation();
   const navigate = useNavigate();
 
-  const {vehicleId, vehicleName, vehicleImage } = location.state || {};
+  const {vehicleName, vehicleImage } = location.state || {};
 
-
+  const vehicleId = "696e0bc53791596682689be1";
   const AUTO_SLIDE_DELAY = 4000; // 4 seconds
   const sliderRef = useRef(null);
 
@@ -34,24 +36,24 @@ export default function CustomerReviews() {
   console.log("Vehicle ID: ",vehicleId);
 
   useEffect(()=> {
-    const loadReviews = async () =>{
+    const fetchReviewsByVehicleId = async () =>{
       try {
         setLoadingReviews(true);
         const response = await axios.get(
           `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}`,
           {withCredentials:true}
         );
-        setReviews(response.data);
+        setReviews(response.data.reviews);
         console.log("Responses: ",response)
       } catch (error) {
-        console.error(error);
+        console.error("Failed to fetch review", error);
       } finally {
         setLoadingReviews(false);
       }
     };
 
     if (vehicleId) {
-      loadReviews();
+      fetchReviewsByVehicleId();
     }
   }, [vehicleId]);
 
@@ -64,8 +66,10 @@ export default function CustomerReviews() {
           {withCredentials:true}
         );
         console.log("Summary: ", res);
-        setAverageRating(res.data.averageRating || 4.5);
+        setAverageRating(res.data.rating);
+        console.log("Avg.Rating: ",averageRating);
         setTotalReviews(res.data.totalReviews || 0);
+        console.log("TotalRating: ",totalReviews);
       } catch (error) {
         console.error("Failed to load review summary", error);
       } finally {
@@ -217,6 +221,38 @@ export default function CustomerReviews() {
     if(!name) return "?";
     return name.charAt(0).toUpperCase();
   }
+
+  const handleSubmitReview = async () => {
+    if(!rating || !feedback.trim()) return;
+
+    try {
+      setSubmitting(true);
+
+      const res = await axios.post(
+        `${API_BASE_URL}${API_VERSION}/reviews/create`,
+        {
+          vehicleId,
+          rating,
+          feedback,
+        },
+        {
+          withCredentials:true,
+        }
+      );
+      setRating(0);
+      setFeedback("");
+
+      await Promise.all([
+        fetchReviewsByVehicleId(vehicleId),
+        loadReviewSummary(vehicleId)
+      ])
+    } catch (error) {
+      console.error("Failed to submit review", error);
+      alert("Failed to submit review. Please try again.");
+    } finally{
+      setSubmitting(false);
+    }
+  }
   
   
 
@@ -313,6 +349,7 @@ export default function CustomerReviews() {
             Cancel
           </button>
           <button 
+            onClick={handleSubmitReview}
             disabled={isSubmitDisabled}
             className={`px-6 py-2 rounded-lg transition
               ${
@@ -321,7 +358,7 @@ export default function CustomerReviews() {
                 : "bg-[#0D3778] text-white  hover:bg-blue-950"
               }
               `}>
-            Submit Review
+            {submitting ? "Submitting..." : "Submit Review"}
           </button>
         </div>
       </div>
