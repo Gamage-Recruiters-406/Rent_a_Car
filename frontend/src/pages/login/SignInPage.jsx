@@ -34,10 +34,14 @@ export function SignInPage() {
     }toast.success("loging success");
     
     const data = await response.json();
+     console.log("token",data);
+
     if(data.success || data.token){ 
           localStorage.setItem('token', data.token); 
           localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/admin/booking');
+          console.log("token",localStorage.getItem('token'));
+      navigate('/dashboard');
+
     } else {
         toast.error(data.message || 'Login failed'); }
   } 
