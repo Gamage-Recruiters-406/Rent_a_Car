@@ -1,26 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Car, Hourglass, CheckCircle2, XCircle } from 'lucide-react';
-import StatsCard from './../../component/Cards';
-import TableHeader from './../../component/TableHeader';
-import BookingTable from './../../component/BookingTable';
+import StatsCard from './../../components/booking/Cards';
+import TableHeader from './../../components/booking/TableHeader';
+import BookingTable from './../../components/booking/BookingTable';
+import Header from './../../layouts/Header';
+import Footer from './../../layouts/Footer';
+import { getAllBookings } from '../../services/bookingApi';
+import { useNavigate } from 'react-router-dom';
 
-const bookingData = [
-  { name: 'Jason Lee', vOwner: 'Sam Perera', vName: 'Toyota Corolla', pDate: '2026-01-23', rDate: '2026-01-25', price: '24,000', status: 'Pending', sColor: 'text-orange-500' },
-  { name: 'Kevin Martinez', vOwner: 'Sam Perera', vName: 'Honda Civic', pDate: '2026-01-20', rDate: '2026-01-26', price: '10,000', status: 'Approved', sColor: 'text-green-500' },
-  { name: 'Daniel Smith', vOwner: 'Kevin Jones', vName: 'Suzuki Swift', pDate: '2026-01-18', rDate: '2026-01-20', price: '10,000', status: 'Pending', sColor: 'text-orange-500' },
-  { name: 'Alex Johnson', vOwner: 'Alex Tan', vName: 'Nissan Leaf', pDate: '2026-01-04', rDate: '2026-01-05', price: '15,000', status: 'Rejected', sColor: 'text-red-500' },
-  { name: 'Ryan Peterson', vOwner: 'Kevin Jones', vName: 'Honda Civic', pDate: '2026-01-05', rDate: '2026-01-12', price: '20,000', status: 'Rejected', sColor: 'text-red-500' },
-];
-
-const Dashboard = () => {
+const AdminBooking = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [bookingData, setBookingData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch bookings from backend
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllBookings();
+        
+        if (response.success) {
+          console.log('Raw booking data:', response.data);
+          
+          // Transform backend data to match the expected format
+          const transformedData = response.data.map((booking) => {
+            console.log('Processing booking:', booking);
+            console.log('Customer data:', booking.customerId);
+            console.log('Owner data:', booking.ownerId);
+            console.log('Vehicle data:', booking.vehicleId);
+            
+            // Get names from populated data
+            const customerName = booking.customerId 
+              ? `${booking.customerId.first_name || ''} ${booking.customerId.last_name || ''}`.trim() || 'N/A'
+              : 'N/A';
+            
+            const ownerName = booking.ownerId 
+              ? `${booking.ownerId.first_name || ''} ${booking.ownerId.last_name || ''}`.trim() || 'N/A'
+              : 'N/A';
+            
+            const vehicleName = booking.vehicleId?.title || 'N/A';
+            
+            console.log('Customer name:', customerName);
+            console.log('Owner name:', ownerName);
+            console.log('Vehicle name:', vehicleName);
+
+            return {
+              id: booking._id,
+              name: customerName,
+              vOwner: ownerName,
+              vName: vehicleName,
+              pDate: new Date(booking.startingDate).toISOString().split('T')[0],
+              rDate: new Date(booking.endDate).toISOString().split('T')[0],
+              price: booking.totalAmount?.toLocaleString() || '0',
+              status: booking.status === 'pending' ? 'Pending' : 
+                      booking.status === 'approved' ? 'Approved' : 
+                      booking.status === 'rejected' ? 'Rejected' : 
+                      booking.status === 'cancelled' ? 'Cancelled' : 'Pending',
+              sColor: booking.status === 'pending' ? 'text-orange-500' :
+                      booking.status === 'approved' ? 'text-green-500' :
+                      booking.status === 'rejected' ? 'text-red-500' :
+                      booking.status === 'cancelled' ? 'text-gray-500' : 'text-orange-500',
+            };
+          });
+          
+          setBookingData(transformedData);
+        } else {
+          setError(response.message || 'Failed to fetch bookings');
+        }
+      } catch (err) {
+        console.error('Error fetching bookings:', err);
+        
+        // Handle 401 Unauthorized error
+        if (err.response?.status === 401) {
+          setError('You need to be logged in as an admin to view bookings.');
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        } else {
+          setError(err.response?.data?.message || 'Failed to fetch bookings. Please try again.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
+  }, [navigate]);
+
+  // Calculate stats from actual data
   const stats = [
-    { label: 'Total Bookings', val: '1360', icon: <Car size={40} />, color: 'purple' },
-    { label: 'Pending Bookings', val: '220', icon: <Hourglass size={40} />, color: 'yellow' },
-    { label: 'Approved Bookings', val: '1000', icon: <CheckCircle2 size={40} />, color: 'green' },
-    { label: 'Rejected Bookings', val: '160', icon: <XCircle size={40} />, color: 'red' },
+    { 
+      label: 'Total Bookings', 
+      val: bookingData.length.toString(), 
+      icon: <Car size={40} />, 
+      color: 'purple' 
+    },
+    { 
+      label: 'Pending Bookings', 
+      val: bookingData.filter(b => b.status === 'Pending').length.toString(), 
+      icon: <Hourglass size={40} />, 
+      color: 'yellow' 
+    },
+    { 
+      label: 'Approved Bookings', 
+      val: bookingData.filter(b => b.status === 'Approved').length.toString(), 
+      icon: <CheckCircle2 size={40} />, 
+      color: 'green' 
+    },
+    { 
+      label: 'Rejected Bookings', 
+      val: bookingData.filter(b => b.status === 'Rejected').length.toString(), 
+      icon: <XCircle size={40} />, 
+      color: 'red' 
+    },
   ];
 
   // Filter by status
@@ -42,27 +139,45 @@ const Dashboard = () => {
       );
 
   return (
-    <div className="flex h-screen bg-app-bg font-sans">
+    <div className="flex flex-col min-h-screen bg-app-bg font-sans">
+      <Header />
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-10">
           <h1 className="text-2xl font-bold text-brand-dark">Recent Bookings (View Only)</h1>
           <p className="text-brand-dark mb-8 opacity-80">View all the recent bookings made by customers here</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-            {stats.map((s, i) => <StatsCard key={i} {...s} />)}
-          </div>
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <p className="font-bold">Error</p>
+              <p>{error}</p>
+              {error.includes('logged in') && (
+                <p className="mt-2 text-sm">Redirecting to login page...</p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                {stats.map((s, i) => <StatsCard key={i} {...s} />)}
+              </div>
 
-          <TableHeader 
-            activeFilter={activeFilter} 
-            onFilterChange={setActiveFilter}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
-          <BookingTable data={searchFilteredData} />
+              <TableHeader 
+                activeFilter={activeFilter} 
+                onFilterChange={setActiveFilter}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+              <BookingTable data={searchFilteredData} />
+            </>
+          )}
         </main>
       </div>
+      <Footer />
     </div>
   );
 };
 
-export default Dashboard;
+export default AdminBooking;
