@@ -29,27 +29,33 @@ export function CustomerVehicleListPage() {
   const fetchVehicles = async () => {
     setIsLoading(true);
     try {
-      // First, try to get all vehicles (public endpoint)
-      let url = `${baseUrl}${apiVersion}/vehicle/get-all`;
+      const token = localStorage.getItem('token');
+      // Fetch user's own vehicles
+      let url = `${baseUrl}${apiVersion}/vehicle/get-my-all`;
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Please login to view your vehicles');
+          return;
+        }
         throw new Error('Failed to fetch vehicles');
       }
 
       const data = await response.json();
       // Handle different response formats from backend
-      const vehicleList = data.data || data.vehicles || data || [];
+      const vehicleList = data.vehicles || data.data || [];
       setVehicles(Array.isArray(vehicleList) ? vehicleList : []);
       
       if (vehicleList.length === 0) {
-        toast.success('No vehicles available at the moment');
+        // Don't show toast for empty state
       }
     } catch (error) {
       console.error('Error fetching vehicles:', error);
