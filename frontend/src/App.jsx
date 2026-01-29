@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import { SignInPage } from "./pages/login/SignInPage";
 import{SignUpPage} from "./pages/login/SignupPage";
-import AdminVehicleManagementPage from "./pages/AdminVehicleManagementPage";
+import { VehicleManagement } from "./pages/VehicleManagement";
 function App() {
 
   return (
@@ -12,7 +12,7 @@ function App() {
       <Routes>
         <Route path="/" element={<h1>Home</h1>} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
-        <Route path="/admin-vehicleManage" element={<AdminVehicleManagementPage/>} />
+        
 
 
 
@@ -20,6 +20,10 @@ function App() {
         <Route path="/login" element={<SignInPage/>} />
         <Route path="/signup" element={<SignUpPage/>} />
         <Route path="/verify-email" element={<VerifyEmailPage/>} />
+
+        {/* Admin-Vehicle Management */}
+        <Route path="/admin/vehicles" element={<VehicleManagement />} />
+
       </Routes>
     </Router>
   )
