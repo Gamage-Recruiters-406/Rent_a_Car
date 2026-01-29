@@ -39,9 +39,9 @@ export function SignInPage() {
     if(data.success || data.token){ 
           localStorage.setItem('token', data.token); 
           localStorage.setItem('user', JSON.stringify(data.user));
+
           console.log("token",localStorage.getItem('token'));
       navigate('/dashboard');
-
     } else {
         toast.error(data.message || 'Login failed'); }
   } 
