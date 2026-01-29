@@ -42,7 +42,7 @@ const AdminBooking = () => {
               ? `${booking.ownerId.first_name || ''} ${booking.ownerId.last_name || ''}`.trim() || 'N/A'
               : 'N/A';
             
-            const vehicleName = booking.vehicleId?.title || 'N/A';
+            const vehicleName = booking.vehicleId?.title || booking.vehicleId?.model || 'N/A';
             
             console.log('Customer name:', customerName);
             console.log('Owner name:', ownerName);
