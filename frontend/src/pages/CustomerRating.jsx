@@ -268,7 +268,7 @@ export default function CustomerReviews() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         {/* Car Image */}
         <img
-          src={vehicleImage || "https://images.unsplash.com/photo-1549924231-f129b911e442"}
+          src={vehicleImage || "https://images.unsplash.com/photo-1503376780353-7e6692767b70"}
           alt={vehicleName || "Vehicle"}
           className="rounded-lg shadow"
         />
