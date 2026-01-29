@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import CustomerReviews from "./pages/CustomerRating";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import { SignInPage } from "./pages/login/SignInPage";
 import{SignUpPage} from "./pages/login/SignupPage";
@@ -24,6 +25,7 @@ function App() {
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/customer-reviews" element={<CustomerReviews/>} />
 
         {/* login */}
 
