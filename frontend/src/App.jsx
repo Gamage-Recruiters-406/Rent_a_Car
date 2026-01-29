@@ -6,6 +6,12 @@ import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import { SignInPage } from "./pages/login/SignInPage";
 import{SignUpPage} from "./pages/login/SignupPage";
 import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
+import ContactPage from "./pages/ContactPage";
+import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
+import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
+import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
+
+
 
 function App() {
   return (
@@ -18,12 +24,19 @@ function App() {
         <Route path="/" element={<CustomerVehicleListPage />} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+        <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/customer-reviews" element={<CustomerReviews/>} />
 
         {/* login */}
+
         <Route path="/login" element={<SignInPage/>} />
         <Route path="/signup" element={<SignUpPage/>} />
         <Route path="/verify-email" element={<VerifyEmailPage/>} />
-        <Route path="/customer-reviews" element={<CustomerReviews/>} />
+
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-code" element={<VerifyCodePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
       </Routes>
     </Router>
   );
