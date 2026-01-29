@@ -185,7 +185,11 @@ export const createBooking = async (req, res) => {
 
 export const getBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find().sort({ createdAt: -1 });
+        const bookings = await Booking.find()
+            .populate("customerId", "first_name last_name email")
+            .populate("ownerId", "first_name last_name email")
+            .populate("vehicleId", "title model numberPlate")
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({
             success: true,
