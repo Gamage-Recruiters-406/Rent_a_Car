@@ -6,8 +6,13 @@ import {
   Star,
   Quote,
   ChevronLeft,
-  ChevronRight } from
-'lucide-react';
+  ChevronRight
+} from
+  'lucide-react';
+import { Header } from './HomePageHeader';
+// import { RentYourCarPage } from './RentYourCarPage';
+// import { ContactPage } from './ContactPage';
+// import { PaymentModal } from './PaymentModal';
 
 // Analog Clock Time Picker Component
 function AnalogTimePicker({
@@ -128,40 +133,40 @@ function AnalogTimePicker({
 
           {/* Hour numbers or Minute numbers */}
           {mode === 'hour' ?
-          hours.map((h, index) => {
-            const pos = getPosition(index, 12, 72);
-            return (
-              <button
-                key={h}
-                onClick={() => handleHourClick(h)}
-                className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all
+            hours.map((h, index) => {
+              const pos = getPosition(index, 12, 72);
+              return (
+                <button
+                  key={h}
+                  onClick={() => handleHourClick(h)}
+                  className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all
                       ${hour === h ? 'bg-[#2563eb] text-white scale-110' : 'text-gray-700 hover:bg-gray-200'}`}
-                style={{
-                  left: `calc(50% + ${pos.x}px - 16px)`,
-                  top: `calc(50% + ${pos.y}px - 16px)`
-                }}>
+                  style={{
+                    left: `calc(50% + ${pos.x}px - 16px)`,
+                    top: `calc(50% + ${pos.y}px - 16px)`
+                  }}>
 
-                    {h}
-                  </button>);
+                  {h}
+                </button>);
 
-          }) :
-          minutes.map((m, index) => {
-            const pos = getPosition(index, 12, 72);
-            return (
-              <button
-                key={m}
-                onClick={() => handleMinuteClick(m)}
-                className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all
+            }) :
+            minutes.map((m, index) => {
+              const pos = getPosition(index, 12, 72);
+              return (
+                <button
+                  key={m}
+                  onClick={() => handleMinuteClick(m)}
+                  className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all
                       ${minute === m ? 'bg-[#2563eb] text-white scale-110' : 'text-gray-700 hover:bg-gray-200'}`}
-                style={{
-                  left: `calc(50% + ${pos.x}px - 16px)`,
-                  top: `calc(50% + ${pos.y}px - 16px)`
-                }}>
+                  style={{
+                    left: `calc(50% + ${pos.x}px - 16px)`,
+                    top: `calc(50% + ${pos.y}px - 16px)`
+                  }}>
 
-                    {m.toString().padStart(2, '0')}
-                  </button>);
+                  {m.toString().padStart(2, '0')}
+                </button>);
 
-          })}
+            })}
         </div>
       </div>
 
@@ -219,28 +224,28 @@ function DatePicker({
     1
   ).getDay();
   const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December'];
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'];
 
   const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
   const prevMonth = () =>
-  setCurrentMonth(
-    new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
-  );
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
+    );
   const nextMonth = () =>
-  setCurrentMonth(
-    new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
-  );
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+    );
   const isSelected = (day) => {
     if (!selectedDate) return false;
     return (
@@ -282,9 +287,9 @@ function DatePicker({
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {dayNames.map((day) =>
-        <div
-          key={day}
-          className="text-center text-xs font-medium text-gray-500 py-1">
+          <div
+            key={day}
+            className="text-center text-xs font-medium text-gray-500 py-1">
 
             {day}
           </div>
@@ -295,7 +300,7 @@ function DatePicker({
         {Array.from({
           length: firstDayOfMonth
         }).map((_, i) =>
-        <div key={`empty-${i}`} />
+          <div key={`empty-${i}`} />
         )}
         {Array.from({
           length: daysInMonth
@@ -327,68 +332,68 @@ function DatePicker({
 }
 // Testimonials data
 const allReviews = [
-{
-  id: 1,
-  name: 'Person Name',
-  profession: 'Profession',
-  rating: 4,
-  image:
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-  quote:
-  "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentmyCar for my future rentals."
-},
-{
-  id: 2,
-  name: 'Person Name',
-  profession: 'Profession',
-  rating: 5,
-  image:
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-  quote:
-  'Loved the easy booking and transparent process. Customer support was very helpful, and the vehicle exceeded my expectations!'
-},
-{
-  id: 3,
-  name: 'John Smith',
-  profession: 'Business Owner',
-  rating: 5,
-  image:
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-  quote:
-  "Best car rental experience I've ever had. The process was seamless and the car was in perfect condition."
-},
-{
-  id: 4,
-  name: 'Sarah Johnson',
-  profession: 'Travel Blogger',
-  rating: 4,
-  image:
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-  quote:
-  'Great selection of vehicles and competitive prices. Will definitely recommend to my followers!'
-},
-{
-  id: 5,
-  name: 'Michael Chen',
-  profession: 'Software Engineer',
-  rating: 5,
-  image:
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-  quote:
-  'The app made everything so easy. Picked up the car in minutes and the return was just as smooth.'
-},
-{
-  id: 6,
-  name: 'Emily Davis',
-  profession: 'Marketing Manager',
-  rating: 5,
-  image:
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-  quote:
-  'Exceptional service from start to finish. The team went above and beyond to accommodate my needs.'
-}];
+  {
+    id: 1,
+    name: 'Person Name',
+    profession: 'Profession',
+    rating: 4,
+    image:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+    quote:
+      "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentmyCar for my future rentals."
+  },
+  {
+    id: 2,
+    name: 'Person Name',
+    profession: 'Profession',
+    rating: 5,
+    image:
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+    quote:
+      'Loved the easy booking and transparent process. Customer support was very helpful, and the vehicle exceeded my expectations!'
+  },
+  {
+    id: 3,
+    name: 'John Smith',
+    profession: 'Business Owner',
+    rating: 5,
+    image:
+      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+    quote:
+      "Best car rental experience I've ever had. The process was seamless and the car was in perfect condition."
+  },
+  {
+    id: 4,
+    name: 'Sarah Johnson',
+    profession: 'Travel Blogger',
+    rating: 4,
+    image:
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+    quote:
+      'Great selection of vehicles and competitive prices. Will definitely recommend to my followers!'
+  },
+  {
+    id: 5,
+    name: 'Michael Chen',
+    profession: 'Software Engineer',
+    rating: 5,
+    image:
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+    quote:
+      'The app made everything so easy. Picked up the car in minutes and the return was just as smooth.'
+  },
+  {
+    id: 6,
+    name: 'Emily Davis',
+    profession: 'Marketing Manager',
+    rating: 5,
+    image:
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
+    quote:
+      'Exceptional service from start to finish. The team went above and beyond to accommodate my needs.'
+  }];
 
-export function HomePage({ onBookNow }) {
+export function LandingPage({ onBookNow }) {
   // Date & Time State
   const [pickupDate, setPickupDate] = useState(null);
   const [pickupTime, setPickupTime] = useState(null);
@@ -418,8 +423,7 @@ export function HomePage({ onBookNow }) {
     return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
   };
   const formatTime = (
-  time) =>
-  {
+    time) => {
     if (!time) return '12:00 AM';
     return `${time.hour}:${time.minute.toString().padStart(2, '0')} ${time.period}`;
   };
@@ -475,10 +479,10 @@ export function HomePage({ onBookNow }) {
                     {formatDate(pickupDate)}
                   </button>
                   {showPickupCalendar &&
-                  <DatePicker
-                    selectedDate={pickupDate}
-                    onSelect={setPickupDate}
-                    onClose={() => setShowPickupCalendar(false)} />
+                    <DatePicker
+                      selectedDate={pickupDate}
+                      onSelect={setPickupDate}
+                      onClose={() => setShowPickupCalendar(false)} />
 
                   }
                 </div>
@@ -497,10 +501,10 @@ export function HomePage({ onBookNow }) {
                     <Clock className="h-3 w-3 text-gray-400 flex-shrink-0 ml-1" />
                   </button>
                   {showPickupTime &&
-                  <AnalogTimePicker
-                    selectedTime={pickupTime}
-                    onSelect={setPickupTime}
-                    onClose={() => setShowPickupTime(false)} />
+                    <AnalogTimePicker
+                      selectedTime={pickupTime}
+                      onSelect={setPickupTime}
+                      onClose={() => setShowPickupTime(false)} />
 
                   }
                 </div>
@@ -524,10 +528,10 @@ export function HomePage({ onBookNow }) {
                     {formatDate(dropoffDate)}
                   </button>
                   {showDropoffCalendar &&
-                  <DatePicker
-                    selectedDate={dropoffDate}
-                    onSelect={setDropoffDate}
-                    onClose={() => setShowDropoffCalendar(false)} />
+                    <DatePicker
+                      selectedDate={dropoffDate}
+                      onSelect={setDropoffDate}
+                      onClose={() => setShowDropoffCalendar(false)} />
 
                   }
                 </div>
@@ -546,10 +550,10 @@ export function HomePage({ onBookNow }) {
                     <Clock className="h-3 w-3 text-gray-400 flex-shrink-0 ml-1" />
                   </button>
                   {showDropoffTime &&
-                  <AnalogTimePicker
-                    selectedTime={dropoffTime}
-                    onSelect={setDropoffTime}
-                    onClose={() => setShowDropoffTime(false)} />
+                    <AnalogTimePicker
+                      selectedTime={dropoffTime}
+                      onSelect={setDropoffTime}
+                      onClose={() => setShowDropoffTime(false)} />
 
                   }
                 </div>
@@ -678,15 +682,15 @@ export function HomePage({ onBookNow }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 md:px-0">
               {visibleReviews.map((review) =>
-              <div
-                key={review.id}
-                className="bg-gray-100 rounded-lg p-8 relative transition-all duration-300">
+                <div
+                  key={review.id}
+                  className="bg-gray-100 rounded-lg p-8 relative transition-all duration-300">
 
                   <div className="flex items-center space-x-4 mb-4">
                     <img
-                    src={review.image}
-                    alt={review.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-[#1e3a5f]" />
+                      src={review.image}
+                      alt={review.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-[#1e3a5f]" />
 
                     <div>
                       <h4 className="font-bold text-[#1e3a5f]">
@@ -697,13 +701,13 @@ export function HomePage({ onBookNow }) {
                       </p>
                       <div className="flex text-red-700 text-xs mt-1">
                         {Array.from({
-                        length: 5
-                      }).map((_, i) =>
-                      <Star
-                        key={i}
-                        className={`h-3 w-3 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />
+                          length: 5
+                        }).map((_, i) =>
+                          <Star
+                            key={i}
+                            className={`h-3 w-3 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />
 
-                      )}
+                        )}
                       </div>
                     </div>
                   </div>
@@ -721,10 +725,10 @@ export function HomePage({ onBookNow }) {
               {Array.from({
                 length: maxIndex + 1
               }).map((_, i) =>
-              <button
-                key={i}
-                onClick={() => setReviewIndex(i)}
-                className={`w-2 h-2 rounded-full transition-all ${i === reviewIndex ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'}`} />
+                <button
+                  key={i}
+                  onClick={() => setReviewIndex(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${i === reviewIndex ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'}`} />
 
               )}
             </div>
@@ -733,4 +737,40 @@ export function HomePage({ onBookNow }) {
       </section>
     </div>);
 
+}
+
+export function HomePage() {
+  const [activeTab, setActiveTab] = useState('home');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return <LandingPage onBookNow={() => setIsModalOpen(true)} />;
+        // case 'rent':
+        return <RentYourCarPage onContact={() => setActiveTab('contact')} />;
+        // case 'contact':
+        return <ContactPage />;
+      // default:
+      // return <LandingPage onBookNow={() => setIsModalOpen(true)} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white font-sans text-gray-900">
+      <Header activeTab={activeTab} onNavigate={setActiveTab} />
+
+      <main>{renderContent()}</main>
+
+      {/* <PaymentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)} /> */}
+
+
+      {/* Simple Footer for completeness */}
+      <footer className="bg-[#162c46] text-white py-8 text-center text-sm">
+        <p>&copy; 2026 RentmyCar.lk. All rights reserved.</p>
+      </footer>
+    </div>
+  );
 }
