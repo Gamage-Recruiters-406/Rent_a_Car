@@ -51,12 +51,7 @@ const ContactPage = () => {
                             <Link to="/" className="hover:text-white no-underline">
                                 Home
                             </Link>
-
-            {/* SECTION TITLE */}
-            <section className="mx-auto max-w-6xl px-4 py-12">
-                <h2 className="text-center text-2xl font-semibold text-slate-800">
-                Contact Us
-                </h2>
+                            <span className="mx-2">/</span>
 
                             <a href="#" className="hover:text-white no-underline">
                                 Page
