@@ -639,39 +639,6 @@ export const otp = async (req,res) => {
   }
 }
 
-//Get new OTP code
-export const RestOTP = async (req,res) => {
-  try {
-    const {email} = req.body;
-    const user = await User.findOne({email});
-
-    if(!user){
-      return res.status(404).json({
-        success: false,
-        message: "Account not found."
-      })
-    }
-
-    const otp = crypto.randomInt(100000, 1000000).toString(); // "100000" - "999999"
-
-    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
-    user.resetOtpHash = otpHash;
-    user.resetOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // expire with in 10 minutes
-
-    await user.save();
-    await sendOtpEmail(user.email, user.first_name, otp);
-    return res.status(200).json({
-      success: true,
-      message: "OTP sent to your email.",
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Server Side Error"
-    })
-  }
-}
 
 //OTP verification part
 export const verifyResetOtp = async (req, res) => {

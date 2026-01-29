@@ -16,7 +16,6 @@ import {registerUser,
     AdminDeleteAccount,
     otp,
     verifyResetOtp,
-    RestOTP,
     ResetPassword
 } from "../controllers/userController.js"
 
@@ -40,8 +39,7 @@ router.patch("/getVerificationMail",requiredSignIn, isOwner, ReSendVerificationM
 
 //password reset otp code
 router.post("/passwordRestOTP",otp);
-router.patch("/RestOTP",RestOTP);
-router.get("/verifyResetOtp",verifyResetOtp); //comapre OTP code
+router.post("/verifyOTP",verifyResetOtp); //comapre OTP code
 router.patch("/ResetPassword",ResetPassword); //reset password
 
 //get all users except admins
