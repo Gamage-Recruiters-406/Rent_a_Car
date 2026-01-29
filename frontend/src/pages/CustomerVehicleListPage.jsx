@@ -29,15 +29,21 @@ export function CustomerVehicleListPage() {
   const fetchVehicles = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const access_token = localStorage.getItem('token');
+      // Ensure the token is set in cookies for the backend
+      if (access_token) {
+        document.cookie = `access_token=${access_token}; path=/`; 
+      }
+      
       // Fetch user's own vehicles
-      let url = `${baseUrl}${apiVersion}/vehicle/get-my-all`;
+      let url = `${baseUrl}${apiVersion}/vehicle/get-all`;
       
       const response = await fetch(url, {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${access_token}`,
         },
       });
 
