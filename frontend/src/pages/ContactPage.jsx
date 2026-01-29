@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Mail, Phone, PhoneCall } from "lucide-react";
+import { MapPin, Mail, Phone, Headphones } from "lucide-react";
 import bgImg from "../assets/ContactUsBG.jpeg";
 import Layout from '../layouts/Layout';
 import { Link } from "react-router-dom";
@@ -23,7 +23,7 @@ const ContactPage = () => {
         },
         {
             title: "Hotline",
-            icon: <PhoneCall className="h-7 w-7 text-white" />,
+            icon: <Headphones className="h-7 w-7 text-white" />,
             lines: ["0777315095", "0777443552"],
         },
     ];
@@ -52,7 +52,11 @@ const ContactPage = () => {
                                 Home
                             </Link>
 
-                            <span className="mx-2">/</span>
+            {/* SECTION TITLE */}
+            <section className="mx-auto max-w-6xl px-4 py-12">
+                <h2 className="text-center text-2xl font-semibold text-slate-800">
+                Contact Us
+                </h2>
 
                             <a href="#" className="hover:text-white no-underline">
                                 Page

@@ -17,6 +17,7 @@ import {
 
 import Header from "../layouts/Header";
 import Footer from "../layouts/Footer";
+import { getVehicleAvailability } from "../services/bookingApi";
 
 // helpers
 function toYYYYMM(date = new Date()) {
@@ -45,6 +46,8 @@ export default function VehicleDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [bookings, setBookings] = useState([]);
+
   // dropdown states
   const [open, setOpen] = useState({
     registration: true,
@@ -68,6 +71,10 @@ export default function VehicleDetailsPage() {
         console.log(data);
         setVehicle(data?.vehicle || null);
         setActiveImg(0);
+
+        const avail = await getVehicleAvailability(id); // { success, data: bookings[] }
+        if (!mounted) return;
+        setBookings(avail?.data || []);
       } catch (e) {
         if (!mounted) return;
         setError(
@@ -118,6 +125,35 @@ export default function VehicleDetailsPage() {
     { label: "Transmission", value: vehicle?.transmission || "—" },
     { label: "Fuel Type", value: vehicle?.fuelType || "—" },
   ];
+
+  // MiniCalendar will use this to mark blocked days
+  const blockedSet = useMemo(() => {
+    const s = new Set();
+
+    (bookings || []).forEach((b) => {
+      const start = new Date(b.startingDate);
+      const end = new Date(b.endDate);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
+
+      // block each day in the range
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        s.add(d.toISOString().slice(0, 10)); // YYYY-MM-DD
+      }
+    });
+
+    return s;
+  }, [bookings]);
+
+  // OPTIONAL: month-specific bookings count (small info)
+  const blockedCountInMonth = useMemo(() => {
+    const prefix = `${month}-`; // e.g. "2026-01-"
+    let c = 0;
+    blockedSet.forEach((d) => {
+      if (d.startsWith(prefix)) c += 1;
+    });
+    return c;
+  }, [blockedSet, month]);
 
   if (loading) {
     return (
@@ -290,14 +326,25 @@ export default function VehicleDetailsPage() {
                 </button>
               </div>
 
-              <MiniCalendar month={month} />
+              {/* ✅ NEW: pass blockedSet to calendar */}
+              <MiniCalendar month={month} blockedSet={blockedSet} />
 
-              <div className="flex gap-4 items-center mt-3 text-[12px] text-slate-700">
-                <LegendItem
-                  color="bg-emerald-100 border-emerald-300"
-                  label="Available"
-                />
-                <LegendItem color="bg-red-100 border-red-300" label="Blocked" />
+              <div className="flex justify-between items-center mt-3">
+                <div className="flex gap-4 items-center text-[12px] text-slate-700">
+                  <LegendItem
+                    color="bg-emerald-100 border-emerald-300"
+                    label="Available"
+                  />
+                  <LegendItem
+                    color="bg-red-100 border-red-300"
+                    label="Blocked"
+                  />
+                </div>
+
+                {/* small info */}
+                <div className="text-[12px] text-slate-500">
+                  Blocked days: {blockedCountInMonth}
+                </div>
               </div>
             </DropdownCard>
 
