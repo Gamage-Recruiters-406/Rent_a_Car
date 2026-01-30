@@ -24,9 +24,10 @@ function App() {
         <Route path="/CustomerVehicleListPage" element={<CustomerVehicleListPage />} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/customer-reviews" element={<CustomerReviews />} />
-        {/*<Route path="/admin/booking" element={<AdminBooking />} />*/}
+        <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/customer-reviews" element={<CustomerReviews/>} />
+        <Route path="/admin/booking" element={<AdminBooking/>} />
+
 
         {/* login */}
 
