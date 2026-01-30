@@ -14,7 +14,8 @@ import {
   canReviewVehicle,
   getReviewableBookings,
   getMyVehicleReviews,
-  getVehicleRating
+  getVehicleRating,
+  getOverallAverageRating
 } from "../controllers/reviewController.js";
 
 const router = express.Router();
@@ -22,6 +23,7 @@ const router = express.Router();
 // Public routes
 router.get("/vehicle/:vehicle_id", getReviewsByVehicle);
 router.get("/vehicle/:vehicle_id/rating", getVehicleRating);
+router.get("/overall-rating", getOverallAverageRating);
 
 //customer routes
 router.post("/create", requiredSignIn, isCustomer, createReview);

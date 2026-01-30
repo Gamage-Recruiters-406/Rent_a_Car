@@ -89,7 +89,7 @@ export const notifyVehicle = async ({ type, vehicleId }) => {
   //Get notifications for the logged-in user
 export const getUserNotifications = async (req, res) => {
   try {
-    const userId = req.user._id; // get logged-in user ID
+    const userId = req.user.userid; // get logged-in user ID
 
     const notifications = await Notification.find({
      userId: userId
@@ -105,7 +105,7 @@ export const getUserNotifications = async (req, res) => {
 export const markAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;
-    const userId = req.user._id; // logged-in user
+    const userId = req.user.userid; // logged-in user
 
     // Find the notification
     const notification = await Notification.findById(notificationId);
@@ -133,7 +133,7 @@ export const markAsRead = async (req, res) => {
 // get unread count (total)
 export const getUnreadCount = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.userid;
 
     const count = await Notification.countDocuments({
       isRead: false,
@@ -155,7 +155,7 @@ export const getUnreadCount = async (req, res) => {
 //get unread count by type
 export const getUnreadCountsByType = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.userid;
 
     const counts = await Notification.aggregate([
       {
@@ -254,7 +254,7 @@ export const notifyAdminNewVehicle = async (vehicleId) => {
 //get unread notifications
 export const getUnreadNotifications = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.userid;
 
     const notifications = await Notification.find({
       isRead: false,
@@ -270,7 +270,7 @@ export const getUnreadNotifications = async (req, res) => {
 // Get notifications by type (and optional unread)
 export const getNotificationsByType = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.userid;
     const { type, unread } = req.query;
 
     const query = {
