@@ -4,6 +4,7 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import { SignInPage } from "./pages/login/SignInPage";
 import { SignUpPage } from "./pages/login/SignUpPage";
+import { BookingPage1 } from "./pages/BookingPage1";      
 import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
 import ContactPage from "./pages/ContactPage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
@@ -18,7 +19,7 @@ function App() {
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/booking" element={<BookingPage1 />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/CustomerVehicleListPage" element={<CustomerVehicleListPage />} />
