@@ -3,6 +3,13 @@ import fs from "fs";
 import path from "path";
 import Vehicle from "../models/Vehicle.js";
 import { request } from "http";
+import {
+  notifyAdminNewVehicle,
+  notifyAdminVehicleDeleted,
+  notifyAdminVehicleUpdated,
+  notifyVehicle
+} from "../controllers/notificationController.js";
+
 
 const removeDirSafe = (dirPath) => {
   try {
@@ -125,6 +132,13 @@ export const createVehicleListing = async (req, res) => {
     vehicle.photos = photos;
     await vehicle.save();
 
+    // --- NOTIFY ADMINS ---
+    try {
+      await notifyAdminNewVehicle(vehicle._id);
+    } catch (err) {
+      console.error("Admin vehicle notification error:", err.message);
+    }
+
     // 4) Remove temp folder (now should be empty)
     if (tempDir) removeDirSafe(tempDir);
 
@@ -193,6 +207,13 @@ export const deleteVehicleListing = async (req, res) => {
 
     if (vehicle.ownerId.toString() !== ownerId.toString()) {
       return res.status(403).json({ success: false, message: "Forbidden. You do not own this vehicle." });
+    }
+
+    // --- NOTIFY ADMINS BEFORE DELETE ---
+    try {
+      await notifyAdminVehicleDeleted(vehicleId);
+    } catch (err) {
+      console.error("Admin vehicle delete notification error:", err.message);
     }
 
     await Vehicle.findByIdAndDelete(vehicleId);
@@ -428,6 +449,13 @@ export const updateVehicleListing = async (req,res) => {
 
     await vehicle.save(); // runs schema enums/validations
 
+    // --- NOTIFY ADMINS ABOUT UPDATE ---
+    try {
+      await notifyAdminVehicleUpdated(vehicle._id);
+    } catch (err) {
+      console.error("Admin vehicle update notification error:", err.message);
+    }
+
     if (tempDir) removeDirSafe(tempDir);
 
     return res.status(200).json({
@@ -484,6 +512,16 @@ export const updateVehicleStatus = async (req,res) => {
 
     vehicle.status = status;
     await vehicle.save();
+
+    // --- NOTIFY VEHICLE OWNER ---
+    try {
+      await notifyVehicle({
+        vehicleId: vehicle._id,
+        status: vehicle.status
+      });
+    } catch (err) {
+      console.error("Vehicle status notification error:", err.message);
+    }
 
     return res.status(200).json({ 
       success: true, 
@@ -553,6 +591,26 @@ export const getAllAvailableVehicles = async (req, res) => {
     });
   } catch (error) {
     console.log("GET VEHICLE LISTING ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
+
+
+
+// GET COUNT OF APPROVED VEHICLES (for Customers)
+export const getApprovedVehicleCount = async (req, res) => {
+  try {
+    const count = await Vehicle.countDocuments({ status: "Approved" });
+
+    return res.status(200).json({ 
+      success: true, 
+      count 
+    });
+  } catch (error) {
+    console.log("GET APPROVED VEHICLE COUNT ERROR:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Server Side Error",
