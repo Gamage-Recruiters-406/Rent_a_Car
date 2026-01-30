@@ -723,3 +723,27 @@ export const getOverallAverageRating = async (req, res) => {
     });
   }
 };
+
+// Get latest reviews for homepage (not vehicle-wise)
+export const getHomePageReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find()
+      .populate("customer_id", "name")
+      .populate("vehicle_id", "title")
+      .sort({ createdAt: -1 })   // latest first
+      .limit(15);                 // show only 15 reviews on homepage
+
+    res.status(200).json({
+      success: true,
+      total: reviews.length,
+      reviews
+    });
+  } catch (error) {
+    console.error("Get homepage reviews error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
