@@ -32,10 +32,11 @@ export const createBooking = async (formData) => {
 };
 
 export const getVehicleAvailability = async (vehicleId) => {
-  try {
-    const response = await api.get(`/bookings/availability/${vehicleId}`);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || error.message;
-  }
+  const res = await api.get(`/bookings/availability/${vehicleId}`);
+  return res.data; // { success, data: bookings[] }
+};
+
+export const getAllBookings = async () => {
+  const res = await api.get('/bookings/get');
+  return res.data; // { success, data: bookings[] }
 };
