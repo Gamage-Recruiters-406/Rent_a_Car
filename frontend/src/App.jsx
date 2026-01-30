@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import RentalHistoryPage from "./pages/RentalHistoryPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import { SignInPage } from "./pages/login/SignInPage";
 import { SignUpPage } from "./pages/login/SignUpPage";
@@ -13,6 +14,9 @@ function App() {
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
+        
+        {/* owner */}
+        <Route path="/rental-history" element={<RentalHistoryPage />} />
   
         {/* public */}
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
