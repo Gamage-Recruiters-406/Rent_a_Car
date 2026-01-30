@@ -8,6 +8,14 @@ import { SignUpPage } from "./pages/login/SignUpPage";
 import { BookingPage1 } from "./pages/BookingPage1";      
 import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
 import { Homepage } from "./pages/Homepage";
+import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
+import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
+import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
+import CustomerReviews from "./pages/CustomerRating";
+import AdminBooking from "./pages/admin/AdminBooking.jsx";
+
+
+
 
 function App() {
   return (
@@ -23,7 +31,11 @@ function App() {
         <Route path="/contact" element={<ContactPage/>} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/" element={<Homepage />} />
-        <Route path="/" element={<CustomerVehicleListPage />} />
+
+
+        {/* customer */}
+        <Route path="/CustomerVehicleListPage" element={<CustomerVehicleListPage />} />
+        <Route path="/customer-reviews" element={<CustomerReviews/>} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/booking" element={<BookingPage1 />} />
 
