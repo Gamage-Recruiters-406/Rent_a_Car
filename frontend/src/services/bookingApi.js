@@ -6,6 +6,8 @@ export const getVehicleAvailability = async (vehicleId) => {
 };
 
 export const getAllBookings = async () => {
-  const res = await api.get('/bookings');
+  const res = await api.get('/bookings/get');
   return res.data; // { success, data: bookings[] }
 };
+
+
