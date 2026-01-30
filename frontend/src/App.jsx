@@ -11,8 +11,10 @@ import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordP
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
-import { HomePage } from "./pages/HomePage";
+// import { HomePage } from "./pages/HomePage";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
+// import CustomerReviews from "./pages/CustomerRating";
+// import AdminBooking from "./pages/admin/AdminBooking.jsx";
 
 function App() {
   return (
