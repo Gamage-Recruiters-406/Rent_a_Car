@@ -9,7 +9,7 @@ import {
   ChevronRight
 } from
   'lucide-react';
-import { Header } from './HomePageHeader';
+import { Header } from './BookingPageHeader';
 import Layout from '../layouts/Layout';
 import { searchVehicles, createBooking } from '../services/bookingApi';
 // import { RentYourCarPage } from './RentYourCarPage';
@@ -823,7 +823,7 @@ export function LandingPage({ onBookNow }) {
 
 }
 
-export function HomePage() {
+export function BookingPage1() {
   const [activeTab, setActiveTab] = useState('home');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
