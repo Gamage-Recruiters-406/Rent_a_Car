@@ -5,26 +5,28 @@ export function Header({ activeTab, onNavigate }) {
   return (
     <header className="w-full bg-[#1e3a5f] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Left: Logo/Location */}
-        <div
-          className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => onNavigate('home')}>
+        <div className="flex items-center space-x-8">
+          {/* Logo/Location */}
+          <div
+            className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => onNavigate('home')}>
 
-          <MapPin className="h-5 w-5 text-white" />
-          <span className="font-medium text-sm sm:text-base">
-            Find A Location
-          </span>
-        </div>
-
-        {/* Center: Contact Info (Hidden on small mobile) */}
-        <div className="hidden md:flex items-center space-x-8">
-          <div className="flex items-center space-x-2">
-            <Phone className="h-4 w-4" />
-            <span className="text-sm">077764224</span>
+            <MapPin className="h-5 w-5 text-white" />
+            <span className="font-medium text-sm sm:text-base">
+              Find A Location
+            </span>
           </div>
-          <div className="flex items-center space-x-2">
-            <Mail className="h-4 w-4" />
-            <span className="text-sm">rentmycar@gmail.com</span>
+
+          {/* Contact Info (Hidden on small mobile) */}
+          <div className="hidden md:flex items-center space-x-8">
+            <div className="flex items-center space-x-2">
+              <Phone className="h-4 w-4" />
+              <span className="text-sm">077764224</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Mail className="h-4 w-4" />
+              <span className="text-sm">rentmycar@gmail.com</span>
+            </div>
           </div>
         </div>
 
