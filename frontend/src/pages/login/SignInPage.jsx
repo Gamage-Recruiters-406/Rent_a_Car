@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Car } from 'lucide-react';
+import { Car, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -13,36 +13,45 @@ export function SignInPage() {
     password: '',
     rememberMe: false
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     
-  try{
-    const url = `${baseUrl}${apiVersion}/authUser/login`;
-    const response = await fetch(url,{
-      method: 'POST',
-      headers: {'Content-Type': 'application/json',},
-      body: JSON.stringify(formData),
-      
-    });  
-    
-    if(!response.ok){
-      throw new Error('please enter valid email and password');
-    }toast.success("loging success");
-    
-    const data = await response.json();
-    if(data.success || data.token){ 
-          localStorage.setItem('token', data.token); 
-          localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard');
-    } else {
-        toast.error(data.message || 'Login failed'); }
-  } 
-  catch(error){
-    setIsLoading(false);
-    toast.error(error.message);
+
+    try {
+      const url = `${baseUrl}${apiVersion}/authUser/login`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('Login API Response:', data); 
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      if (data.success) {
+        toast.success(data.message || "Login Successfully");
+        localStorage.setItem('token', data.token);
+  
+        localStorage.setItem('user', JSON.stringify(data));
+        navigate('/dashboard');
+
+     
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      toast.error(error.message || "Server Side Error");
+
     }
   };
 
@@ -111,21 +120,31 @@ export function SignInPage() {
                   htmlFor="password"
                   className="text-sm font-medium text-gray-900">
 
+
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-4 py-3 bg-[#F3F4F6] border-transparent focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-lg transition-all outline-none text-gray-900 placeholder-gray-500"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      password: e.target.value
-                    })
-                  } />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    required
+                    className="w-full px-4 py-3 bg-[#F3F4F6] border-transparent focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-lg transition-all outline-none text-gray-900 placeholder-gray-500 pr-10"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        password: e.target.value
+                      })
+                    } />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
 
               </div>
             </div>
@@ -150,7 +169,8 @@ export function SignInPage() {
 
               <button
                 type="button"
-                className="text-sm font-medium text-[#0A2E5C] hover:text-blue-800">
+                className="text-sm font-medium text-[#0A2E5C] hover:text-blue-800"
+                onClick={() => navigate('/forgot-password')}>
 
                 Forgot password?
               </button>
@@ -176,6 +196,11 @@ export function SignInPage() {
           </form>
         </div>
       </div>
-    </div>);
+    </div>
+    
+    
+  );
 
 }
+
+    
