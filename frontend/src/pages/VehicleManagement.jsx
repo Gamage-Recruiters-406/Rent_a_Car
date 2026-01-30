@@ -5,7 +5,7 @@ import { StatCard } from '../components/StatCard';
 import { SearchBar } from '../components/SearchBar';
 import { Tabs } from '../components/Tabs';
 import { VehicleCard } from '../components/VehicleCard';
-import { vehicleAPI } from '../api/vehicle.api';
+import { vehicleAPI } from '../services/vehicleService';
 import toast from 'react-hot-toast';
 
 function VehicleStatistics({ stats }) {
@@ -43,25 +43,14 @@ function VehicleStatistics({ stats }) {
   );
 }
 
-function SearchSection({ searchQuery, onSearchChange, onExport }) {
+function SearchSection({ searchQuery, onSearchChange }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div className="flex-1 w-full">
-          <SearchBar
-            value={searchQuery}
-            onChange={onSearchChange}
-            onFilterClick={() => {}}
-          />
-        </div>
-        <button
-          onClick={onExport}
-          className="px-6 py-3 bg-blue-700 text-white rounded-xl flex items-center gap-2 hover:bg-blue-800 transition-colors whitespace-nowrap"
-        >
-          <FileDown className="w-5 h-5" />
-          Export Report
-        </button>
-      </div>
+      <SearchBar
+        value={searchQuery}
+        onChange={onSearchChange}
+        onFilterClick={() => {}}
+      />
     </div>
   );
 }
@@ -113,14 +102,13 @@ export function VehicleManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
 
-  // Mock user data
+  // Mock user data - Replace with your actual auth context
   const user = {
     first_name: 'Admin',
     last_name: 'User',
   };
 
   const handleLogout = () => {
-    // Add logout logic here
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/admin/login';
@@ -135,7 +123,12 @@ export function VehicleManagement() {
       setLoading(true);
       const data = await vehicleAPI.getAllVehicles();
       
-      // Transform API data to match component structure
+      if (!data || !data.vehicles) {
+        console.warn('No vehicles data received from API');
+        setVehicles([]);
+        return;
+      }
+      
       const transformedVehicles = (data.vehicles || []).map(vehicle => ({
         id: vehicle._id || vehicle.id,
         name: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || 'Unknown Vehicle',
@@ -155,7 +148,8 @@ export function VehicleManagement() {
       setVehicles(transformedVehicles);
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
-      toast.error('Failed to load vehicles');
+      toast.error('Failed to load vehicles. Please check your backend connection.');
+      setVehicles([]);
     } finally {
       setLoading(false);
     }
@@ -196,7 +190,6 @@ export function VehicleManagement() {
   };
 
   const handleView = (vehicle) => {
-    // Open modal or navigate to detail page
     console.log('View vehicle:', vehicle);
   };
 
@@ -204,7 +197,6 @@ export function VehicleManagement() {
     toast.success('Exporting report...');
   };
 
-  // Calculate statistics
   const stats = {
     total: vehicles.length,
     pending: vehicles.filter(v => v.status?.toLowerCase() === 'pending').length,
@@ -212,7 +204,6 @@ export function VehicleManagement() {
     rejected: vehicles.filter(v => v.status?.toLowerCase() === 'rejected').length,
   };
 
-  // Filter vehicles based on active tab
   const filteredVehicles = vehicles.filter(vehicle => {
     const matchesSearch = 
       vehicle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -232,9 +223,8 @@ export function VehicleManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Component */}
       <Header
-        role={3}  // 3 = admin
+        role={3}
         user={user}
         isAuthenticated={true}
         onLogout={handleLogout}
@@ -242,27 +232,27 @@ export function VehicleManagement() {
       />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Vehicle Management
-          </h1>
-          <p className="text-gray-600">
-            Manage and moderate vehicle listings
-          </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Vehicle Management
+            </h1>
+            <p className="text-gray-600">
+              Manage and moderate vehicle listings
+            </p>
+          </div>
+          <button
+            onClick={handleExport}
+            className="px-6 py-3 bg-blue-700 text-white rounded-xl flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm"
+          >
+            <FileDown className="w-5 h-5" />
+            Export Report
+          </button>
         </div>
 
-        {/* Statistics Cards */}
         <VehicleStatistics stats={stats} />
+        <SearchSection searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-        {/* Search and Filter Section */}
-        <SearchSection
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onExport={handleExport}
-        />
-
-        {/* Tabs and Vehicle List */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="p-6 pb-0">
             <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />

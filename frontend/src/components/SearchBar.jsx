@@ -11,7 +11,7 @@ export function SearchBar({ value, onChange, onFilterClick }) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Search by vehicle name, number plate or owner..."
-          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
       <button

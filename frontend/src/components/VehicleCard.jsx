@@ -117,7 +117,7 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
   const handleView = () => onView(vehicle);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all fade-in">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all">
       <div className="md:flex">
         <VehicleImage src={vehicle.image} alt={vehicle.name} />
 
