@@ -208,7 +208,7 @@ export const updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
     const { rate, feedback } = req.body; // ← CORRECT: rate, feedback
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     const existingReview = await Review.findById(reviewId);
     
@@ -286,7 +286,7 @@ export const updateReview = async (req, res) => {
 export const deleteReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     const review = await Review.findById(reviewId);
     
@@ -325,7 +325,7 @@ export const deleteReview = async (req, res) => {
  
 export const getMyReviews = async (req, res) => {
   try {
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
     
     // Check if user exists
     const user = await User.findById(customer_id);
@@ -358,7 +358,7 @@ export const getMyReviews = async (req, res) => {
 export const canReviewVehicle = async (req, res) => {
   try {
     const { vehicle_id } = req.params; // ← CORRECT: vehicle_id
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     // Check if user exists and has customer role
     const user = await User.findById(customer_id);
@@ -458,7 +458,7 @@ export const canReviewVehicle = async (req, res) => {
  
 export const getReviewableBookings = async (req, res) => {
   try {
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     // Check if user is a customer
     const user = await User.findById(customer_id);
@@ -514,7 +514,7 @@ export const getReviewableBookings = async (req, res) => {
 
 export const getMyVehicleReviews = async (req, res) => {
   try {
-    const ownerId = req.user.id; // correct meaning
+    const ownerId = req.user.userid; // correct meaning
 
     // Check if user is an owner (role=2)
     const user = await User.findById(ownerId);
