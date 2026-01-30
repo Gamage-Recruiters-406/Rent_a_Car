@@ -11,36 +11,42 @@ import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordP
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
-// import { HomePage } from "./pages/HomePage";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
-// import CustomerReviews from "./pages/CustomerRating";
-// import AdminBooking from "./pages/admin/AdminBooking.jsx";
+
+
 
 function App() {
   return (
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
-        <Route path="/booking" element={<BookingPage1 />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
-        <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
-        <Route path="/CustomerVehicleListPage" element={<CustomerVehicleListPage />} />
-        <Route path="/vehicles" element={<CustomerVehicleListPage />} />
+  
+        {/* public */}
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
+        
+
+        {/* customer */}
+        <Route path="/CustomerVehicleListPage" element={<CustomerVehicleListPage />} />
         <Route path="/customer-reviews" element={<CustomerReviews/>} />
+        <Route path="/vehicles" element={<CustomerVehicleListPage />} />
+        <Route path="/booking" element={<BookingPage1 />} />
+
+
+        {/* admin */}
         <Route path="/admin/booking" element={<AdminBooking/>} />
 
 
         {/* login */}
-
         <Route path="/login" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
-
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+
       </Routes>
     </Router>
   );
