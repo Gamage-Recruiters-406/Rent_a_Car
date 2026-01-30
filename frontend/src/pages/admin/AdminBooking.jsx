@@ -142,9 +142,9 @@ const AdminBooking = () => {
     <div className="flex flex-col min-h-screen bg-app-bg font-sans">
       <Header />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-10">
-          <h1 className="text-2xl font-bold text-brand-dark">Recent Bookings (View Only)</h1>
-          <p className="text-brand-dark mb-8 opacity-80">View all the recent bookings made by customers here</p>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-dark">Recent Bookings (View Only)</h1>
+          <p className="text-sm sm:text-base text-brand-dark mb-6 sm:mb-8 opacity-80">View all the recent bookings made by customers here</p>
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -153,14 +153,14 @@ const AdminBooking = () => {
           ) : error ? (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
               <p className="font-bold">Error</p>
-              <p>{error}</p>
+              <p className="text-sm sm:text-base">{error}</p>
               {error.includes('logged in') && (
                 <p className="mt-2 text-sm">Redirecting to login page...</p>
               )}
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
                 {stats.map((s, i) => <StatsCard key={i} {...s} />)}
               </div>
 
