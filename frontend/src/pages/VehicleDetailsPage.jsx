@@ -15,8 +15,8 @@ import {
   WorldIcon,
 } from "../components/vehicle/Icons";
 
-import Header from "../layouts/Header";
-import Footer from "../layouts/Footer";
+import Layout from "../layouts/Layout";
+
 import { getVehicleAvailability } from "../services/bookingApi";
 
 // helpers
@@ -183,8 +183,7 @@ export default function VehicleDetailsPage() {
   }
 
   return (
-    <>
-      <Header />
+    <Layout>
       <div className="w-full px-3 sm:px-6 lg:px-10 py-6 font-nunito bg-white">
         {/* Title */}
         <h1 className="text-[24px] font-bold text-[#0d3778] mb-4">
@@ -222,7 +221,7 @@ export default function VehicleDetailsPage() {
               </div>
 
               {/* thumbs */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {photoUrls.slice(0, 4).map((img, idx) => (
                   <button
                     key={idx}
@@ -394,7 +393,6 @@ export default function VehicleDetailsPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </>
+    </Layout>
   );
 }
