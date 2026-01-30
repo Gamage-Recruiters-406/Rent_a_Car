@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import { getOwnerBookings } from "../services/rentalService";
 import api from "../services/api";
+import Layout from "../layouts/Layout";
 
 const RentalHistoryPage = () => {
   const [rentals, setRentals] = useState([]);
@@ -20,9 +21,7 @@ const RentalHistoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageCache, setImageCache] = useState({});
-
-  // Change this when auth is implemented
-  const OWNER_ID = "696f3ba47de1216b0dfe75e2";
+  const [ownerId, setOwnerId] = useState(null);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,7 +30,7 @@ const RentalHistoryPage = () => {
   const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
-    fetchOwnerBookings();
+    fetchAuthenticatedUser();
 
     // Cleanup function to revoke object URLs
     return () => {
@@ -44,16 +43,53 @@ const RentalHistoryPage = () => {
   }, []);
 
   useEffect(() => {
+    if (ownerId) {
+      fetchOwnerBookings();
+    }
+  }, [ownerId]);
+
+  useEffect(() => {
     applyFilters();
   }, [searchQuery, dateRange, statusFilter, rentals]);
 
+  const fetchAuthenticatedUser = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const API_VERSION = import.meta.env.VITE_API_VERSION || "";
+
+      const response = await fetch(
+        `${API_BASE_URL}${API_VERSION}/authUser/getUserDetails`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch user details. Please login.");
+      }
+
+      const data = await response.json();
+      if (data?.success && data?.user?._id) {
+        console.log("✅ Authenticated user:", data.user);
+        setOwnerId(data.user._id);
+      } else {
+        throw new Error("User not authenticated. Please login.");
+      }
+    } catch (err) {
+      console.error("❌ Error fetching authenticated user:", err);
+      setError(err.message || "Failed to authenticate user");
+      setLoading(false);
+    }
+  };
+
   const fetchOwnerBookings = async () => {
     try {
-      console.log("📡 Fetching owner bookings for ID:", OWNER_ID);
+      console.log("📡 Fetching owner bookings for ID:", ownerId);
       setLoading(true);
       setError(null);
 
-      const response = await getOwnerBookings(OWNER_ID);
+      const response = await getOwnerBookings(ownerId);
       console.log("✅ Bookings response received:", response);
       console.log("📊 Number of bookings:", response?.length || 0);
 
@@ -295,22 +331,28 @@ const RentalHistoryPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-blue-900 mx-auto mb-4" />
-          <p className="text-gray-600">Loading rental history...</p>
+      <Layout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <FaSpinner className="animate-spin text-4xl text-blue-900 mx-auto mb-4" />
+            <p className="text-gray-600">Loading rental history...</p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (error) {
-    return (
+    const isAccessDenied =
+      error.toLowerCase().includes("access denied") ||
+      error.toLowerCase().includes("only vehicle owners");
+
+    const errorContent = (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={fetchOwnerBookings}
+            onClick={() => window.location.reload()}
             className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-800"
           >
             Retry
@@ -318,150 +360,154 @@ const RentalHistoryPage = () => {
         </div>
       </div>
     );
+
+    return isAccessDenied ? errorContent : <Layout>{errorContent}</Layout>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      {/* --- Main Content --- */}
-      <main className="max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-blue-900 mb-4 sm:mb-6">
-          Rental Car History
-        </h1>
+    <Layout>
+      <div className="min-h-screen bg-gray-50 font-sans">
+        {/* --- Main Content --- */}
+        <main className="max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900 mb-4 sm:mb-6">
+            Rental Car History
+          </h1>
 
-        {/* Filters Section */}
-        <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow-sm border border-gray-100 mb-6 lg:mb-8">
-          <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-stretch">
-            <div className="relative w-full lg:w-1/3">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-              <input
-                type="text"
-                placeholder="Search vehicle or renter"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 bg-white"
-              />
-            </div>
-
-            <div className="w-full lg:w-1/3 relative">
-              <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none z-10 text-sm" />
-              <DatePicker
-                selectsRange={true}
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(update) => setDateRange(update)}
-                isClearable={true}
-                placeholderText="Date range"
-                wrapperClassName="w-full"
-                className="w-full pl-9 pr-10 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 text-gray-600 placeholder-gray-400 bg-white"
-              />
-            </div>
-
-            <div className="w-full lg:w-1/3 relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full pl-3 pr-10 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 bg-white text-gray-600 appearance-none cursor-pointer leading-tight"
-              >
-                <option value="">All Status</option>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="rejected">Rejected</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-              <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
-            </div>
-          </div>
-        </div>
-
-        <p className="text-xs sm:text-sm text-gray-400 mb-4 px-1">
-          Showing {filteredRentals.length} of {rentals.length} Rentals
-        </p>
-
-        {filteredRentals.length === 0 ? (
-          <div className="text-center py-12">
-            <FaCar className="text-6xl text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No rentals found</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredRentals.map((rental) => (
-              <div
-                key={rental.id}
-                className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="h-40 sm:h-48 w-full bg-gray-200 relative">
-                  <img
-                    src={
-                      rental.imageUrl && imageCache[rental.imageUrl]
-                        ? imageCache[rental.imageUrl]
-                        : rental.image
-                    }
-                    alt={rental.carName}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=400";
-                    }}
-                  />
-                </div>
-
-                <div className="p-3 sm:p-5">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-bold text-blue-900 text-base sm:text-lg">
-                        {rental.carName}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-gray-500">
-                        {rental.renter}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 text-xs text-gray-500 my-3 sm:my-4 border-t border-b border-gray-100 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <FaUserCircle className="shrink-0" />
-                      <span>{rental.seats} Seats</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <FaCogs className="shrink-0" />
-                      <span>{rental.transmission}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <FaCalendarAlt className="shrink-0" />
-                      <span className="wrap-break-word sm:whitespace-nowrap">
-                        {rental.dateRange}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center mb-3 sm:mb-4">
-                    <div>
-                      <span className="block text-lg sm:text-xl font-bold text-blue-900">
-                        {rental.price}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        Total Earnings
-                      </span>
-                    </div>
-                    <span
-                      className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        rental.status,
-                      )}`}
-                    >
-                      {rental.status}
-                    </span>
-                  </div>
-
-                  <button className="w-full bg-blue-900 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-medium hover:bg-blue-800 transition-colors cursor-pointer">
-                    View Details
-                  </button>
-                </div>
+          {/* Filters Section */}
+          <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow-sm border border-gray-100 mb-6 lg:mb-8">
+            <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-stretch">
+              <div className="relative w-full lg:w-1/3">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Search vehicle or renter"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 bg-white"
+                />
               </div>
-            ))}
+
+              <div className="w-full lg:w-1/3 relative">
+                <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none z-10 text-sm" />
+                <DatePicker
+                  selectsRange={true}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => setDateRange(update)}
+                  isClearable={true}
+                  placeholderText="Date range"
+                  wrapperClassName="w-full"
+                  className="w-full pl-9 pr-10 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 text-gray-600 placeholder-gray-400 bg-white"
+                />
+              </div>
+
+              <div className="w-full lg:w-1/3 relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full pl-3 pr-10 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 bg-white text-gray-600 appearance-none cursor-pointer leading-tight"
+                >
+                  <option value="">All Status</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+              </div>
+            </div>
           </div>
-        )}
-      </main>
-    </div>
+
+          <p className="text-xs sm:text-sm text-gray-400 mb-4 px-1">
+            Showing {filteredRentals.length} of {rentals.length} Rentals
+          </p>
+
+          {filteredRentals.length === 0 ? (
+            <div className="text-center py-12">
+              <FaCar className="text-6xl text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">No rentals found</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {filteredRentals.map((rental) => (
+                <div
+                  key={rental.id}
+                  className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                >
+                  <div className="h-40 sm:h-48 w-full bg-gray-200 relative">
+                    <img
+                      src={
+                        rental.imageUrl && imageCache[rental.imageUrl]
+                          ? imageCache[rental.imageUrl]
+                          : rental.image
+                      }
+                      alt={rental.carName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=400";
+                      }}
+                    />
+                  </div>
+
+                  <div className="p-3 sm:p-5">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-bold text-blue-900 text-base sm:text-lg">
+                          {rental.carName}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-500">
+                          {rental.renter}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 text-xs text-gray-500 my-3 sm:my-4 border-t border-b border-gray-100 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <FaUserCircle className="shrink-0" />
+                        <span>{rental.seats} Seats</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <FaCogs className="shrink-0" />
+                        <span>{rental.transmission}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <FaCalendarAlt className="shrink-0" />
+                        <span className="wrap-break-word sm:whitespace-nowrap">
+                          {rental.dateRange}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center mb-3 sm:mb-4">
+                      <div>
+                        <span className="block text-lg sm:text-xl font-bold text-blue-900">
+                          {rental.price}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          Total Earnings
+                        </span>
+                      </div>
+                      <span
+                        className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          rental.status,
+                        )}`}
+                      >
+                        {rental.status}
+                      </span>
+                    </div>
+
+                    <button className="w-full bg-blue-900 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-medium hover:bg-blue-800 transition-colors cursor-pointer">
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    </Layout>
   );
 };
 
