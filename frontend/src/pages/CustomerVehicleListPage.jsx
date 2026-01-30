@@ -89,7 +89,7 @@ export function CustomerVehicleListPage() {
   };
 
   const handleViewDetails = (vehicleId) => {
-    navigate(`/vehicle/${vehicleId}`);
+    navigate(`/vehicles/${vehicleId}`);
   };
 
   const filteredVehicles = vehicles.filter(vehicle => {
