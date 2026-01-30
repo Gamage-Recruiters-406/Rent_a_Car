@@ -670,3 +670,56 @@ export const getVehicleRating = async (req, res) => {
     });
   }
 };
+
+ //Get overall average rating across all vehicles (for homepage)
+export const getOverallAverageRating = async (req, res) => {
+  try {
+    // Aggregate all reviews
+    const result = await Review.aggregate([
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rate" },
+          totalReviews: { $sum: 1 },
+          // Optional: Get rating distribution
+          ratingDistribution: {
+            $push: "$rate"
+          }
+        }
+      }
+    ]);
+
+    const stats = result[0] || { 
+      averageRating: 0, 
+      totalReviews: 0,
+      ratingDistribution: []
+    };
+
+    // Calculate rating distribution
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    if (stats.ratingDistribution && stats.ratingDistribution.length > 0) {
+      stats.ratingDistribution.forEach(rating => {
+        distribution[rating]++;
+      });
+    }
+
+    // Also get total vehicle count
+    const totalVehicles = await Vehicle.countDocuments({ status: "Approved" });
+
+    res.status(200).json({
+      message: "Overall ratings retrieved successfully",
+      statistics: {
+        averageRating: parseFloat(stats.averageRating.toFixed(1)),
+        totalReviews: stats.totalReviews,
+        totalVehicles: totalVehicles,
+        ratingDistribution: distribution
+      }
+    });
+  } catch (error) {
+    console.error("Get overall rating error:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
