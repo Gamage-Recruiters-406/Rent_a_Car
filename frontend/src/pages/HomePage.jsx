@@ -11,6 +11,7 @@ import {
   'lucide-react';
 import { Header } from './HomePageHeader';
 import Layout from '../layouts/Layout';
+import { searchVehicles, createBooking } from '../services/bookingApi';
 // import { RentYourCarPage } from './RentYourCarPage';
 // import { ContactPage } from './ContactPage';
 // import { PaymentModal } from './PaymentModal';
@@ -400,6 +401,26 @@ export function LandingPage({ onBookNow }) {
   const [pickupTime, setPickupTime] = useState(null);
   const [dropoffDate, setDropoffDate] = useState(null);
   const [dropoffTime, setDropoffTime] = useState(null);
+  // Vehicles State
+  const [vehicles, setVehicles] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const res = await searchVehicles({});
+        if (res.success && res.data) {
+           setVehicles(res.data);
+           if (res.data.length > 0) setSelectedVehicleId(res.data[0]._id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch vehicles", error);
+      }
+    };
+    fetchVehicles();
+  }, []);
+  
   // Popup State
   const [showPickupCalendar, setShowPickupCalendar] = useState(false);
   const [showPickupTime, setShowPickupTime] = useState(false);
@@ -428,6 +449,59 @@ export function LandingPage({ onBookNow }) {
     if (!time) return '12:00 AM';
     return `${time.hour}:${time.minute.toString().padStart(2, '0')} ${time.period}`;
   };
+
+  const combineDateTime = (date, time) => {
+    if (!date) return null;
+    const t = time || { hour: 12, minute: 0, period: 'AM' };
+    const d = new Date(date);
+    let hours = t.hour;
+    if (t.period === 'PM' && hours < 12) hours += 12;
+    if (t.period === 'AM' && hours === 12) hours = 0;
+    d.setHours(hours, t.minute, 0, 0);
+    return d;
+  };
+
+  const getEstimatedTotal = () => {
+    const vehicle = vehicles.find(v => v._id === selectedVehicleId);
+    if (!vehicle || !pickupDate || !dropoffDate) return "0.00";
+    const start = combineDateTime(pickupDate, pickupTime);
+    const end = combineDateTime(dropoffDate, dropoffTime);
+    if (!start || !end || end <= start) return "0.00";
+    
+    const diffMs = end.getTime() - start.getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const days = Math.max(1, Math.ceil(diffMs / dayMs));
+    const rate = vehicle.amount || vehicle.pricePerDay || 0;
+    return (days * rate).toFixed(2);
+  };
+
+  const handleBookingCreate = async () => {
+    if (!selectedVehicleId) return alert("Please select a vehicle.");
+    const start = combineDateTime(pickupDate, pickupTime);
+    const end = combineDateTime(dropoffDate, dropoffTime);
+    
+    if (!start || !end) return alert("Please select pickup and dropoff dates.");
+    if (end <= start) return alert("End date must be after pickup date.");
+
+    setIsLoading(true);
+    try {
+      const res = await createBooking({
+        vehicleId: selectedVehicleId,
+        startingDate: start,
+        endDate: end,
+        documents: []
+      });
+      if (res.success) {
+        alert("Booking request sent successfully!");
+        onBookNow();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to create booking. Please ensure you are logged in.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="w-full">
       {/* Hero Section */}
@@ -453,10 +527,19 @@ export function LandingPage({ onBookNow }) {
               {/* Car Selection */}
               <div className="space-y-1">
                 <div className="relative">
-                  <select className="w-full pl-3 pr-10 py-3 bg-white text-gray-900 rounded-md text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none appearance-none">
-                    <option>Toyota Prius [ABC-1234]</option>
-                    <option>Honda Vezel [XYZ-5678]</option>
-                    <option>Suzuki WagonR [PQR-9012]</option>
+                  <select
+                    value={selectedVehicleId}
+                    onChange={(e) => setSelectedVehicleId(e.target.value)}
+                    className="w-full pl-3 pr-10 py-3 bg-white text-gray-900 rounded-md text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none appearance-none">
+                    {vehicles.length > 0 ? (
+                      vehicles.map((v) => (
+                        <option key={v._id} value={v._id}>
+                           {v.title || `${v.make || 'Car'} ${v.model || ''}`} [{v.licensePlate || v.registrationNumber || 'NA'}]
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No vehicles available</option>
+                    )}
                   </select>
                   <Car className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
                 </div>
@@ -563,15 +646,15 @@ export function LandingPage({ onBookNow }) {
               {/* Total */}
               <div className="bg-white rounded px-4 py-3 flex justify-between items-center text-sm font-bold text-gray-900">
                 <span>Trip total:</span>
-                <span>$3,617.67</span>
+                <span>LKR {getEstimatedTotal()}</span>
               </div>
 
               {/* Book Button */}
               <button
-                onClick={onBookNow}
-                className="w-full py-3 bg-[#162c46] hover:bg-[#0f1f33] text-white font-bold rounded shadow-lg transition-all transform active:scale-[0.98] border border-white/10">
-
-                Book Now
+                onClick={handleBookingCreate}
+                disabled={isLoading}
+                className={`w-full py-3 bg-[#162c46] hover:bg-[#0f1f33] text-white font-bold rounded shadow-lg transition-all transform active:scale-[0.98] border border-white/10 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                {isLoading ? 'Processing...' : 'Book Now'}
               </button>
             </div>
           </div>
