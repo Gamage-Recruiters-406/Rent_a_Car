@@ -719,7 +719,10 @@ export const getOwnerBookings = async (req, res) => {
         const filter = { ownerId };
         if (status) filter.status = status;
 
-        const bookings = await Booking.find(filter).sort({ startingDate: -1 });
+        const bookings = await Booking.find(filter)
+            .populate("customerId", "first_name last_name email")
+            .populate("vehicleId")
+            .sort({ startingDate: -1 });
 
         return res.status(200).json({
             success: true,
