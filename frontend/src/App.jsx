@@ -10,8 +10,8 @@ import ContactPage from "./pages/ContactPage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
-
-
+// import CustomerReviews from "./pages/CustomerRating";
+// import AdminBooking from "./pages/admin/AdminBooking.jsx";
 
 function App() {
   return (
