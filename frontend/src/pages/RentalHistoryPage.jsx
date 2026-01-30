@@ -1,0 +1,468 @@
+import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import {
+  FaBell,
+  FaUserCircle,
+  FaSearch,
+  FaCar,
+  FaCogs,
+  FaCalendarAlt,
+  FaChevronDown,
+  FaSpinner,
+} from "react-icons/fa";
+import { getOwnerBookings } from "../services/rentalService";
+import api from "../services/api";
+
+const RentalHistoryPage = () => {
+  const [rentals, setRentals] = useState([]);
+  const [filteredRentals, setFilteredRentals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [imageCache, setImageCache] = useState({});
+
+  // Change this when auth is implemented
+  const OWNER_ID = "696f3ba47de1216b0dfe75e2";
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [statusFilter, setStatusFilter] = useState("");
+
+  useEffect(() => {
+    fetchOwnerBookings();
+
+    // Cleanup function to revoke object URLs
+    return () => {
+      Object.values(imageCache).forEach((url) => {
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchQuery, dateRange, statusFilter, rentals]);
+
+  const fetchOwnerBookings = async () => {
+    try {
+      console.log("📡 Fetching owner bookings for ID:", OWNER_ID);
+      setLoading(true);
+      setError(null);
+
+      const response = await getOwnerBookings(OWNER_ID);
+      console.log("✅ Bookings response received:", response);
+      console.log("📊 Number of bookings:", response?.length || 0);
+
+      const transformedData = transformBookingsData(response || []);
+      console.log("🔄 Transformed bookings data:", transformedData);
+
+      setRentals(transformedData);
+      setFilteredRentals(transformedData);
+
+      // Preload images
+      console.log("🖼️ Starting image preload...");
+      await loadImages(transformedData);
+      console.log("✅ Image preload complete");
+    } catch (err) {
+      console.error("❌ Error fetching bookings:", err);
+      console.error("📝 Error details:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to load rental history",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadImages = async (bookings) => {
+    console.log("🖼️ Loading images for", bookings.length, "bookings");
+    const newCache = { ...imageCache };
+    let loadedCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
+
+    for (const booking of bookings) {
+      if (
+        booking.imageUrl &&
+        !booking.imageUrl.startsWith("http") &&
+        !newCache[booking.imageUrl]
+      ) {
+        try {
+          const fullUrl = `http://localhost:8090${booking.imageUrl}`;
+          console.log(`📥 Fetching image: ${fullUrl}`);
+
+          const response = await fetch(fullUrl, {
+            credentials: "include",
+          });
+
+          if (!response.ok) {
+            console.error(
+              `❌ Image fetch failed (${response.status}): ${booking.imageUrl}`,
+            );
+            failedCount++;
+            continue;
+          }
+
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          newCache[booking.imageUrl] = blobUrl;
+          console.log(`✅ Image loaded successfully: ${booking.imageUrl}`);
+          loadedCount++;
+        } catch (err) {
+          console.error(`❌ Failed to load image: ${booking.imageUrl}`, err);
+          failedCount++;
+        }
+      } else {
+        skippedCount++;
+        if (booking.imageUrl) {
+          console.log(
+            `⏭️ Skipping image (already cached or external): ${booking.imageUrl}`,
+          );
+        }
+      }
+    }
+
+    console.log(
+      `📊 Image loading summary: ${loadedCount} loaded, ${skippedCount} skipped, ${failedCount} failed`,
+    );
+    setImageCache(newCache);
+  };
+
+  const transformBookingsData = (bookings) => {
+    console.log("🔄 Transforming", bookings.length, "bookings...");
+
+    return bookings.map((booking, index) => {
+      // Check if vehicleId and customerId are populated objects or just IDs
+      const isVehiclePopulated =
+        typeof booking.vehicleId === "object" && booking.vehicleId !== null;
+      const isCustomerPopulated =
+        typeof booking.customerId === "object" && booking.customerId !== null;
+
+      console.log(`📋 Booking ${index + 1}:`, {
+        id: booking._id,
+        vehiclePopulated: isVehiclePopulated,
+        customerPopulated: isCustomerPopulated,
+        vehicleId: isVehiclePopulated ? "Object" : booking.vehicleId,
+        customerId: isCustomerPopulated ? "Object" : booking.customerId,
+      });
+
+      const imageUrl =
+        isVehiclePopulated && booking.vehicleId.photos?.[0]?.url
+          ? booking.vehicleId.photos[0].url
+          : null;
+
+      return {
+        id: booking._id,
+        carName: isVehiclePopulated
+          ? booking.vehicleId.title || booking.vehicleId.model || "Vehicle"
+          : `Vehicle (${booking.vehicleId?.slice(0, 8)}...)`,
+        renter: isCustomerPopulated
+          ? `${booking.customerId.first_name} ${booking.customerId.last_name}`
+          : `Customer (${booking.customerId?.slice(0, 8)}...)`,
+        seats: isVehiclePopulated ? booking.vehicleId.seats || 4 : 4,
+        transmission: isVehiclePopulated
+          ? booking.vehicleId.transmission === "Automatic"
+            ? "Auto"
+            : "Manual"
+          : booking.dailyRate > 5000
+            ? "Auto"
+            : "Manual",
+        dateRange: `${new Date(booking.startingDate).toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          },
+        )} - ${new Date(booking.endDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })}`,
+        startDate: new Date(booking.startingDate),
+        endDate: new Date(booking.endDate),
+        price: `Rs. ${booking.totalAmount?.toLocaleString()}`,
+        status:
+          booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+        imageUrl: imageUrl,
+        image:
+          "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=400",
+      };
+    });
+  };
+
+  const applyFilters = () => {
+    console.log("🔍 Applying filters:", {
+      searchQuery,
+      dateRange: [startDate, endDate],
+      statusFilter,
+      totalRentals: rentals.length,
+    });
+
+    let filtered = [...rentals];
+
+    // Search filter - search by car name, renter name, or price
+    if (searchQuery.trim()) {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(
+        (rental) =>
+          rental.carName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          rental.renter.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          rental.price.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+      console.log(
+        `🔍 Search filter: ${beforeCount} → ${filtered.length} rentals`,
+      );
+    }
+
+    // Date range filter - show only rentals completely within the selected range
+    if (startDate && endDate) {
+      const beforeCount = filtered.length;
+      // Normalize dates to ignore time component
+      const filterStart = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+      );
+      const filterEnd = new Date(
+        endDate.getFullYear(),
+        endDate.getMonth(),
+        endDate.getDate(),
+      );
+      console.log(
+        `📅 Date filter range: ${filterStart.toDateString()} to ${filterEnd.toDateString()}`,
+      );
+
+      filtered = filtered.filter((rental) => {
+        const rentalStart = new Date(
+          rental.startDate.getFullYear(),
+          rental.startDate.getMonth(),
+          rental.startDate.getDate(),
+        );
+        const rentalEnd = new Date(
+          rental.endDate.getFullYear(),
+          rental.endDate.getMonth(),
+          rental.endDate.getDate(),
+        );
+
+        // Both start and end dates must be within the selected range
+        return rentalStart >= filterStart && rentalEnd <= filterEnd;
+      });
+      console.log(
+        `📅 Date filter: ${beforeCount} → ${filtered.length} rentals`,
+      );
+    }
+
+    // Status filter
+    if (statusFilter) {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(
+        (rental) => rental.status.toLowerCase() === statusFilter.toLowerCase(),
+      );
+      console.log(
+        `🏷️ Status filter (${statusFilter}): ${beforeCount} → ${filtered.length} rentals`,
+      );
+    }
+
+    console.log(`✅ Final filtered results: ${filtered.length} rentals`);
+    setFilteredRentals(filtered);
+  };
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case "approved":
+        return "bg-green-100 text-green-600";
+      case "pending":
+        return "bg-yellow-100 text-yellow-600";
+      case "rejected":
+        return "bg-red-100 text-red-600";
+      case "cancelled":
+        return "bg-gray-100 text-gray-600";
+      default:
+        return "bg-blue-100 text-blue-600";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-4xl text-blue-900 mx-auto mb-4" />
+          <p className="text-gray-600">Loading rental history...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchOwnerBookings}
+            className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-800"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans">
+      {/* --- Main Content --- */}
+      <main className="max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-blue-900 mb-4 sm:mb-6">
+          Rental Car History
+        </h1>
+
+        {/* Filters Section */}
+        <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-lg shadow-sm border border-gray-100 mb-6 lg:mb-8">
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-stretch">
+            <div className="relative w-full lg:w-1/3">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+              <input
+                type="text"
+                placeholder="Search vehicle or renter"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 bg-white"
+              />
+            </div>
+
+            <div className="w-full lg:w-1/3 relative">
+              <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none z-10 text-sm" />
+              <DatePicker
+                selectsRange={true}
+                startDate={startDate}
+                endDate={endDate}
+                onChange={(update) => setDateRange(update)}
+                isClearable={true}
+                placeholderText="Date range"
+                wrapperClassName="w-full"
+                className="w-full pl-9 pr-10 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 text-gray-600 placeholder-gray-400 bg-white"
+              />
+            </div>
+
+            <div className="w-full lg:w-1/3 relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full pl-3 pr-10 py-2.5 text-sm border border-blue-900 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-900 bg-white text-gray-600 appearance-none cursor-pointer leading-tight"
+              >
+                <option value="">All Status</option>
+                <option value="approved">Approved</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs sm:text-sm text-gray-400 mb-4 px-1">
+          Showing {filteredRentals.length} of {rentals.length} Rentals
+        </p>
+
+        {filteredRentals.length === 0 ? (
+          <div className="text-center py-12">
+            <FaCar className="text-6xl text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">No rentals found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredRentals.map((rental) => (
+              <div
+                key={rental.id}
+                className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+              >
+                <div className="h-40 sm:h-48 w-full bg-gray-200 relative">
+                  <img
+                    src={
+                      rental.imageUrl && imageCache[rental.imageUrl]
+                        ? imageCache[rental.imageUrl]
+                        : rental.image
+                    }
+                    alt={rental.carName}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=400";
+                    }}
+                  />
+                </div>
+
+                <div className="p-3 sm:p-5">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-bold text-blue-900 text-base sm:text-lg">
+                        {rental.carName}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-500">
+                        {rental.renter}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 text-xs text-gray-500 my-3 sm:my-4 border-t border-b border-gray-100 py-3">
+                    <div className="flex items-center gap-1.5">
+                      <FaUserCircle className="shrink-0" />
+                      <span>{rental.seats} Seats</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <FaCogs className="shrink-0" />
+                      <span>{rental.transmission}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <FaCalendarAlt className="shrink-0" />
+                      <span className="wrap-break-word sm:whitespace-nowrap">
+                        {rental.dateRange}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center mb-3 sm:mb-4">
+                    <div>
+                      <span className="block text-lg sm:text-xl font-bold text-blue-900">
+                        {rental.price}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        Total Earnings
+                      </span>
+                    </div>
+                    <span
+                      className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        rental.status,
+                      )}`}
+                    >
+                      {rental.status}
+                    </span>
+                  </div>
+
+                  <button className="w-full bg-blue-900 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-medium hover:bg-blue-800 transition-colors cursor-pointer">
+                    View Details
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default RentalHistoryPage;
