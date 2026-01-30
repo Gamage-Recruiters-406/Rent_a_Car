@@ -8,6 +8,7 @@ import { SignUpPage } from "./pages/login/SignUpPage";
 import { BookingPage1 } from "./pages/BookingPage1";      
 import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
 import { Homepage } from "./pages/Homepage";
+import ContactPage from "./pages/ContactPage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
