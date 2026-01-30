@@ -10,7 +10,7 @@ import User from "../models/userModel.js";
 export const createReview = async (req, res) => {
   try {
     const { vehicle_id, rate, feedback } = req.body; // ← CORRECT: vehicle_id, rate, feedback
-    const customer_id = req.user.id; // ← CORRECT: customer_id (from auth)
+    const customer_id = req.user._id; // ← CORRECT: customer_id (from auth)
 
     // Validation
     if (!vehicle_id || !rate || !feedback) {
