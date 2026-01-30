@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Star, ChevronRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Layout from "../layouts/Layout";
 
 
 
@@ -26,7 +27,7 @@ export default function CustomerReviews() {
 
   const {vehicleName, vehicleImage } = location.state || {};
 
-  const vehicleId = "696e0bc53791596682689be1";
+  const vehicleId = "696f19b58b0b00033e2af308";
   const AUTO_SLIDE_DELAY = 4000; // 4 seconds
   const sliderRef = useRef(null);
 
@@ -217,12 +218,21 @@ export default function CustomerReviews() {
     }
   };
 
-  const getInitial = (name)=>{
+  const getInitial = (name = "")=>{
     if(!name) return "?";
-    return name.charAt(0).toUpperCase();
-  }
 
-  console.log("Token: ",localStorage.getItem("token"));
+    const words = name.trim().split(" ");
+
+    if(words.length === 1){
+      return words[0].substring(0, 2).toUpperCase();
+    }
+
+    return (
+      words[0][0] + words[1][0]
+    ).toUpperCase();
+  };
+
+  // console.log("Token: ",localStorage.getItem("token"));
 
   const handleSubmitReview = async () => {
     if(!rating || !feedback.trim()) return;
@@ -238,9 +248,7 @@ export default function CustomerReviews() {
           feedback: feedback,
         },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          withCredentials:true,
         }
       );
       setRating(0);
@@ -261,6 +269,7 @@ export default function CustomerReviews() {
   
 
   return (
+    <Layout>
     <div className="w-full min-h-screen bg-white px-4 md:px-6 py-8 md:py-10">
       {/* Page Title */}
       <div className="text-center mb-10">
@@ -466,5 +475,6 @@ export default function CustomerReviews() {
       </div>
 
     </div>
+    </Layout>
   );
 }
