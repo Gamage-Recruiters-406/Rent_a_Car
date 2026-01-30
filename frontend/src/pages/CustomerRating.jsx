@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Star, ChevronRight } from "lucide-react";
+import { Star, StarHalf, ChevronRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Layout from "../layouts/Layout";
@@ -27,7 +27,7 @@ export default function CustomerReviews() {
 
   const {vehicleName, vehicleImage } = location.state || {};
 
-  const vehicleId = "696f19b58b0b00033e2af308";
+  const vehicleId = "696f19b58b0b00033e2af308"; // needs to set the Id recieve dynamicaly
   const AUTO_SLIDE_DELAY = 4000; // 4 seconds
   const sliderRef = useRef(null);
 
@@ -36,22 +36,42 @@ export default function CustomerReviews() {
 
   console.log("Vehicle ID: ",vehicleId);
 
+  const fetchReviewsByVehicleId = async () =>{
+    try {
+      setLoadingReviews(true);
+      const response = await axios.get(
+        `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}`,
+        {withCredentials:true}
+      );
+      setReviews(response.data.reviews);
+      console.log("Responses: ",response)
+    } catch (error) {
+      console.error("Failed to fetch review", error);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const loadReviewSummary = async ()=>{
+    try {
+      setLoadingSummary(true);
+      const res = await axios.get(
+        `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}/rating`,
+        {withCredentials:true}
+      );
+      setAverageRating(res.data.rating || 0);
+      setTotalReviews(res.data.totalReviews || 0);
+      console.log("Summary: ", res);
+      console.log("Avg.Rating: ",res.data.rating);
+      console.log("TotalRating: ",res.data.totalReviews);
+    } catch (error) {
+      console.error("Failed to load review summary", error);
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
   useEffect(()=> {
-    const fetchReviewsByVehicleId = async () =>{
-      try {
-        setLoadingReviews(true);
-        const response = await axios.get(
-          `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}`,
-          {withCredentials:true}
-        );
-        setReviews(response.data.reviews);
-        console.log("Responses: ",response)
-      } catch (error) {
-        console.error("Failed to fetch review", error);
-      } finally {
-        setLoadingReviews(false);
-      }
-    };
 
     if (vehicleId) {
       fetchReviewsByVehicleId();
@@ -59,24 +79,6 @@ export default function CustomerReviews() {
   }, [vehicleId]);
 
   useEffect(()=>{
-    const loadReviewSummary = async ()=>{
-      try {
-        setLoadingSummary(true);
-        const res = await axios.get(
-          `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}/rating`,
-          {withCredentials:true}
-        );
-        console.log("Summary: ", res);
-        setAverageRating(res.data.rating);
-        console.log("Avg.Rating: ",averageRating);
-        setTotalReviews(res.data.totalReviews || 0);
-        console.log("TotalRating: ",totalReviews);
-      } catch (error) {
-        console.error("Failed to load review summary", error);
-      } finally {
-        setLoadingSummary(false);
-      }
-    };
 
     if (vehicleId) {
       loadReviewSummary();
@@ -89,89 +91,6 @@ export default function CustomerReviews() {
   //   }
   // }, [vehicleId, navigate]);
 
-  // Dummy data - Needs to replace with APIs
-  // const reviews = [
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=32",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 3,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=30",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=15",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=20",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=12",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=32",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 3,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=30",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=15",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=20",
-  //   },
-  // ];
   
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const isSubmitDisabled = rating === 0 || feedback.trim() ==="";
@@ -288,22 +207,30 @@ export default function CustomerReviews() {
 
         {/* Rating Box */}
         <div className="border-2 border-[#0D3778] rounded-3xl p-5 md:p-6 text-center shadow-sm max-w-sm md:max-w-lg mx-auto">
-          <h2 className="text-md md:text-lg lg:text-xl font-medium mb-4">{vehicleName || "Toyota Prius (ABC-1234)"}</h2>
+          <h2 className="text-md md:text-lg lg:text-xl font-medium mb-4">{vehicleName || "vehicleName"}</h2>
           <div className="flex items-center justify-center gap-6">
             <div>
               <p className="text-3xl md:text-4xl lg:text-5xl font-semibold text-yellow-500">{loadingSummary ? "—" : averageRating.toFixed(1)}</p>
               <div className="flex justify-center mt-2">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} 
-                  className={
-                    i< Math.round(averageRating)
-                      ? "text-yellow-400 fill-yellow-400 "
-                      : "text-yellow-400"
-                      }>
-                    <Star className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10" />
+              {[...Array(5)].map((_, i) => {
+                const starIndex = i + 1;
 
-                  </span>
-                ))}
+                if (loadingSummary) {
+                  // Show gray stars while loading
+                  return <Star key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-gray-300" />;
+                }
+
+                if (starIndex <= Math.floor(averageRating)) {
+                  // Full star
+                  return <Star key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-400 fill-yellow-400" />;
+                } else if (starIndex - averageRating <= 0.5) {
+                  // Half star
+                  return <StarHalf key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-400 fill-yellow-400" />;
+                } else {
+                  // Empty star
+                  return <Star key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-400" />;
+                }
+              })}
               </div>
             </div>
             <div className="h-16 w-1 bg-gray-300"></div>
@@ -424,18 +351,18 @@ export default function CustomerReviews() {
                         {review.img ? (
                           <img
                               src={review.img}
-                              alt={review.name}
+                              alt={review.customer_id?.first_name || ""}
                               className="w-14 h-14 rounded-full object-cover"
                           />
                         ):(
                           <div className="w-14 h-14 rounded-full bg-[#0D3778] flex items-center justify-center text-white font-semibold text-xl shadow-sm ring-2 ring-white">
-                            {getInitial(review.name)}
+                            {getInitial(`${review.customer_id?.first_name || ""} ${review.customer_id?.last_name || ""}`)}
                           </div>
                        )}
                         
                         <div className="overflow-hidden">
                           <h4 className="font-semibold text-[#0D3778]">
-                            {review.name}
+                          {review.customer_id?.first_name} {review.customer_id?.last_name}
                           </h4>
                           <div className="flex mt-1">
                             {[...Array(5)].map((_, i) => (
@@ -443,7 +370,7 @@ export default function CustomerReviews() {
                                 key={i}
                                 size={20}
                                 className={
-                                  i < review.rating
+                                  i < review.rate
                                     ? "fill-yellow-400 text-yellow-400"
                                     : "text-yellow-400"
                                 }
@@ -454,7 +381,7 @@ export default function CustomerReviews() {
                       </div>
 
                       <p className="text-gray-600 text-sm p-6 line-clamp-4 md:line-clamp-none">
-                        "{review.comment}"
+                        "{review.feedback}"
                       </p>
                     </div>
                   </div>
