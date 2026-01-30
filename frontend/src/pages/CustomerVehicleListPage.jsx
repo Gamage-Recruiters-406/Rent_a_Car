@@ -124,17 +124,17 @@ export function CustomerVehicleListPage() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-[#0D3778] via-[#0A2E5C] to-[#1a3a52] text-white py-16 px-4 md:px-8 shadow-xl">
+        <div className="bg-gradient-to-br from-[#0D3778] via-[#0A2E5C] to-[#1a3a52] text-white py-12 md:py-16 px-4 md:px-8 shadow-xl">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-3 tracking-tight">Find Your Perfect Ride</h1>
-            <p className="text-blue-100 text-lg md:text-xl font-light">Choose from our wide selection of quality vehicles</p>
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-3 tracking-tight">Find Your Perfect Ride</h1>
+            <p className="text-blue-100 text-base sm:text-lg md:text-xl font-light">Choose from our wide selection of quality vehicles</p>
           </div>
         </div>
 
         {/* Filter Section */}
         <div className="bg-white shadow-lg sticky top-0 z-10">
           <div className="max-w-7xl mx-auto p-4 md:p-8">
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 items-end">
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 items-stretch md:items-end">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                 <input
@@ -182,7 +182,7 @@ export function CustomerVehicleListPage() {
         {/* Advanced Filter Results Section */}
         <div className="bg-gradient-to-r from-white to-gray-50 border-b-2 border-[#0D3778] shadow-md">
           <div className="max-w-7xl mx-auto p-4 md:p-8">
-            <h3 className="text-xl font-bold text-[#0D3778] mb-6 flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-bold text-[#0D3778] mb-6 flex items-center gap-2">
               <span className="w-1 h-6 bg-[#0D3778] rounded-full"></span>
               Filter Results
             </h3>
@@ -260,15 +260,15 @@ export function CustomerVehicleListPage() {
             <div className="flex justify-center items-center min-h-96">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#0D3778]"></div>
-                <p className="mt-6 text-gray-700 font-semibold text-lg">Loading vehicles...</p>
+                <p className="mt-6 text-gray-700 font-semibold text-base sm:text-lg">Loading vehicles...</p>
               </div>
             </div>
           ) : filteredVehicles.length > 0 ? (
             <>
               {/* Filter Results Info */}
               <div className="mb-8">
-                <h2 className="text-3xl font-bold flex items-center gap-3">
-                  <span className="w-1.5 h-8 bg-gradient-to-b from-[#0D3778] to-[#0A2E5C] rounded-full shadow-md"></span>
+                <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
+                  <span className="w-1.5 h-7 sm:h-8 bg-gradient-to-b from-[#0D3778] to-[#0A2E5C] rounded-full shadow-md"></span>
                   <span className="bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] bg-clip-text text-transparent">
                     {filteredVehicles.length} Vehicle{filteredVehicles.length !== 1 ? 's' : ''} Available
                   </span>
@@ -276,14 +276,14 @@ export function CustomerVehicleListPage() {
               </div>
 
               {/* Vehicles Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {filteredVehicles.map((vehicle) => (
                   <div
                     key={vehicle._id || vehicle.id}
                     className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-gray-100 hover:border-[#0D3778] group transform hover:-translate-y-1"
                   >
                     {/* Vehicle Image Container */}
-                    <div className="relative h-52 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 overflow-hidden">
+                    <div className="relative h-44 sm:h-52 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 overflow-hidden">
                       {vehicle.photos && vehicle.photos.length > 0 ? (
                         <img
                           src={vehicle.photos[0]}
@@ -306,10 +306,10 @@ export function CustomerVehicleListPage() {
                     </div>
 
                     {/* Vehicle Details */}
-                    <div className="p-5">
+                    <div className="p-4 sm:p-5">
                       {/* Title & Model */}
                       <div className="mb-2">
-                        <h3 className="text-lg font-bold text-gray-900 truncate">{vehicle.title || 'Vehicle'}</h3>
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{vehicle.title || 'Vehicle'}</h3>
                         <p className="text-sm text-gray-500 mt-1">
                           {vehicle.year && `${vehicle.year} • `}
                           {vehicle.vehicleType && `${vehicle.vehicleType}`}
@@ -347,13 +347,13 @@ export function CustomerVehicleListPage() {
                       <div className="grid grid-cols-2 gap-3 mb-4">
                         <div>
                           <p className="text-xs text-gray-600 font-medium">Per Day</p>
-                          <p className="text-2xl font-bold text-gray-900">
+                          <p className="text-xl sm:text-2xl font-bold text-gray-900">
                             <span className="text-sm text-gray-600">LKR</span> {vehicle.pricePerDay?.toLocaleString() || '0'}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-xs text-gray-600 font-medium">Per KM</p>
-                          <p className="text-xl font-bold text-gray-900">
+                          <p className="text-lg sm:text-xl font-bold text-gray-900">
                             <span className="text-sm text-gray-600">LKR</span> {vehicle.pricePerKm?.toLocaleString() || '0'}
                           </p>
                         </div>
@@ -373,15 +373,15 @@ export function CustomerVehicleListPage() {
             </>
           ) : (
             // Empty State
-            <div className="flex flex-col items-center justify-center py-16 bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl border-2 border-gray-100">
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl border-2 border-gray-100">
               <div className="bg-gradient-to-br from-[#0D3778]/10 to-[#0A2E5C]/5 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-8 shadow-lg">
                 <span className="text-6xl">🚗</span>
               </div>
-              <h3 className="text-3xl font-bold bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] bg-clip-text text-transparent mb-3">No Vehicles Available</h3>
-              <p className="text-gray-600 text-lg mb-10 max-w-md text-center">For Your Search. Try adjusting your filters or check back later for new vehicles.</p>
+              <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] bg-clip-text text-transparent mb-3">No Vehicles Available</h3>
+              <p className="text-gray-600 text-base sm:text-lg mb-10 max-w-md text-center">For Your Search. Try adjusting your filters or check back later for new vehicles.</p>
               <button
                 onClick={fetchVehicles}
-                className="bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] hover:from-[#0a2959] hover:to-[#081f3d] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                className="bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] hover:from-[#0a2959] hover:to-[#081f3d] text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 w-full sm:w-auto"
               >
                 🔄 Try Again
               </button>
@@ -400,18 +400,18 @@ export function CustomerVehicleListPage() {
           ></div>
 
           {/* Modal Container */}
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
+          <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+            <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all">
               {/* Close Button */}
               <button
                 onClick={closeModal}
-                className="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
               >
                 <X className="w-6 h-6 text-gray-600" />
               </button>
 
               {/* Image Gallery */}
-              <div className="relative h-80 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400 rounded-t-3xl overflow-hidden">
+              <div className="relative h-56 sm:h-80 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400 rounded-t-2xl sm:rounded-t-3xl overflow-hidden">
                 {selectedVehicle.photos && selectedVehicle.photos.length > 0 ? (
                   <img
                     src={selectedVehicle.photos[0]}
@@ -434,19 +434,19 @@ export function CustomerVehicleListPage() {
               </div>
 
               {/* Content */}
-              <div className="p-8">
+              <div className="p-4 sm:p-8">
                 {/* Title Section */}
                 <div className="mb-6">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-2">{selectedVehicle.title || 'Vehicle'}</h2>
-                  <div className="flex items-center gap-3 text-gray-600">
-                    <span className="text-lg font-medium">{selectedVehicle.year || 'N/A'}</span>
+                  <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">{selectedVehicle.title || 'Vehicle'}</h2>
+                  <div className="flex flex-wrap items-center gap-3 text-gray-600">
+                    <span className="text-base sm:text-lg font-medium">{selectedVehicle.year || 'N/A'}</span>
                     <span className="text-gray-400">•</span>
-                    <span className="text-lg">{selectedVehicle.vehicleType || 'N/A'}</span>
+                    <span className="text-base sm:text-lg">{selectedVehicle.vehicleType || 'N/A'}</span>
                   </div>
                 </div>
 
                 {/* Location */}
-                <div className="flex items-start gap-3 mb-6 p-4 bg-red-50 rounded-xl border border-red-100">
+                <div className="flex items-start gap-3 mb-6 p-3 sm:p-4 bg-red-50 rounded-xl border border-red-100">
                   <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Location</p>
@@ -456,7 +456,7 @@ export function CustomerVehicleListPage() {
 
                 {/* Specifications Grid */}
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Info className="w-5 h-5 text-[#0D3778]" />
                     Specifications
                   </h3>
@@ -513,13 +513,13 @@ export function CustomerVehicleListPage() {
                     <DollarSign className="w-5 h-5 text-[#0D3778]" />
                     Pricing Details
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-gradient-to-br from-[#0D3778]/5 to-[#0D3778]/10 rounded-xl p-6 border-2 border-[#0D3778]/20">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm text-gray-600 font-medium">Per Day Rate</p>
                         <Calendar className="w-5 h-5 text-[#0D3778]" />
                       </div>
-                      <p className="text-4xl font-bold text-[#0D3778]">
+                      <p className="text-3xl sm:text-4xl font-bold text-[#0D3778]">
                         {selectedVehicle.pricePerDay?.toLocaleString() || '0'}
                         <span className="text-lg text-gray-600 ml-2">LKR</span>
                       </p>
@@ -530,7 +530,7 @@ export function CustomerVehicleListPage() {
                         <p className="text-sm text-gray-600 font-medium">Per KM Rate</p>
                         <MapPin className="w-5 h-5 text-gray-600" />
                       </div>
-                      <p className="text-4xl font-bold text-gray-900">
+                      <p className="text-3xl sm:text-4xl font-bold text-gray-900">
                         {selectedVehicle.pricePerKm?.toLocaleString() || '0'}
                         <span className="text-lg text-gray-600 ml-2">LKR</span>
                       </p>
@@ -539,7 +539,7 @@ export function CustomerVehicleListPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     onClick={closeModal}
                     className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 rounded-xl transition-all duration-300"

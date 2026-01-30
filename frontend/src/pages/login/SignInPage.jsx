@@ -20,34 +20,38 @@ export function SignInPage() {
     e.preventDefault();
     setIsLoading(true);
     
-  try{
-    const url = `${baseUrl}${apiVersion}/authUser/login`;
-    const response = await fetch(url,{
-      method: 'POST',
-      headers: {'Content-Type': 'application/json',},
-      body: JSON.stringify(formData),
-      
-    });  
-    
-    if(!response.ok){
-      throw new Error('please enter valid email and password');
-    }toast.success("loging success");
-    
-    const data = await response.json();
-     console.log("token",data);
 
-    if(data.success || data.token){ 
-          localStorage.setItem('token', data.token); 
-          localStorage.setItem('user', JSON.stringify(data.user));
+    try {
+      const url = `${baseUrl}${apiVersion}/authUser/login`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+        credentials: 'include',
+      });
 
-          console.log("token",localStorage.getItem('token'));
-      navigate('/dashboard');
-    } else {
-        toast.error(data.message || 'Login failed'); }
-  } 
-  catch(error){
-    setIsLoading(false);
-    toast.error(error.message);
+      const data = await response.json();
+      console.log('Login API Response:', data); 
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      if (data.success) {
+        toast.success(data.message || "Login Successfully");
+        localStorage.setItem('token', data.token);
+  
+        localStorage.setItem('user', JSON.stringify(data));
+        navigate('/dashboard');
+
+     
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      toast.error(error.message || "Server Side Error");
+
     }
   };
 
