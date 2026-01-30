@@ -597,3 +597,23 @@ export const getAllAvailableVehicles = async (req, res) => {
     });
   }
 };
+
+
+
+// GET COUNT OF APPROVED VEHICLES (for Customers)
+export const getApprovedVehicleCount = async (req, res) => {
+  try {
+    const count = await Vehicle.countDocuments({ status: "Approved" });
+
+    return res.status(200).json({ 
+      success: true, 
+      count 
+    });
+  } catch (error) {
+    console.log("GET APPROVED VEHICLE COUNT ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
