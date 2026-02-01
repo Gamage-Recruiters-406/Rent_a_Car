@@ -159,7 +159,6 @@ vite.config.ts.timestamp-*
 *.sln
 *.sw?
 
-
 # Expo
 .expo/
 dist/
@@ -193,3 +192,4 @@ app-example
 
 expo-env.d.ts
 # @end expo-cli
+
