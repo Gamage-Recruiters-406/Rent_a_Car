@@ -2,7 +2,7 @@ import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 import path from "path";
 import fs from "fs";
-import { notifyBooking } from "../controllers/notificationController.js";
+import { notifyBooking,notifyNewBookingRequest,notifyBookingUpdated,notifyBookingCancelled } from "../controllers/notificationController.js";
 
 const normalizeDate = (value) => {
     const date = new Date(value);
@@ -157,6 +157,14 @@ export const createBooking = async (req, res) => {
         booking.documents = uploadedDocuments.length ? uploadedDocuments : bodyDocuments;
         await booking.save();
 
+        // Notify owner (notification + email)
+        try {
+        await notifyNewBookingRequest(booking._id);
+        } catch (err) {
+        console.error("Booking notification error:", err.message);
+        }
+
+
         if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
 
         return res.status(201).json({
@@ -177,7 +185,11 @@ export const createBooking = async (req, res) => {
 
 export const getBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find().sort({ createdAt: -1 });
+        const bookings = await Booking.find()
+            .populate("customerId", "first_name last_name email")
+            .populate("ownerId", "first_name last_name email")
+            .populate("vehicleId", "title model numberPlate")
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({
             success: true,
@@ -339,6 +351,20 @@ export const updateBooking = async (req, res) => {
 
         await booking.save();
 
+        // --- Notification & Email (Customer updated booking) ---
+        try {
+            if (
+                startingDate !== undefined ||
+                endDate !== undefined ||
+                uploadedDocuments.length
+            ) {
+                await notifyBookingUpdated(booking._id);
+            }
+        } catch (err) {
+            console.error("Booking update notification error:", err.message);
+        }
+
+
         if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
 
         const bookingData = booking.toObject();
@@ -379,6 +405,14 @@ export const deleteBooking = async (req, res) => {
         }
 
         await booking.deleteOne();
+
+        // --- Notification & Email ---
+        try {
+        await notifyBookingCancelled(booking._id);
+        } catch (err) {
+        console.error("Booking deletion notification error:", err.message);
+        }
+
 
         return res.status(200).json({
             success: true,
