@@ -5,7 +5,7 @@ import { StatCard } from '../components/StatCard';
 import { SearchBar } from '../components/SearchBar';
 import { Tabs } from '../components/Tabs';
 import { VehicleCard } from '../components/VehicleCard';
-import { vehicleAPI } from '../services/vehicleService';
+import { vehicleAPI, VEHICLE_STATUS } from '../services/vehicleService';
 import toast from 'react-hot-toast';
 
 function VehicleStatistics({ stats }) {
@@ -100,18 +100,15 @@ export function VehicleManagement() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState(VEHICLE_STATUS.PENDING);
 
-  // Mock user data - Replace with your actual auth context
-  const user = {
-    first_name: 'Admin',
-    last_name: 'User',
-  };
+  // Get user from localStorage or use mock data
+  const user = JSON.parse(localStorage.getItem('user') || '{"first_name":"Admin","last_name":"User"}');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/admin/login';
+    window.location.href = '/login';
   };
 
   useEffect(() => {
@@ -121,34 +118,67 @@ export function VehicleManagement() {
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-      const data = await vehicleAPI.getAllVehicles();
+      console.log('Fetching vehicles from:', `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090'}/api/v1/vehicle/admin/get-all`);
       
-      if (!data || !data.vehicles) {
-        console.warn('No vehicles data received from API');
+      const response = await vehicleAPI.getAllVehicles();
+      console.log('API Response:', response);
+      
+      // Handle different response structures
+      const vehiclesData = response?.vehicles || response?.data || [];
+      
+      if (!Array.isArray(vehiclesData)) {
+        console.warn('Invalid vehicles data:', vehiclesData);
         setVehicles([]);
+        toast.error('Invalid data format received from server');
         return;
       }
+
+      console.log(`Processing ${vehiclesData.length} vehicles`);
       
-      const transformedVehicles = (data.vehicles || []).map(vehicle => ({
+      // Transform backend data to frontend structure
+      const transformedVehicles = vehiclesData.map(vehicle => ({
         id: vehicle._id || vehicle.id,
         name: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || 'Unknown Vehicle',
-        owner: vehicle.ownerName || vehicle.owner?.name || 'Unknown Owner',
-        plateNumber: vehicle.plateNumber || vehicle.registrationNumber || 'N/A',
-        location: vehicle.location || vehicle.city || 'Unknown',
-        year: vehicle.year || new Date().getFullYear(),
-        fuelType: vehicle.fuelType || 'Petrol',
-        transmission: vehicle.transmission || 'Auto',
-        pricePerDay: vehicle.pricePerDay || vehicle.dailyRate || 5000,
-        pricePerKm: vehicle.pricePerKm || vehicle.kmRate || 50,
-        status: vehicle.status || 'pending',
-        submittedDate: vehicle.createdAt ? new Date(vehicle.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
-        image: vehicle.image || vehicle.images?.[0] || null,
+        owner: vehicle.ownerName || vehicle.owner?.first_name || vehicle.owner?.name || 'Unknown Owner',
+        plateNumber: vehicle.plateNumber || vehicle.registrationNumber || vehicle.licensePlate || 'N/A',
+        location: vehicle.location || vehicle.city || vehicle.address || 'Unknown',
+        year: vehicle.year || vehicle.modelYear || new Date().getFullYear(),
+        fuelType: vehicle.fuelType || vehicle.fuel || 'Petrol',
+        transmission: vehicle.transmission || vehicle.gearbox || 'Auto',
+        pricePerDay: vehicle.pricePerDay || vehicle.dailyRate || vehicle.rentPerDay || 5000,
+        pricePerKm: vehicle.pricePerKm || vehicle.kmRate || vehicle.perKmRate || 50,
+        status: (vehicle.status || VEHICLE_STATUS.PENDING).toLowerCase(),
+        submittedDate: vehicle.createdAt 
+          ? new Date(vehicle.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            })
+          : new Date().toLocaleDateString(),
+        image: vehicle.image || vehicle.images?.[0] || vehicle.photos?.[0] || null,
       }));
       
+      console.log('Transformed vehicles:', transformedVehicles);
       setVehicles(transformedVehicles);
+      
+      if (transformedVehicles.length === 0) {
+        //toast.info('No vehicles available');
+      }
+      
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
-      toast.error('Failed to load vehicles. Please check your backend connection.');
+      
+      if (error.message.includes('Unauthorized')) {
+        toast.error('Session expired. Please login again.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } else if (error.message.includes('Failed to fetch')) {
+        toast.error('Cannot connect to server. Please check if backend is running on port 8090.');
+      } else {
+        toast.error(error.message || 'Failed to load vehicles');
+      }
+      
       setVehicles([]);
     } finally {
       setLoading(false);
@@ -157,68 +187,141 @@ export function VehicleManagement() {
 
   const handleApprove = async (vehicleId) => {
     try {
-      await vehicleAPI.updateVehicleStatus(vehicleId, 'approved');
+      console.log('Approving vehicle:', vehicleId);
+      
+      await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.APPROVED);
+      
       toast.success('Vehicle approved successfully');
-      fetchVehicles();
+      await fetchVehicles();
     } catch (error) {
-      toast.error('Failed to approve vehicle');
+      console.error('Failed to approve vehicle:', error);
+      toast.error(error.message || 'Failed to approve vehicle');
     }
   };
 
   const handleReject = async (vehicleId) => {
     try {
-      await vehicleAPI.updateVehicleStatus(vehicleId, 'rejected');
+      console.log('Rejecting vehicle:', vehicleId);
+      
+      await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.REJECTED);
+      
       toast.success('Vehicle rejected successfully');
-      fetchVehicles();
+      await fetchVehicles();
     } catch (error) {
-      toast.error('Failed to reject vehicle');
+      console.error('Failed to reject vehicle:', error);
+      toast.error(error.message || 'Failed to reject vehicle');
     }
   };
 
   const handleDelete = async (vehicleId) => {
-    if (!window.confirm('Are you sure you want to delete this vehicle?')) {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this vehicle? This action cannot be undone.'
+    );
+    
+    if (!confirmed) {
       return;
     }
 
     try {
+      console.log('Deleting vehicle:', vehicleId);
+      
       await vehicleAPI.deleteVehicle(vehicleId);
+      
       toast.success('Vehicle deleted successfully');
-      fetchVehicles();
+      await fetchVehicles();
     } catch (error) {
-      toast.error('Failed to delete vehicle');
+      console.error('Failed to delete vehicle:', error);
+      toast.error(error.message || 'Failed to delete vehicle');
     }
   };
 
   const handleView = (vehicle) => {
     console.log('View vehicle:', vehicle);
+    //toast.info('Vehicle details view - Coming soon');
   };
 
   const handleExport = () => {
-    toast.success('Exporting report...');
+    try {
+      console.log('Exporting vehicle report...');
+      
+      if (vehicles.length === 0) {
+        toast.error('No vehicles to export');
+        return;
+      }
+      
+      const headers = [
+        'ID',
+        'Name',
+        'Owner',
+        'Plate Number',
+        'Location',
+        'Year',
+        'Fuel Type',
+        'Transmission',
+        'Price/Day (LKR)',
+        'Price/Km (LKR)',
+        'Status',
+        'Submitted Date'
+      ];
+      
+      const csvRows = [
+        headers.join(','),
+        ...vehicles.map(v => [
+          v.id,
+          `"${v.name}"`,
+          `"${v.owner}"`,
+          v.plateNumber,
+          `"${v.location}"`,
+          v.year,
+          v.fuelType,
+          v.transmission,
+          v.pricePerDay,
+          v.pricePerKm,
+          v.status,
+          v.submittedDate
+        ].join(','))
+      ];
+      
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vehicle-report-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Report exported successfully');
+    } catch (error) {
+      console.error('Failed to export:', error);
+      toast.error('Failed to export report');
+    }
   };
 
   const stats = {
     total: vehicles.length,
-    pending: vehicles.filter(v => v.status?.toLowerCase() === 'pending').length,
-    approved: vehicles.filter(v => v.status?.toLowerCase() === 'approved').length,
-    rejected: vehicles.filter(v => v.status?.toLowerCase() === 'rejected').length,
+    pending: vehicles.filter(v => v.status === VEHICLE_STATUS.PENDING).length,
+    approved: vehicles.filter(v => v.status === VEHICLE_STATUS.APPROVED).length,
+    rejected: vehicles.filter(v => v.status === VEHICLE_STATUS.REJECTED).length,
   };
 
   const filteredVehicles = vehicles.filter(vehicle => {
+    const searchLower = searchQuery.toLowerCase();
     const matchesSearch = 
-      vehicle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vehicle.plateNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vehicle.owner.toLowerCase().includes(searchQuery.toLowerCase());
+      vehicle.name.toLowerCase().includes(searchLower) ||
+      vehicle.plateNumber.toLowerCase().includes(searchLower) ||
+      vehicle.owner.toLowerCase().includes(searchLower) ||
+      vehicle.location.toLowerCase().includes(searchLower);
 
-    const matchesTab = vehicle.status?.toLowerCase() === activeTab;
+    const matchesTab = vehicle.status === activeTab;
 
     return matchesSearch && matchesTab;
   });
 
   const tabs = [
-    { id: 'pending', label: 'Pending', count: stats.pending },
-    { id: 'approved', label: 'Approved', count: stats.approved },
-    { id: 'rejected', label: 'Rejected', count: stats.rejected },
+    { id: VEHICLE_STATUS.PENDING, label: 'Pending', count: stats.pending },
+    { id: VEHICLE_STATUS.APPROVED, label: 'Approved', count: stats.approved },
+    { id: VEHICLE_STATUS.REJECTED, label: 'Rejected', count: stats.rejected },
   ];
 
   return (
@@ -243,7 +346,8 @@ export function VehicleManagement() {
           </div>
           <button
             onClick={handleExport}
-            className="px-6 py-3 bg-blue-700 text-white rounded-xl flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm"
+            disabled={vehicles.length === 0}
+            className="px-6 py-3 bg-blue-700 text-white rounded-xl flex items-center gap-2 hover:bg-blue-800 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FileDown className="w-5 h-5" />
             Export Report
@@ -275,3 +379,5 @@ export function VehicleManagement() {
     </div>
   );
 }
+
+export default VehicleManagement;

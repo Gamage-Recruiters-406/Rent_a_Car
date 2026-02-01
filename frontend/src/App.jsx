@@ -4,17 +4,18 @@ import { Toaster } from "react-hot-toast";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import RentalHistoryPage from "./pages/RentalHistoryPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
-import { SignInPage } from "./pages/login/SignInPage";
-import { SignUpPage } from "./pages/login/SignUpPage";
-import { BookingPage1 } from "./pages/BookingPage1";      
-import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
-import { Homepage } from "./pages/Homepage";
+import {SignInPage} from "./pages/login/SignInPage";
+import {SignUpPage} from "./pages/login/SignUpPage";
+import {BookingPage1} from "./pages/BookingPage1";      
+import CustomerVehicleListPage from "./pages/CustomerVehicleListPage";
+import {Homepage} from "./pages/Homepage";
 import ContactPage from "./pages/ContactPage";
-import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
-import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
-import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
+import {ForgotPasswordPage} from "./pages/login/forgotpassword/ForgotPasswordPage";
+import {VerifyCodePage} from "./pages/login/forgotpassword/VerifyCodePage";
+import {ResetPasswordPage} from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
+import VehicleManagement from "./pages/VehicleManagement.jsx";
 
 
 
@@ -44,7 +45,7 @@ function App() {
 
         {/* admin */}
         <Route path="/admin/booking" element={<AdminBooking/>} />
-
+        <Route path="/admin/vehicles" element={<VehicleManagement />} />
 
         {/* login */}
         <Route path="/login" element={<SignInPage />} />
@@ -53,7 +54,6 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
       </Routes>
     </Router>
