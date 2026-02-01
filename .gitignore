@@ -7,6 +7,11 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -73,6 +78,7 @@ web_modules/
 .env
 .env.*
 !.env.example
+.env*.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -156,3 +162,37 @@ uploads/**
 *.sln
 *.sw?
 
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# macOS
+.DS_Store
+*.pem
+
+# typescript
+*.tsbuildinfo
+
+app-example
+
+# generated native folders
+/ios
+/android
+
+expo-env.d.ts
+# @end expo-cli
