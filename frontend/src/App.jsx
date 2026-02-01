@@ -41,6 +41,7 @@ function App() {
         <Route path="/customer-reviews" element={<CustomerReviews/>} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/booking" element={<BookingPage1 />} />
+        
 
 
         {/* admin */}
