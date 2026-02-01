@@ -148,9 +148,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# uploads directory
-uploads/
-uploads/**
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

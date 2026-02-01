@@ -1,13 +1,24 @@
-export default function MiniCalendar({ month }) {
+// src/components/vehicle/MiniCalendar.jsx
+export default function MiniCalendar({ month, blockedSet }) {
   const [year, mon] = month.split("-").map(Number);
+
   const firstDay = new Date(year, mon - 1, 1);
   const lastDay = new Date(year, mon, 0);
   const daysInMonth = lastDay.getDate();
   const startWeekday = firstDay.getDay();
 
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+
   const cells = [];
   for (let i = 0; i < startWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const toYYYYMMDD = (y, m, d) => {
+    const mm = String(m).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    return `${y}-${mm}-${dd}`;
+  };
 
   return (
     <div className="border border-slate-200 rounded-xl overflow-hidden">
@@ -26,17 +37,23 @@ export default function MiniCalendar({ month }) {
         {cells.map((d, idx) => {
           if (d === null) return <div key={idx} className="h-9 sm:h-10" />;
 
-          const demoColor =
-            d % 9 === 0
-              ? "bg-red-100 border-red-300"
-              : d % 7 === 0
-                ? "bg-emerald-100 border-emerald-300"
-                : "bg-white border-slate-200";
+          const dateStr = toYYYYMMDD(year, mon, d);
+
+          const isBlocked = blockedSet?.has(dateStr);
+          const isPast = dateStr < todayStr;
+
+          // ✅ real color
+          const cellColor = isPast
+            ? "bg-slate-50 border-slate-200 text-slate-400"
+            : isBlocked
+              ? "bg-red-100 border-red-300 text-slate-800"
+              : "bg-emerald-100 border-emerald-300 text-slate-800";
 
           return (
             <div
               key={idx}
-              className={`h-9 sm:h-10 flex items-center justify-center rounded-lg text-[12px] border ${demoColor}`}
+              className={`h-9 sm:h-10 flex items-center justify-center rounded-lg text-[12px] border ${cellColor}`}
+              title={isPast ? "Past" : isBlocked ? "Blocked" : "Available"}
             >
               {d}
             </div>
