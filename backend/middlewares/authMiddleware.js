@@ -75,5 +75,6 @@ export const isVerifiedUser = async (req, res, next) => {
             success: true,
             message: "You need to verify your account."
         })
-    }
+    };
+    next();
 }
