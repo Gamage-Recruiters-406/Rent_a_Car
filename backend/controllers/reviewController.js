@@ -10,7 +10,7 @@ import User from "../models/userModel.js";
 export const createReview = async (req, res) => {
   try {
     const { vehicle_id, rate, feedback } = req.body; // ← CORRECT: vehicle_id, rate, feedback
-    const customer_id = req.user.id; // ← CORRECT: customer_id (from auth)
+    const customer_id = req.user.userid; // ← CORRECT: customer_id (from auth)
 
     // Validation
     if (!vehicle_id || !rate || !feedback) {
@@ -208,7 +208,7 @@ export const updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
     const { rate, feedback } = req.body; // ← CORRECT: rate, feedback
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     const existingReview = await Review.findById(reviewId);
     
@@ -286,7 +286,7 @@ export const updateReview = async (req, res) => {
 export const deleteReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     const review = await Review.findById(reviewId);
     
@@ -325,7 +325,7 @@ export const deleteReview = async (req, res) => {
  
 export const getMyReviews = async (req, res) => {
   try {
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
     
     // Check if user exists
     const user = await User.findById(customer_id);
@@ -358,7 +358,7 @@ export const getMyReviews = async (req, res) => {
 export const canReviewVehicle = async (req, res) => {
   try {
     const { vehicle_id } = req.params; // ← CORRECT: vehicle_id
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     // Check if user exists and has customer role
     const user = await User.findById(customer_id);
@@ -458,7 +458,7 @@ export const canReviewVehicle = async (req, res) => {
  
 export const getReviewableBookings = async (req, res) => {
   try {
-    const customer_id = req.user.id; // ← CORRECT: customer_id
+    const customer_id = req.user.userid; // ← CORRECT: customer_id
 
     // Check if user is a customer
     const user = await User.findById(customer_id);
@@ -514,7 +514,7 @@ export const getReviewableBookings = async (req, res) => {
 
 export const getMyVehicleReviews = async (req, res) => {
   try {
-    const ownerId = req.user.id; // correct meaning
+    const ownerId = req.user.userid; // correct meaning
 
     // Check if user is an owner (role=2)
     const user = await User.findById(ownerId);
@@ -667,6 +667,83 @@ export const getVehicleRating = async (req, res) => {
     res.status(500).json({ 
       message: "Server error", 
       error: error.message 
+    });
+  }
+};
+
+ //Get overall average rating across all vehicles (for homepage)
+export const getOverallAverageRating = async (req, res) => {
+  try {
+    // Aggregate all reviews
+    const result = await Review.aggregate([
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rate" },
+          totalReviews: { $sum: 1 },
+          // Optional: Get rating distribution
+          ratingDistribution: {
+            $push: "$rate"
+          }
+        }
+      }
+    ]);
+
+    const stats = result[0] || { 
+      averageRating: 0, 
+      totalReviews: 0,
+      ratingDistribution: []
+    };
+
+    // Calculate rating distribution
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    if (stats.ratingDistribution && stats.ratingDistribution.length > 0) {
+      stats.ratingDistribution.forEach(rating => {
+        distribution[rating]++;
+      });
+    }
+
+    // Also get total vehicle count
+    const totalVehicles = await Vehicle.countDocuments({ status: "Approved" });
+
+    res.status(200).json({
+      message: "Overall ratings retrieved successfully",
+      statistics: {
+        averageRating: parseFloat(stats.averageRating.toFixed(1)),
+        totalReviews: stats.totalReviews,
+        totalVehicles: totalVehicles,
+        ratingDistribution: distribution
+      }
+    });
+  } catch (error) {
+    console.error("Get overall rating error:", error);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+// Get latest reviews for homepage (not vehicle-wise)
+export const getHomePageReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find()
+      .populate("customer_id", "name")
+      .populate("vehicle_id", "title")
+      .sort({ createdAt: -1 })   // latest first
+      .limit(15);                 // show only 15 reviews on homepage
+
+    res.status(200).json({
+      success: true,
+      total: reviews.length,
+      reviews
+    });
+  } catch (error) {
+    console.error("Get homepage reviews error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
     });
   }
 };

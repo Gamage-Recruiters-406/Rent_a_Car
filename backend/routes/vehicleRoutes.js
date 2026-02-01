@@ -8,7 +8,8 @@ import { createVehicleListing,
         updateVehicleListing,
         updateVehicleStatus, 
         getAllVehicleListings,
-        getAllAvailableVehicles} from '../controllers/vehicleController.js';
+        getAllAvailableVehicles,
+        getApprovedVehicleCount} from '../controllers/vehicleController.js';
 
 const router = express.Router();
 
@@ -29,5 +30,7 @@ router.patch("/admin/status/:id", requiredSignIn, isAdmin, updateVehicleStatus);
 router.get("/admin/get-all", requiredSignIn, isAdmin, getAllVehicleListings);
 // Get all vehicle listings - CUSTOMER
 router.get("/get-all", requiredSignIn, getAllAvailableVehicles);
+// Get count of approved vehicles - CUSTOMER
+router.get("/vehicle-count", getApprovedVehicleCount);
 
 export default router;
