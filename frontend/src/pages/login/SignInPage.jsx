@@ -39,11 +39,9 @@ export function SignInPage() {
       if (data.success) {
         toast.success(data.message || "Login Successfully");
         localStorage.setItem('token', data.token);
-  
-        localStorage.setItem('user', JSON.stringify(data));
+        localStorage.setItem('user', JSON.stringify({ userid: data.userid, role: data.role }));
         navigate('/dashboard');
 
-     
       } else {
         toast.error(data.message || 'Login failed');
       }
