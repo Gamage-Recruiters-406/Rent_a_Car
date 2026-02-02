@@ -485,6 +485,19 @@ export const updateVehicleStatus = async (req,res) => {
     vehicle.status = status;
     await vehicle.save();
 
+<<<<<<< Updated upstream
+=======
+    // --- NOTIFY VEHICLE OWNER ---
+    try {
+      await notifyVehicle({
+        vehicleId: vehicle._id,
+        type: status === "Approved" ? "approved" : "rejected",
+      });
+    } catch (err) {
+      console.error("Vehicle status notification error:", err.message);
+    }
+
+>>>>>>> Stashed changes
     return res.status(200).json({ 
       success: true, 
       message: "Vehicle status updated successfully.",
