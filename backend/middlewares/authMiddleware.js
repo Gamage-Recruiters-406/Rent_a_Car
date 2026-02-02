@@ -8,7 +8,7 @@ export const requiredSignIn = async (req, res, next) => {
         if(!token){
             return res.status(401).json({
                 success: false, 
-                message: "Access denied, No token provided."
+                message: "You must need to login first."
             })
         }
 
@@ -53,6 +53,27 @@ export const isOwner = async(req, res, next) => {
         return res.status(403).json({
             success: false,
             message: "Access denied, Only vehicle owners can access."
+        })
+    };
+    next();
+}
+
+//check user is owner or admin
+export const isAdminOrOwner = async (req, res, next) => {
+    if(req.user.role !== 2 && req.user.role !== 3){
+        return res.status(403).json({
+            success: false,
+            message: "Access denied. Admin or Owner required."
+        })
+    }
+}
+
+//check user account is verified or not
+export const isVerifiedUser = async (req, res, next) => {
+    if(req.user.status !== "verified"){
+        return res.status(403).json({
+            success: true,
+            message: "You need to verify your account."
         })
     };
     next();

@@ -1,5 +1,10 @@
 import express from "express";
-import requiredSignIn from "../middleware/authMiddleware.js";
+import {
+  requiredSignIn,
+  isCustomer,
+  isOwner
+} from "../middlewares/authMiddleware.js";
+
 import {
   createReview,
   getReviewsByVehicle,
@@ -9,22 +14,29 @@ import {
   canReviewVehicle,
   getReviewableBookings,
   getMyVehicleReviews,
-  getVehicleRating
+  getVehicleRating,
+  getOverallAverageRating,
+  getHomePageReviews
 } from "../controllers/reviewController.js";
 
 const router = express.Router();
 
-// Public routes - no authentication required
-router.get("/vehicle/:vehicleId", getReviewsByVehicle);
+// Public routes
+router.get("/vehicle/:vehicle_id", getReviewsByVehicle);
+router.get("/vehicle/:vehicle_id/rating", getVehicleRating);
+router.get("/overall-rating", getOverallAverageRating);
+router.get("/home", getHomePageReviews);
 
-// Protected routes - require authentication
-router.post("/", requiredSignIn, createReview);
-router.get("/me", requiredSignIn, getMyReviews);
-router.get("/can-review/:vehicleId", requiredSignIn, canReviewVehicle);
-router.get("/reviewable-bookings", requiredSignIn, getReviewableBookings);
-router.get("/my-vehicles", requiredSignIn, getMyVehicleReviews);
-router.put("/:reviewId", requiredSignIn, updateReview);
-router.delete("/:reviewId", requiredSignIn, deleteReview);
-router.get("/vehicle/:vehicleId/rating", getVehicleRating);
+
+//customer routes
+router.post("/create", requiredSignIn, isCustomer, createReview);
+router.get("/me", requiredSignIn, isCustomer, getMyReviews);
+router.get("/can-review/:vehicle_id", requiredSignIn, isCustomer, canReviewVehicle);
+router.get("/reviewable-bookings", requiredSignIn, isCustomer, getReviewableBookings);
+router.put("/update/:reviewId", requiredSignIn, isCustomer, updateReview);
+router.delete("/delete/:reviewId", requiredSignIn, isCustomer, deleteReview);
+
+//Vehicle Owner
+router.get("/my-vehicles", requiredSignIn, isOwner, getMyVehicleReviews);
 
 export default router;
