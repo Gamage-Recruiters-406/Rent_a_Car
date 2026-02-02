@@ -17,6 +17,7 @@ import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
 import VehicleManagement from "./pages/admin/VehicleManagement.jsx";
 import BookingHistory from "./pages/BookingHistory.jsx";
+import AddVehicle from "./pages/AddVehicle.jsx";
 
 class AppErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
@@ -54,6 +55,7 @@ function App() {
         
         {/* owner */}
         <Route path="/rental-history" element={<RentalHistoryPage />} />
+        <Route path="/add-vehicle" element={<AddVehicle />} />
   
         {/* public */}
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
