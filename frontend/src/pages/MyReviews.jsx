@@ -76,7 +76,7 @@ const MyReviews = () => {
 
         <div className="min-h-screen bg-gray-100 py-12 px-4">
         <div className="max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-800 mb-12 text-center">My Reviews</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-12 text-center">{`My Reviews (${reviews.length})`}</h1>
             
             <div className="space-y-6">
             {reviews.map((review) => (
