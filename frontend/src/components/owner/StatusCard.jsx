@@ -2,7 +2,6 @@ import React from 'react';
 
 const StatusCard = ({ label, val, icon }) => {
   
-  // Label එක අනුව පාට තීරණය කරන logic එක
   const getColors = () => {
     const text = label.toLowerCase();
     if (text.includes('pending')) {
@@ -14,7 +13,7 @@ const StatusCard = ({ label, val, icon }) => {
     if (text.includes('rejected')) {
       return { border: 'border-[#E53E3E]', bg: 'bg-[#E53E3E]/10', icon: 'text-[#E53E3E]' };
     }
-    // Default (Total Requests සඳහා)
+    // Default (Total Requests )
     return { border: 'border-[#0D3778]', bg: 'bg-[#0D3778]/10', icon: 'text-[#0D3778]' };
   };
 
