@@ -15,16 +15,41 @@ import {VerifyCodePage} from "./pages/login/forgotpassword/VerifyCodePage";
 import {ResetPasswordPage} from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
-import VehicleManagement from "./pages/VehicleManagement.jsx";
+import VehicleManagement from "./pages/admin/VehicleManagement.jsx";
 
-
-
+class AppErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("App error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: "600px", margin: "2rem auto" }}>
+          <h1 style={{ color: "#1e40af" }}>Something went wrong</h1>
+          <p style={{ color: "#374151", marginBottom: "1rem" }}>
+            The app encountered an error. Try refreshing the page or going back to the home page.
+          </p>
+          <pre style={{ background: "#f3f4f6", padding: "1rem", borderRadius: "8px", overflow: "auto", fontSize: "12px" }}>
+            {this.state.error?.message ?? "Unknown error"}
+          </pre>
+          <a href="/" style={{ color: "#1e40af", textDecoration: "underline" }}>Go to home page</a>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function App() {
   return (
-    <Router>
-      <Toaster position="top-right" reverseOrder={false} />
-      <Routes>
+    <AppErrorBoundary>
+      <Router>
+        <Toaster position="top-right" reverseOrder={false} />
+        <Routes>
         
         {/* owner */}
         <Route path="/rental-history" element={<RentalHistoryPage />} />
@@ -55,8 +80,9 @@ function App() {
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AppErrorBoundary>
   );
 }
 

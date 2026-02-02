@@ -1,3 +1,5 @@
+// VehicleCard.jsx
+
 import React from 'react';
 import { User, MapPin, Calendar, Fuel, Settings, Eye, Trash2, Check, X } from 'lucide-react';
 
@@ -14,6 +16,8 @@ function VehicleImage({ src, alt }) {
 }
 
 function VehicleInfo({ name, owner, plateNumber, location }) {
+  // Ensure we never render an object (backend may send location as { address, geo })
+  const locationText = typeof location === 'string' ? location : (location?.address ?? '') || 'N/A';
   return (
     <div>
       <h3 className="text-xl font-bold text-gray-900 mb-2">{name}</h3>
@@ -28,7 +32,7 @@ function VehicleInfo({ name, owner, plateNumber, location }) {
         </div>
         <div className="flex items-center gap-1">
           <MapPin className="w-4 h-4" />
-          <span>{location}</span>
+          <span>{locationText}</span>
         </div>
       </div>
     </div>
@@ -111,36 +115,38 @@ function VehicleActionButtons({ status, onApprove, onReject }) {
 }
 
 export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) {
-  const handleApprove = () => onApprove(vehicle.id);
-  const handleReject = () => onReject(vehicle.id);
-  const handleDelete = () => onDelete(vehicle.id);
-  const handleView = () => onView(vehicle);
+  if (!vehicle) return null;
+
+  const handleApprove = () => onApprove?.(vehicle.id);
+  const handleReject = () => onReject?.(vehicle.id);
+  const handleDelete = () => onDelete?.(vehicle.id);
+  const handleView = () => onView?.(vehicle);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all">
       <div className="md:flex">
-        <VehicleImage src={vehicle.image} alt={vehicle.name} />
+        <VehicleImage src={vehicle.image} alt={vehicle.name ?? 'Vehicle'} />
 
         <div className="md:w-3/5 p-6">
           <div className="flex justify-between items-start mb-4">
             <VehicleInfo
-              name={vehicle.name}
-              owner={vehicle.owner}
-              plateNumber={vehicle.plateNumber}
-              location={vehicle.location}
+              name={vehicle.name ?? 'Unknown'}
+              owner={vehicle.owner ?? 'Unknown'}
+              plateNumber={vehicle.plateNumber ?? 'N/A'}
+              location={vehicle.location ?? 'Unknown'}
             />
             <VehicleActions onView={handleView} onDelete={handleDelete} />
           </div>
 
           <VehicleSpecs
-            year={vehicle.year}
-            fuelType={vehicle.fuelType}
-            transmission={vehicle.transmission}
+            year={vehicle.year ?? ''}
+            fuelType={vehicle.fuelType ?? ''}
+            transmission={vehicle.transmission ?? ''}
           />
 
           <VehiclePricing
-            pricePerDay={vehicle.pricePerDay}
-            pricePerKm={vehicle.pricePerKm}
+            pricePerDay={vehicle.pricePerDay ?? 0}
+            pricePerKm={vehicle.pricePerKm ?? 0}
           />
 
           <VehicleActionButtons
@@ -150,7 +156,7 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
           />
 
           <p className="text-sm text-gray-500 mt-3">
-            Submitted: {vehicle.submittedDate}
+            Submitted: {vehicle.submittedDate ?? '-'}
           </p>
         </div>
       </div>
