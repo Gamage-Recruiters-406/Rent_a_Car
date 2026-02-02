@@ -275,9 +275,9 @@ export const OwnerProfileEdit = ({
                     </label>
                     <input
                       type="tel"
-                      value={currentProfile.phone}
+                      value={currentProfile.contactNumber}
                       onChange={(e) =>
-                      handleFieldChange('phone', e.target.value)
+                      handleFieldChange('contactNumber', e.target.value)
                       }
                       disabled={!isEditing}
                       className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
