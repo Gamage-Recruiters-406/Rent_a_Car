@@ -15,6 +15,7 @@ import {VerifyCodePage} from "./pages/login/forgotpassword/VerifyCodePage";
 import {ResetPasswordPage} from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import VehicleManagement from "./pages/VehicleManagement.jsx";
 import BookingHistory from "./pages/BookingHistory.jsx";
 
@@ -47,6 +48,7 @@ function App() {
 
 
         {/* admin */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/booking" element={<AdminBooking/>} />
         <Route path="/admin/vehicles" element={<VehicleManagement />} />
 
