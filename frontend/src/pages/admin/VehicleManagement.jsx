@@ -5,7 +5,7 @@ import { StatCard } from '../../components/adminVehicle/StatCard';
 import { SearchBar } from '../../components/adminVehicle/SearchBar';
 import { Tabs } from '../../components/adminVehicle/Tabs';
 import { VehicleCard } from '../../components/adminVehicle/VehicleCard';
-import { vehicleAPI, VEHICLE_STATUS } from '../../services/vehicleService';
+import { vehicleAPI, VEHICLE_STATUS, getImageBaseUrl } from '../../services/vehicleService';
 import toast from 'react-hot-toast';
 
 function VehicleStatistics({ stats }) {
@@ -158,27 +158,54 @@ export function VehicleManagement() {
         if (loc && typeof loc === 'object' && 'address' in loc) return loc.address || 'Unknown';
         return v.city || v.address || 'Unknown';
       };
-      const transformedVehicles = vehiclesData.map((vehicle, index) => ({
-        id: vehicle._id || vehicle.id || `vehicle-${index}`,
-        name: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || 'Unknown Vehicle',
-        owner: vehicle.ownerName || vehicle.owner?.first_name || vehicle.owner?.name || 'Unknown Owner',
-        plateNumber: vehicle.plateNumber || vehicle.registrationNumber || vehicle.licensePlate || 'N/A',
-        location: getLocationString(vehicle),
-        year: vehicle.year || vehicle.modelYear || new Date().getFullYear(),
-        fuelType: vehicle.fuelType || vehicle.fuel || 'Petrol',
-        transmission: vehicle.transmission || vehicle.gearbox || 'Auto',
-        pricePerDay: vehicle.pricePerDay || vehicle.dailyRate || vehicle.rentPerDay || 5000,
-        pricePerKm: vehicle.pricePerKm || vehicle.kmRate || vehicle.perKmRate || 50,
-        status: String(vehicle.status || VEHICLE_STATUS.PENDING).toLowerCase(),
-        submittedDate: vehicle.createdAt 
-          ? new Date(vehicle.createdAt).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit'
-            })
-          : new Date().toLocaleDateString(),
-        image: vehicle.image || vehicle.images?.[0] || vehicle.photos?.[0] || null,
-      }));
+      const apiBase = getImageBaseUrl();
+      const toFullImageUrl = (url) => {
+        if (!url || typeof url !== 'string') return null;
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        const path = url.startsWith('/') ? url : `/${url}`;
+        return `${apiBase}${path}`;
+      };
+      const getPhotoUrls = (v) => {
+        const out = [];
+        if (Array.isArray(v.photos) && v.photos.length > 0) {
+          v.photos.forEach((p) => {
+            const u = p && (typeof p === 'string' ? p : p.url);
+            if (u && typeof u === 'string') {
+              const full = toFullImageUrl(u);
+              if (full) out.push(full);
+            }
+          });
+        }
+        if (out.length) return out;
+        if (v.image && typeof v.image === 'string') return [toFullImageUrl(v.image)];
+        if (Array.isArray(v.images)) v.images.forEach((u) => { const f = typeof u === 'string' ? toFullImageUrl(u) : (u?.url ? toFullImageUrl(u.url) : null); if (f) out.push(f); });
+        return out;
+      };
+      const transformedVehicles = vehiclesData.map((vehicle, index) => {
+        const imageUrls = getPhotoUrls(vehicle);
+        return {
+          id: vehicle._id || vehicle.id || `vehicle-${index}`,
+          name: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || (vehicle.title || 'Unknown Vehicle'),
+          owner: vehicle.ownerName || vehicle.owner?.first_name || vehicle.owner?.name || 'Unknown Owner',
+          plateNumber: vehicle.plateNumber || vehicle.numberPlate || vehicle.registrationNumber || vehicle.licensePlate || 'N/A',
+          location: getLocationString(vehicle),
+          year: vehicle.year || vehicle.modelYear || new Date().getFullYear(),
+          fuelType: vehicle.fuelType || vehicle.fuel || 'Petrol',
+          transmission: vehicle.transmission || vehicle.gearbox || 'Auto',
+          pricePerDay: vehicle.pricePerDay || vehicle.dailyRate || vehicle.rentPerDay || 5000,
+          pricePerKm: vehicle.pricePerKm || vehicle.kmRate || vehicle.perKmRate || 50,
+          status: String(vehicle.status || VEHICLE_STATUS.PENDING).toLowerCase(),
+          submittedDate: vehicle.createdAt
+            ? new Date(vehicle.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+              })
+            : new Date().toLocaleDateString(),
+          image: imageUrls[0] || null,
+          images: imageUrls,
+        };
+      });
       
       setVehicles(transformedVehicles);
       console.log('Vehicles loaded successfully');

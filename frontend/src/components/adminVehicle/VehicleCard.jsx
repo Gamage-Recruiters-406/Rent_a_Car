@@ -1,16 +1,54 @@
 // VehicleCard.jsx
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, MapPin, Calendar, Fuel, Settings, Eye, Trash2, Check, X } from 'lucide-react';
 
-function VehicleImage({ src, alt }) {
+const PLACEHOLDER = 'https://via.placeholder.com/400x300?text=Vehicle';
+
+function VehicleImage({ src, alt, images = [] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [imgError, setImgError] = useState(false);
+  const urlList = Array.isArray(images) && images.length > 0 ? images : (src ? [src] : []);
+  const currentUrl = urlList[currentIndex] || src;
+  const imgSrc = (imgError || !currentUrl || typeof currentUrl !== 'string') ? PLACEHOLDER : currentUrl;
+
+  useEffect(() => {
+    setImgError(false);
+    setCurrentIndex(0);
+  }, [src, images?.length]);
+
   return (
-    <div className="md:w-2/5 h-48 md:h-auto">
+    <div className="md:w-2/5 h-48 md:h-auto min-h-[12rem] relative bg-gray-100">
       <img
-        src={src || 'https://via.placeholder.com/400x300?text=Vehicle'}
-        alt={alt}
+        key={imgSrc}
+        src={imgSrc}
+        alt={alt || 'Vehicle'}
         className="w-full h-full object-cover"
+        onError={() => setImgError(true)}
       />
+      {urlList.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => setCurrentIndex((i) => (i === 0 ? urlList.length - 1 : i - 1))}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
+            aria-label="Previous photo"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentIndex((i) => (i === urlList.length - 1 ? 0 : i + 1))}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
+            aria-label="Next photo"
+          >
+            ›
+          </button>
+          <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/50 text-white text-xs">
+            {currentIndex + 1} / {urlList.length}
+          </span>
+        </>
+      )}
     </div>
   );
 }
@@ -125,7 +163,7 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all">
       <div className="md:flex">
-        <VehicleImage src={vehicle.image} alt={vehicle.name ?? 'Vehicle'} />
+        <VehicleImage src={vehicle.image} alt={vehicle.name ?? 'Vehicle'} images={vehicle.images} />
 
         <div className="md:w-3/5 p-6">
           <div className="flex justify-between items-start mb-4">
