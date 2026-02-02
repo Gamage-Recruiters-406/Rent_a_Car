@@ -380,23 +380,33 @@ export const OwnerProfileEdit = ({
                     {activeStats.profit}
                   </div>
                 </div>
-                {activeProfile.status === 'verified' ? (
-                  <div className="pt-2">
-                    <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-2 rounded-md">
-                      <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm font-medium">Verified</span>
+          {/* status */}
+                    <div className="mt-8 border-t pt-6">
+                      <h3 className="text-[#0A2E5C] font-semibold text-base mb-3">
+                        Account Status
+                      </h3>
+                      {activeProfile.status === 'verified' ? (
+                        <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-3 rounded-lg w-fit">
+                          <CheckCircle className="w-5 h-5" />
+                          <span className="font-medium">Verified Account</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between bg-yellow-50 p-4 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div className="text-yellow-700 font-medium">
+                              Status: {activeProfile.status || 'Unverified'}
+                            </div>
+                          </div>
+                          <button 
+                            onClick={handleVerify}
+                            className="group flex items-center gap-2 bg-gradient-to-r from-[#0A2E5C] to-[#0A2E5C]/80 text-white px-5 py-2 rounded-lg shadow-md hover:shadow-lg hover:to-[#0A2E5C] transition-all duration-300 transform hover:-translate-y-0.5"
+                          >
+                            <CheckCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                            <span className="text-sm font-semibold">Verify Now</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ) : (
-                  <div className="pt-2">
-                    <button 
-                      onClick={handleVerify}
-                      className="group flex items-center gap-2 bg-gradient-to-r from-[#0A2E5C] to-[#0A2E5C]/80 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg hover:to-[#0A2E5C] transition-all duration-300 transform hover:-translate-y-0.5">
-                      <CheckCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
-                      <span className="text-sm font-semibold">Verify Now</span>
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
