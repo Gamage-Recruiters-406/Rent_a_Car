@@ -7,14 +7,15 @@ import BookingTable from './../../components/owner/TableBooking';
 import Header from '../../layouts/Header';
 import Footer from '../../layouts/Footer';
 
-// .env variables
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
 
 const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [stats, setStats] = useState([
     { label: 'Total Requests', val: '0', icon: <Car size={40} />, color: 'border-brand-dark' },
     { label: 'Pending Requests', val: '0', icon: <Hourglass size={40} />, color: 'border-brand-dark' },
@@ -22,14 +23,22 @@ const Dashboard = () => {
     { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-brand-dark' },
   ]);
 
-  // State for filter status
-  const [filterStatus, setFilterStatus] = useState('All'); 
-
-  // Logic to filter bookings based on active tab
+  // Logic to filter bookings based on BOTH Tab and Search
   const filteredBookings = bookings.filter(booking => {
-    if (filterStatus === 'All') return true;
-    // Ensure the status strings match (e.g., 'pending' vs 'Pending')
-    return booking.status.toLowerCase() === filterStatus.toLowerCase();
+    // 1. Tab Filter logic
+    const matchesTab = filterStatus === 'All' || 
+      booking.status?.toLowerCase() === filterStatus.toLowerCase();
+    
+    // 2. Search Filter logic - Search by customer name, vehicle name, or vehicle number
+    const searchString = searchTerm.toLowerCase();
+    const matchesSearch = 
+      searchTerm === '' || 
+      (booking.customerId?.first_name?.toLowerCase().includes(searchString)) ||
+      (booking.customerId?.last_name?.toLowerCase().includes(searchString)) ||
+      (booking.vehicleId?.title?.toLowerCase().includes(searchString)) || 
+      (booking.vehicleId?.numberPlate?.toLowerCase().includes(searchString));
+
+    return matchesTab && matchesSearch;
   });
 
   useEffect(() => {
@@ -43,17 +52,11 @@ const Dashboard = () => {
       const currentUserId = localStorage.getItem("userid");
 
       if (!token || !currentUserId) {
-        console.error("Token or UserID missing!");
         setLoading(false);
         return;
       }
 
-      // Backend middleware 
-      document.cookie = `access_token=${token}; path=/; SameSite=Lax;`;
-
-      // API URL 
       const url = `${baseUrl}${apiVersion}/bookings/owner/${currentUserId}`;
-
       const response = await axios.get(url, {
         withCredentials: true,
         headers: {
@@ -63,13 +66,11 @@ const Dashboard = () => {
         }
       });
 
-      console.log("FULL API RESPONSE:", response.data);
-
       if (response.data.success) {
         const fetchedData = response.data.data || [];
         setBookings(fetchedData);
         
-        // Stats update logic
+        // Update stats based on full data
         setStats([
           { label: 'Total Requests', val: fetchedData.length.toString(), icon: <Car size={40} />, color: 'border-brand-dark' },
           { label: 'Pending Requests', val: fetchedData.filter(b => b.status === 'pending').length.toString(), icon: <Hourglass size={40} />, color: 'border-brand-dark' },
@@ -77,9 +78,8 @@ const Dashboard = () => {
           { label: 'Rejected Requests', val: fetchedData.filter(b => b.status === 'rejected').length.toString(), icon: <XCircle size={40} />, color: 'border-brand-dark' },
         ]);
       }
-
     } catch (error) {
-      console.error("Error fetching data:", error.response?.data || error.message);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -98,12 +98,18 @@ const Dashboard = () => {
               {stats.map((s, i) => <StatsCard key={i} {...s} />)}
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm">
-              <TableHeader activeFilter={filterStatus} onFilterChange={setFilterStatus} />
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+              {/* Passing all 4 required props to TableHeader */}
+              <TableHeader 
+                activeFilter={filterStatus} 
+                onFilterChange={setFilterStatus}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+              />
+              
               {loading ? (
-                <div className="p-10 text-center">Loading bookings...</div>
+                <div className="p-10 text-center text-gray-500">Loading bookings...</div>
               ) : (
-                // Pass the FILTERED array instead of the full array
                 <BookingTable data={filteredBookings} refreshData={fetchDashboardData} />
               )}
             </div>
