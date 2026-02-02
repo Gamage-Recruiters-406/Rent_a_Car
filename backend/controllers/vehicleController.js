@@ -517,7 +517,7 @@ export const updateVehicleStatus = async (req,res) => {
     try {
       await notifyVehicle({
         vehicleId: vehicle._id,
-        status: vehicle.status
+        type: status === "Approved" ? "approved" : "rejected",
       });
     } catch (err) {
       console.error("Vehicle status notification error:", err.message);
