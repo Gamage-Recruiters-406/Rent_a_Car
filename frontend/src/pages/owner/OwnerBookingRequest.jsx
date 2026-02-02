@@ -14,12 +14,23 @@ const apiVersion = import.meta.env.VITE_API_VERSION;
 const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  
   const [stats, setStats] = useState([
     { label: 'Total Requests', val: '0', icon: <Car size={40} />, color: 'border-brand-dark' },
     { label: 'Pending Requests', val: '0', icon: <Hourglass size={40} />, color: 'border-brand-dark' },
     { label: 'Approved Requests', val: '0', icon: <CheckCircle2 size={40} />, color: 'border-brand-dark' },
     { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-brand-dark' },
   ]);
+
+  // State for filter status
+  const [filterStatus, setFilterStatus] = useState('All'); 
+
+  // Logic to filter bookings based on active tab
+  const filteredBookings = bookings.filter(booking => {
+    if (filterStatus === 'All') return true;
+    // Ensure the status strings match (e.g., 'pending' vs 'Pending')
+    return booking.status.toLowerCase() === filterStatus.toLowerCase();
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -88,11 +99,12 @@ const Dashboard = () => {
             </div>
 
             <div className="bg-white rounded-lg shadow-sm">
-              <TableHeader />
+              <TableHeader activeFilter={filterStatus} onFilterChange={setFilterStatus} />
               {loading ? (
                 <div className="p-10 text-center">Loading bookings...</div>
               ) : (
-                <BookingTable data={bookings} refreshData={fetchDashboardData} />
+                // Pass the FILTERED array instead of the full array
+                <BookingTable data={filteredBookings} refreshData={fetchDashboardData} />
               )}
             </div>
           </div>
