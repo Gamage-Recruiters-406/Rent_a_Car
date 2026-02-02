@@ -5,8 +5,8 @@ const TableHeader = ({ activeFilter, onFilterChange, searchTerm, onSearchChange 
   const tabs = ['All', 'Pending', 'Approved', 'Rejected'];
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-4">
-      <h2 className="text-xl font-bold text-brand-dark">Booking Requests List</h2>
+    <div className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-4 font-['Nunito']">
+      <h2 className="text-xl font-bold text-[#0D3778]">Booking Requests List</h2>
       
       <div className="flex flex-wrap items-center gap-4">
         {/* Filter Tabs */}
@@ -17,8 +17,8 @@ const TableHeader = ({ activeFilter, onFilterChange, searchTerm, onSearchChange 
               onClick={() => onFilterChange(tab)}
               className={`px-6 py-2 rounded-md text-sm font-semibold transition-all duration-200 ${
                 activeFilter === tab
-                  ? 'bg-brand-dark text-white shadow-md'
-                  : 'text-gray-500 hover:text-brand-dark hover:bg-gray-200'
+                  ? 'bg-[#0D3778] text-white shadow-md'
+                  : 'text-gray-500 hover:text-[#0D3778] hover:bg-gray-200'
               }`}
             >
               {tab}
@@ -37,7 +37,7 @@ const TableHeader = ({ activeFilter, onFilterChange, searchTerm, onSearchChange 
             placeholder="Search customer or vehicle..." 
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-dark/20 w-64 bg-white text-sm text-brand-dark placeholder:text-gray-400 transition-all"
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D3778]/20 w-64 bg-white text-sm text-[#0D3778] placeholder:text-gray-400 transition-all"
           />
           
           {/* Optional: Clear search button appears only when there is text */}

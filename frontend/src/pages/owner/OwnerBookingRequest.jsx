@@ -16,20 +16,18 @@ const Dashboard = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Stats initial state with your theme colors
   const [stats, setStats] = useState([
     { label: 'Total Requests', val: '0', icon: <Car size={40} />, color: 'border-brand-dark' },
-    { label: 'Pending Requests', val: '0', icon: <Hourglass size={40} />, color: 'border-brand-dark' },
-    { label: 'Approved Requests', val: '0', icon: <CheckCircle2 size={40} />, color: 'border-brand-dark' },
-    { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-brand-dark' },
+    { label: 'Pending Requests', val: '0', icon: <Hourglass size={40} />, color: 'border-status-pending' },
+    { label: 'Approved Requests', val: '0', icon: <CheckCircle2 size={40} />, color: 'border-status-approved' },
+    { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-status-rejected' },
   ]);
 
-  // Logic to filter bookings based on BOTH Tab and Search
   const filteredBookings = bookings.filter(booking => {
-    // 1. Tab Filter logic
     const matchesTab = filterStatus === 'All' || 
       booking.status?.toLowerCase() === filterStatus.toLowerCase();
     
-    // 2. Search Filter logic - Search by customer name, vehicle name, or vehicle number
     const searchString = searchTerm.toLowerCase();
     const matchesSearch = 
       searchTerm === '' || 
@@ -70,12 +68,12 @@ const Dashboard = () => {
         const fetchedData = response.data.data || [];
         setBookings(fetchedData);
         
-        // Update stats based on full data
+        // Update stats using your Tailwind @theme variable classes
         setStats([
           { label: 'Total Requests', val: fetchedData.length.toString(), icon: <Car size={40} />, color: 'border-brand-dark' },
-          { label: 'Pending Requests', val: fetchedData.filter(b => b.status === 'pending').length.toString(), icon: <Hourglass size={40} />, color: 'border-brand-dark' },
-          { label: 'Approved Requests', val: fetchedData.filter(b => b.status === 'approved').length.toString(), icon: <CheckCircle2 size={40} />, color: 'border-brand-dark' },
-          { label: 'Rejected Requests', val: fetchedData.filter(b => b.status === 'rejected').length.toString(), icon: <XCircle size={40} />, color: 'border-brand-dark' },
+          { label: 'Pending Requests', val: fetchedData.filter(b => b.status === 'pending').length.toString(), icon: <Hourglass size={40} />, color: 'border-status-pending text-status-pending' },
+          { label: 'Approved Requests', val: fetchedData.filter(b => b.status === 'approved').length.toString(), icon: <CheckCircle2 size={40} />, color: 'border-status-approved text-status-approved' },
+          { label: 'Rejected Requests', val: fetchedData.filter(b => b.status === 'rejected').length.toString(), icon: <XCircle size={40} />, color: 'border-status-rejected text-status-rejected' },
         ]);
       }
     } catch (error) {
@@ -86,20 +84,20 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-app-bg font-sans">
+    <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-10">
+        <main className="flex-1 overflow-y-auto p-10 bg-gray-50/50">
           <div className="max-w-7xl mx-auto"> 
-            <h1 className="text-2xl font-bold text-brand-dark">Booking Request</h1>
-            <p className="text-brand-dark mb-8 opacity-80">Manage incoming booking requests from customers</p>
+            <h1 className="text-2xl font-bold text-[#0D3778] font-['Nunito']">Booking Request</h1>
+            <p className="text-[#0D3778] mb-8 opacity-100 font-['Nunito']">Manage incoming booking requests from customers</p>
 
+            {/* Stats Cards with Theme Colors */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
               {stats.map((s, i) => <StatsCard key={i} {...s} />)}
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-              {/* Passing all 4 required props to TableHeader */}
+            <div className="rounded-xl overflow-hidden">
               <TableHeader 
                 activeFilter={filterStatus} 
                 onFilterChange={setFilterStatus}
@@ -108,7 +106,7 @@ const Dashboard = () => {
               />
               
               {loading ? (
-                <div className="p-10 text-center text-gray-500">Loading bookings...</div>
+                <div className="p-20 text-center text-gray-400 animate-pulse">Loading bookings...</div>
               ) : (
                 <BookingTable data={filteredBookings} refreshData={fetchDashboardData} />
               )}
