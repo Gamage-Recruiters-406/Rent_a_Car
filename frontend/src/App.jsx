@@ -15,7 +15,10 @@ import {VerifyCodePage} from "./pages/login/forgotpassword/VerifyCodePage";
 import {ResetPasswordPage} from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
-import VehicleManagement from "./pages/admin/VehicleManagement.jsx";
+import VehicleManagement from "./pages/VehicleManagement.jsx";
+import BookingHistory from "./pages/BookingHistory.jsx";
+
+
 
 class AppErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
@@ -66,6 +69,8 @@ function App() {
         <Route path="/customer-reviews" element={<CustomerReviews/>} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/booking" element={<BookingPage1 />} />
+        <Route path="/booking-history" element={<BookingHistory />} />
+
 
 
         {/* admin */}
