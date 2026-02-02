@@ -22,8 +22,6 @@ const BookingTable = ({ data = [], loading = false }) => {
             {tableHeaders.map((head) => (
               <th
                 key={head}
-                // py-6 පාවිච්චි කරලා උස (height) වැඩි කළා 
-                // border-[#ffffff] පාවිච්චි කරලා ලයින් සුදු කළා
                 className="px-4 py-6 border border-[#ffffff] font-semibold text-sm tracking-wide"
               >
                 {head}
