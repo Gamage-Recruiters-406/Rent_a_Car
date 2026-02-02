@@ -1,8 +1,8 @@
 import React from 'react';
 import { Car, Hourglass, CheckCircle2, XCircle } from 'lucide-react';
-import StatsCard from './../component/StatusCard';
-import TableHeader from './../component/TableHeader';
-import BookingTable from './../component/TableBooking';
+import StatsCard from './../../components/owner/StatusCard';
+import TableHeader from './../../components/owner/TableHeader';
+import BookingTable from './../../components/owner/TableBooking';
 import Header from '../../layouts/Header';
 import Footer from '../../layouts/Footer';
 
