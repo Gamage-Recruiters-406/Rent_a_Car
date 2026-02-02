@@ -89,16 +89,7 @@ export function CustomerVehicleListPage() {
   };
 
   const handleViewDetails = (vehicleId) => {
-    const vehicle = vehicles.find(v => (v._id || v.id) === vehicleId);
-    if (vehicle) {
-      setSelectedVehicle(vehicle);
-      setIsModalOpen(true);
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedVehicle(null), 300);
+    navigate(`/vehicles/${vehicleId}`);
   };
 
   const filteredVehicles = vehicles.filter(vehicle => {
