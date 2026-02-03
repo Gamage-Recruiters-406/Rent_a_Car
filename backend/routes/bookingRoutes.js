@@ -13,6 +13,7 @@ import {
     getCustomerBookings,
     getOwnerBookings,
     getOwnerEarnings,
+    getBookingReportStats
 } from "../controllers/bookingController.js";
 import {
     requiredSignIn,
@@ -37,5 +38,8 @@ router.patch("/approve/:id", requiredSignIn, isOwner, approveBooking);
 router.patch("/reject/:id", requiredSignIn, isOwner, rejectBooking);
 router.patch("/cancel/:id", requiredSignIn, isCustomer, cancelBooking);
 router.delete("/delete/:id", requiredSignIn, deleteBooking);
+
+
+
 
 export default router;
