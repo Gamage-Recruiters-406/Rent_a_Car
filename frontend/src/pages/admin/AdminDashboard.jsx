@@ -7,15 +7,15 @@ const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
 
 const StatCard = ({ icon: Icon, title, value, subtitle, bgColor }) => (
-  <div className="bg-white rounded-lg p-8 shadow-sm border-l-4 border-l-[#0D3778]">
-    <div className="flex items-start gap-4">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-slate-500 mb-3">{title}</p>
-        <h3 className="text-4xl font-bold text-[#0D3778]">{value}</h3>
-        {subtitle && <p className="text-sm text-slate-500 mt-2">{subtitle}</p>}
+  <div className="bg-white rounded-xl p-6 shadow-md border-l-[6px] border-l-[#0D3778] hover:shadow-xl transition-all">
+    <div className="flex items-center gap-5">
+      <div className={`p-5 rounded-2xl ${bgColor} flex-shrink-0 shadow-lg`}>
+        <Icon className="w-12 h-12 text-white" strokeWidth={2.5} />
       </div>
-      <div className={`p-4 rounded-lg ${bgColor} flex-shrink-0`}>
-        <Icon className="w-8 h-8 text-white" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-600 mb-1">{title}</p>
+        <h3 className="text-4xl font-bold text-[#0D3778]">{value}</h3>
+        {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
       </div>
     </div>
   </div>
