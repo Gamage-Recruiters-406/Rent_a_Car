@@ -11,7 +11,7 @@ import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
 import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
-
+import AdminReport from "./pages/admin/AdminReport.jsx";
 
 
 function App() {
@@ -28,6 +28,7 @@ function App() {
         <Route path="/contact" element={<ContactPage/>} />
         <Route path="/customer-reviews" element={<CustomerReviews/>} />
         <Route path="/admin/booking" element={<AdminBooking/>} />
+        <Route path="/admin/report" element={<AdminReport/>} />
 
 
         {/* login */}
