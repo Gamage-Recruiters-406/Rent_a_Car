@@ -19,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
+        <Route path="/" element={<h1>Home</h1>} />
         <Route path="/" element={<CustomerVehicleListPage />} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/rent-vehicle" element={<RentVehiclePage />} />
@@ -28,6 +29,8 @@ function App() {
 
         <Route path="/login" element={<SignInPage/>} />
         <Route path="/signup" element={<SignUpPage/>} />
+        <Route path="/verify-email" element={<VerifyEmailPage/>} />
+
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
