@@ -720,7 +720,7 @@ export const getOwnerBookings = async (req, res) => {
         if (status) filter.status = status;
 
         const bookings = await Booking.find(filter)
-            .populate("customerId", "first_name last_name email")
+            .populate("customerId", "first_name last_name email contactNumber")
             .populate("vehicleId")
             .sort({ startingDate: -1 });
 
