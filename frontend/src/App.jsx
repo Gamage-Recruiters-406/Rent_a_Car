@@ -6,12 +6,11 @@ import { SignInPage } from "./pages/login/SignInPage";
 import{SignUpPage} from "./pages/login/SignupPage";
 
 import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
+import { RentVehiclePage } from "./pages/RentVehiclePage";
 
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
-
-
 
 function App() {
   return (
@@ -20,17 +19,15 @@ function App() {
       <Routes>
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
-        <Route path="/" element={<h1>Home</h1>} />
         <Route path="/" element={<CustomerVehicleListPage />} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
+        <Route path="/rent-vehicle" element={<RentVehiclePage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
 
         {/* login */}
 
         <Route path="/login" element={<SignInPage/>} />
         <Route path="/signup" element={<SignUpPage/>} />
-        <Route path="/verify-email" element={<VerifyEmailPage/>} />
-
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -41,3 +38,5 @@ function App() {
 }
 
 export default App;
+
+
