@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Car, AlertCircle, CheckCircle, XCircle, FileDown } from 'lucide-react';
-import Header from '../layouts/Header';
-import { StatCard } from '../components/StatCard';
-import { SearchBar } from '../components/SearchBar';
-import { Tabs } from '../components/Tabs';
-import { VehicleCard } from '../components/VehicleCard';
-import { vehicleAPI, VEHICLE_STATUS } from '../services/vehicleService';
+import Header from '../../layouts/Header';
+import { StatCard } from '../../components/adminVehicle/StatCard';
+import { SearchBar } from '../../components/adminVehicle/SearchBar';
+import { Tabs } from '../../components/adminVehicle/Tabs';
+import { VehicleCard } from '../../components/adminVehicle/VehicleCard';
+import { vehicleAPI, VEHICLE_STATUS, getImageBaseUrl } from '../../services/vehicleService';
 import toast from 'react-hot-toast';
 
 function VehicleStatistics({ stats }) {
@@ -82,9 +82,9 @@ function VehicleList({ vehicles, loading, searchQuery, activeTab, onApprove, onR
 
   return (
     <div className="space-y-4">
-      {vehicles.map((vehicle) => (
+      {vehicles.map((vehicle, index) => (
         <VehicleCard
-          key={vehicle.id}
+          key={vehicle.id ?? `vehicle-${index}`}
           vehicle={vehicle}
           onApprove={onApprove}
           onReject={onReject}
@@ -102,8 +102,24 @@ export function VehicleManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(VEHICLE_STATUS.PENDING);
 
-  // Get user from localStorage or use mock data
-  const user = JSON.parse(localStorage.getItem('user') || '{"first_name":"Admin","last_name":"User"}');
+  // Get user from localStorage
+  const getUser = () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        return JSON.parse(storedUser);
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+    return {
+      first_name: 'Admin',
+      last_name: 'User',
+      role: 3
+    };
+  };
+
+  const user = getUser();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -111,6 +127,7 @@ export function VehicleManagement() {
     window.location.href = '/login';
   };
 
+  // Fetch vehicles on component mount
   useEffect(() => {
     fetchVehicles();
   }, []);
@@ -118,65 +135,108 @@ export function VehicleManagement() {
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-      console.log('Fetching vehicles from:', `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090'}/api/v1/vehicle/admin/get-all`);
       
+      // Call backend API
       const response = await vehicleAPI.getAllVehicles();
-      console.log('API Response:', response);
       
-      // Handle different response structures
-      const vehiclesData = response?.vehicles || response?.data || [];
+      // Extract vehicles from response
+      // Response format: { success: true, vehicles: [...] }
+      const vehiclesData = response?.vehicles || [];
       
       if (!Array.isArray(vehiclesData)) {
-        console.warn('Invalid vehicles data:', vehiclesData);
+        console.warn('Invalid vehicles data format:', vehiclesData);
         setVehicles([]);
-        toast.error('Invalid data format received from server');
         return;
       }
 
-      console.log(`Processing ${vehiclesData.length} vehicles`);
+      console.log(`Fetched ${vehiclesData.length} vehicles from backend`);
       
-      // Transform backend data to frontend structure
-      const transformedVehicles = vehiclesData.map(vehicle => ({
-        id: vehicle._id || vehicle.id,
-        name: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || 'Unknown Vehicle',
-        owner: vehicle.ownerName || vehicle.owner?.first_name || vehicle.owner?.name || 'Unknown Owner',
-        plateNumber: vehicle.plateNumber || vehicle.registrationNumber || vehicle.licensePlate || 'N/A',
-        location: vehicle.location || vehicle.city || vehicle.address || 'Unknown',
-        year: vehicle.year || vehicle.modelYear || new Date().getFullYear(),
-        fuelType: vehicle.fuelType || vehicle.fuel || 'Petrol',
-        transmission: vehicle.transmission || vehicle.gearbox || 'Auto',
-        pricePerDay: vehicle.pricePerDay || vehicle.dailyRate || vehicle.rentPerDay || 5000,
-        pricePerKm: vehicle.pricePerKm || vehicle.kmRate || vehicle.perKmRate || 50,
-        status: (vehicle.status || VEHICLE_STATUS.PENDING).toLowerCase(),
-        submittedDate: vehicle.createdAt 
-          ? new Date(vehicle.createdAt).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit'
-            })
-          : new Date().toLocaleDateString(),
-        image: vehicle.image || vehicle.images?.[0] || vehicle.photos?.[0] || null,
-      }));
+      // Transform backend data to match frontend structure (location can be object { address, geo } from backend)
+      const getLocationString = (v) => {
+        const loc = v.location;
+        if (typeof loc === 'string') return loc || 'Unknown';
+        if (loc && typeof loc === 'object' && 'address' in loc) return loc.address || 'Unknown';
+        return v.city || v.address || 'Unknown';
+      };
+      const apiBase = getImageBaseUrl();
+      const toFullImageUrl = (url) => {
+        if (!url || typeof url !== 'string') return null;
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        const path = url.startsWith('/') ? url : `/${url}`;
+        return `${apiBase}${path}`;
+      };
+      const getPhotoUrls = (v) => {
+        const out = [];
+        if (Array.isArray(v.photos) && v.photos.length > 0) {
+          v.photos.forEach((p) => {
+            const u = p && (typeof p === 'string' ? p : p.url);
+            if (u && typeof u === 'string') {
+              const full = toFullImageUrl(u);
+              if (full) out.push(full);
+            }
+          });
+        }
+        if (out.length) return out;
+        if (v.image && typeof v.image === 'string') return [toFullImageUrl(v.image)];
+        if (Array.isArray(v.images)) v.images.forEach((u) => { const f = typeof u === 'string' ? toFullImageUrl(u) : (u?.url ? toFullImageUrl(u.url) : null); if (f) out.push(f); });
+        return out;
+      };
+      const transformedVehicles = vehiclesData.map((vehicle, index) => {
+        const imageUrls = getPhotoUrls(vehicle);
+        return {
+          id: vehicle._id || vehicle.id || `vehicle-${index}`,
+          name: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || (vehicle.title || 'Unknown Vehicle'),
+          owner: vehicle.ownerName || vehicle.owner?.first_name || vehicle.owner?.name || 'Unknown Owner',
+          plateNumber: vehicle.plateNumber || vehicle.numberPlate || vehicle.registrationNumber || vehicle.licensePlate || 'N/A',
+          location: getLocationString(vehicle),
+          year: vehicle.year || vehicle.modelYear || new Date().getFullYear(),
+          fuelType: vehicle.fuelType || vehicle.fuel || 'Petrol',
+          transmission: vehicle.transmission || vehicle.gearbox || 'Auto',
+          pricePerDay: vehicle.pricePerDay || vehicle.dailyRate || vehicle.rentPerDay || 5000,
+          pricePerKm: vehicle.pricePerKm || vehicle.kmRate || vehicle.perKmRate || 50,
+          status: String(vehicle.status || VEHICLE_STATUS.PENDING).toLowerCase(),
+          submittedDate: vehicle.createdAt
+            ? new Date(vehicle.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+              })
+            : new Date().toLocaleDateString(),
+          image: imageUrls[0] || null,
+          images: imageUrls,
+        };
+      });
       
-      console.log('Transformed vehicles:', transformedVehicles);
       setVehicles(transformedVehicles);
-      
-      if (transformedVehicles.length === 0) {
-        //toast.info('No vehicles available');
-      }
+      console.log('Vehicles loaded successfully');
       
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
       
-      if (error.message.includes('Unauthorized')) {
-        toast.error('Session expired. Please login again.');
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 2000);
-      } else if (error.message.includes('Failed to fetch')) {
-        toast.error('Cannot connect to server. Please check if backend is running on port 8090.');
+      // Handle specific error cases
+      if (error.response) {
+        // Server responded with error
+        const status = error.response.status;
+        const message = error.response.data?.message || 'Failed to load vehicles';
+        
+        if (status === 401) {
+          toast.error('Session expired. Please login again.');
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+          }, 1500);
+        } else if (status === 403) {
+          toast.error('Access denied. Admin privileges required.');
+        } else {
+          toast.error(message);
+        }
+      } else if (error.request) {
+        // Request made but no response
+        toast.error('Cannot connect to server. Please check if backend is running.');
       } else {
-        toast.error(error.message || 'Failed to load vehicles');
+        // Something else happened
+        toast.error('An error occurred while loading vehicles');
       }
       
       setVehicles([]);
@@ -189,13 +249,22 @@ export function VehicleManagement() {
     try {
       console.log('Approving vehicle:', vehicleId);
       
+      // Call backend API to update status
       await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.APPROVED);
       
       toast.success('Vehicle approved successfully');
+      
+      // Refresh vehicle list
       await fetchVehicles();
     } catch (error) {
       console.error('Failed to approve vehicle:', error);
-      toast.error(error.message || 'Failed to approve vehicle');
+      
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+      } else {
+        const message = error.response?.data?.message || 'Failed to approve vehicle';
+        toast.error(message);
+      }
     }
   };
 
@@ -203,17 +272,27 @@ export function VehicleManagement() {
     try {
       console.log('Rejecting vehicle:', vehicleId);
       
+      // Call backend API to update status
       await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.REJECTED);
       
       toast.success('Vehicle rejected successfully');
+      
+      // Refresh vehicle list
       await fetchVehicles();
     } catch (error) {
       console.error('Failed to reject vehicle:', error);
-      toast.error(error.message || 'Failed to reject vehicle');
+      
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+      } else {
+        const message = error.response?.data?.message || 'Failed to reject vehicle';
+        toast.error(message);
+      }
     }
   };
 
   const handleDelete = async (vehicleId) => {
+    // Confirm deletion
     const confirmed = window.confirm(
       'Are you sure you want to delete this vehicle? This action cannot be undone.'
     );
@@ -225,30 +304,41 @@ export function VehicleManagement() {
     try {
       console.log('Deleting vehicle:', vehicleId);
       
+      // Call backend API to delete vehicle
       await vehicleAPI.deleteVehicle(vehicleId);
       
       toast.success('Vehicle deleted successfully');
+      
+      // Refresh vehicle list
       await fetchVehicles();
     } catch (error) {
       console.error('Failed to delete vehicle:', error);
-      toast.error(error.message || 'Failed to delete vehicle');
+      
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+      } else if (error.response?.status === 403) {
+        toast.error('Only the vehicle owner can delete this listing.');
+      } else {
+        const message = error.response?.data?.message || 'Failed to delete vehicle';
+        toast.error(message);
+      }
     }
   };
 
   const handleView = (vehicle) => {
-    console.log('View vehicle:', vehicle);
-    //toast.info('Vehicle details view - Coming soon');
+    console.log('View vehicle details:', vehicle);
+    // TODO: Implement view details modal or navigation
+    toast.info('Vehicle details view - Coming soon');
   };
 
   const handleExport = () => {
     try {
-      console.log('Exporting vehicle report...');
-      
       if (vehicles.length === 0) {
         toast.error('No vehicles to export');
         return;
       }
       
+      // Prepare CSV headers
       const headers = [
         'ID',
         'Name',
@@ -264,6 +354,7 @@ export function VehicleManagement() {
         'Submitted Date'
       ];
       
+      // Prepare CSV rows
       const csvRows = [
         headers.join(','),
         ...vehicles.map(v => [
@@ -282,7 +373,10 @@ export function VehicleManagement() {
         ].join(','))
       ];
       
+      // Create CSV content
       const csvContent = csvRows.join('\n');
+      
+      // Create blob and download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -298,43 +392,49 @@ export function VehicleManagement() {
     }
   };
 
+  // Calculate statistics (safe for undefined status)
   const stats = {
     total: vehicles.length,
-    pending: vehicles.filter(v => v.status === VEHICLE_STATUS.PENDING).length,
-    approved: vehicles.filter(v => v.status === VEHICLE_STATUS.APPROVED).length,
-    rejected: vehicles.filter(v => v.status === VEHICLE_STATUS.REJECTED).length,
+    pending: vehicles.filter(v => (v.status || '') === VEHICLE_STATUS.PENDING).length,
+    approved: vehicles.filter(v => (v.status || '') === VEHICLE_STATUS.APPROVED).length,
+    rejected: vehicles.filter(v => (v.status || '') === VEHICLE_STATUS.REJECTED).length,
   };
 
+  // Filter vehicles based on search and active tab (safe for undefined fields)
   const filteredVehicles = vehicles.filter(vehicle => {
-    const searchLower = searchQuery.toLowerCase();
+    const searchLower = (searchQuery || '').toLowerCase();
     const matchesSearch = 
-      vehicle.name.toLowerCase().includes(searchLower) ||
-      vehicle.plateNumber.toLowerCase().includes(searchLower) ||
-      vehicle.owner.toLowerCase().includes(searchLower) ||
-      vehicle.location.toLowerCase().includes(searchLower);
+      (vehicle.name || '').toLowerCase().includes(searchLower) ||
+      (vehicle.plateNumber || '').toLowerCase().includes(searchLower) ||
+      (vehicle.owner || '').toLowerCase().includes(searchLower) ||
+      (vehicle.location || '').toLowerCase().includes(searchLower);
 
-    const matchesTab = vehicle.status === activeTab;
+    const matchesTab = (vehicle.status || '') === activeTab;
 
     return matchesSearch && matchesTab;
   });
 
+  // Prepare tabs with counts
   const tabs = [
     { id: VEHICLE_STATUS.PENDING, label: 'Pending', count: stats.pending },
     { id: VEHICLE_STATUS.APPROVED, label: 'Approved', count: stats.approved },
     { id: VEHICLE_STATUS.REJECTED, label: 'Rejected', count: stats.rejected },
   ];
 
+  const safeUser = user && typeof user === 'object' ? user : { first_name: 'Admin', last_name: 'User', role: 3 };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
         role={3}
-        user={user}
+        user={safeUser}
         isAuthenticated={true}
         onLogout={handleLogout}
         notifications={0}
       />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -354,9 +454,13 @@ export function VehicleManagement() {
           </button>
         </div>
 
+        {/* Statistics Cards */}
         <VehicleStatistics stats={stats} />
+
+        {/* Search Bar */}
         <SearchSection searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
+        {/* Vehicles List with Tabs */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="p-6 pb-0">
             <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
