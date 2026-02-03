@@ -16,7 +16,7 @@ import {registerUser,
     AdminDeleteAccount,
     otp,
     verifyResetOtp,
-    ResetPassword
+    ResetPassword,
 } from "../controllers/userController.js"
 
 import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
@@ -64,6 +64,9 @@ router.patch("/emailNotify",requiredSignIn, emailNotify)
 router.delete("/deleteAccount", requiredSignIn, deleteAccount);
 //admin remove owner or user
 router.delete("/adminRemoveAccount/:id", requiredSignIn, isAdmin, AdminDeleteAccount);
+
+
+
 
 
 export default router;
