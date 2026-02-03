@@ -687,7 +687,9 @@ export const getCustomerBookings = async (req, res) => {
             filter.endDate = { $gte: now };
         }
 
-        const bookings = await Booking.find(filter).sort({ startingDate: -1 });
+        const bookings = await Booking.find(filter)
+            .populate("ownerId", "first_name last_name contactNumber")
+            .sort({ startingDate: -1 });
 
         return res.status(200).json({
             success: true,
