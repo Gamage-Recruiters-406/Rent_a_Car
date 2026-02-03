@@ -9,12 +9,12 @@ import {
 } from "recharts";
 
 const data = [
-  { month: "Jan", actual: 1800000, target: 1700000 },
-  { month: "Feb", actual: 1900000, target: 1800000 },
-  { month: "Mar", actual: 2000000, target: 1900000 },
-  { month: "Apr", actual: 2200000, target: 2000000 },
-  { month: "May", actual: 2400000, target: 2100000 },
-  { month: "Jun", actual: 2600000, target: 2200000 },
+  { month: "Jan", actual: 0, target: 0 },
+  { month: "Feb", actual: 0, target: 0 },
+  { month: "Mar", actual: 0, target: 0 },
+  { month: "Apr", actual: 0, target: 0 },
+  { month: "May", actual: 0, target: 0 },
+  { month: "Jun", actual: 0, target: 0 },
 ];
 
 const formatValue = (value) => {
