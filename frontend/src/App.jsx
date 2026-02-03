@@ -31,6 +31,7 @@ function App() {
         <Route path="/contact" element={<ContactPage/>} />
         <Route path="/customer-reviews" element={<CustomerReviews/>} />
         <Route path="/admin/booking" element={<AdminBooking/>} />
+        <Route path="/admin/report" element={<AdminReport/>} />
 
 
         {/* login */}
