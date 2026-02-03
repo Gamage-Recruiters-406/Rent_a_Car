@@ -14,6 +14,7 @@ import { ResetPasswordPage } from './pages/login/forgotpassword/ResetPasswordPag
 import CustomerReviews from './pages/CustomerRating';
 import AdminBooking from './pages/admin/AdminBooking.jsx';
 import BookingHistory from './pages/BookingHistory.jsx';
+import MyReviews from './pages/MyReviews';
 
 function App() {
   return (
@@ -28,11 +29,13 @@ function App() {
         <Route path="/rent-vehicle" element={<RentVehiclePage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage />} />
-        <Route path="/customer-reviews" element={<CustomerReviews />} />
+        
         <Route path="/admin/booking" element={<AdminBooking />} />
         <Route path="/admin/report" element={<AdminReport />} />
         {/* customer */}
         <Route path="/booking-history" element={<BookingHistory />} />
+        <Route path="/customer-reviews" element={<CustomerReviews />} />
+        <Route path="/my-reviews" element={<MyReviews />} />
         {/* login */}
 
         <Route path="/login" element={<SignInPage />} />
