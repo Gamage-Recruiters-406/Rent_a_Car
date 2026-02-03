@@ -18,6 +18,7 @@ import AdminBooking from "./pages/admin/AdminBooking.jsx";
 import VehicleManagement from "./pages/admin/VehicleManagement.jsx";
 import BookingHistory from "./pages/BookingHistory.jsx";
 import AddVehicle from "./pages/AddVehicle.jsx";
+import MyReviews from "./pages/MyReviews";
 import OwnerBookingRequests from "./pages/owner/OwnerBookingRequest.jsx";
 
 class AppErrorBoundary extends React.Component {
@@ -73,6 +74,7 @@ function App() {
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/booking" element={<BookingPage1 />} />
         <Route path="/booking-history" element={<BookingHistory />} />
+        <Route path="/my-reviews" element={<MyReviews />} />
 
 
 
