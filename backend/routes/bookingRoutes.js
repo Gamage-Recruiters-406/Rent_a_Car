@@ -13,7 +13,6 @@ import {
     getCustomerBookings,
     getOwnerBookings,
     getOwnerEarnings,
-    getBookingReportStats
 } from "../controllers/bookingController.js";
 import {
     requiredSignIn,
