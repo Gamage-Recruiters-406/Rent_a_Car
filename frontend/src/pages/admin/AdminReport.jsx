@@ -19,30 +19,24 @@ Generated: ${new Date().toLocaleString()}
 
 SUMMARY STATISTICS
 ------------------
-Total Users: 1,234 (+92 this month, +8.2%)
-Total Vehicles: 567 (+28 new listings, +5.1%)
-Total Bookings: 890 (+98 this month, +12.5%)
-Total Revenue: Rs. 2.3M (+Rs. 308K this month, +15.3%)
+Total Users: 0
+Total Vehicles: 0
+Total Bookings: 0
+Total Revenue: Rs. 0
 
 FLEET STATUS
 ------------
-Available: 342
-Booked: 156
-Maintenance: 69
+Available: 0
+Booked: 0
+Maintenance: 0
 
 TOP PERFORMERS
 --------------
-1. Toyota Prius - 52 bookings - Rs. 496K - 4.7★
-2. Toyota Aqua - 45 bookings - Rs. 562K - 4.9★
-3. Honda Civic - 38 bookings - Rs. 684K - 4.8★
+No data available
 
 RECENT TRANSACTIONS
 -------------------
-John Silva - Toyota Aqua - Rs. 12,500 - Completed
-Sarah Fernando - Honda Civic - Rs. 18,000 - Completed
-Kamal Perera - Toyota Prius - Rs. 15,500 - Pending
-Nimal De Silva - Suzuki Alto - Rs. 8,500 - Completed
-Amara Jayasinghe - Honda Fit - Rs. 11,000 - Completed
+No transactions available
     `;
 
     // Create blob and download
@@ -70,36 +64,36 @@ Amara Jayasinghe - Honda Fit - Rs. 11,000 - Completed
         <div className="grid grid-cols-4 gap-3">
           <StatCard
             title="Total Users"
-            value="1,234"
-            subtitle="+92 this month"
-            change="8.2%"
+            value="0"
+            subtitle="No data"
+            change="0%"
             changeType="positive"
             icon={Users}
             variant="users"
           />
           <StatCard
             title="Total Vehicles"
-            value="567"
-            subtitle="+28 new listings"
-            change="5.1%"
+            value="0"
+            subtitle="No data"
+            change="0%"
             changeType="positive"
             icon={Car}
             variant="vehicles"
           />
           <StatCard
             title="Total Bookings"
-            value="890"
-            subtitle="+98 this month"
-            change="12.5%"
+            value="0"
+            subtitle="No data"
+            change="0%"
             changeType="positive"
             icon={Calendar}
             variant="bookings"
           />
           <StatCard
             title="Total Revenue"
-            value="Rs. 2.3M"
-            subtitle="+Rs. 308K this month"
-            change="15.3%"
+            value="Rs. 0"
+            subtitle="No data"
+            change="0%"
             changeType="positive"
             icon={DollarSign}
             variant="revenue"

@@ -2,9 +2,9 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useState } from "react";
 
 const data = [
-  { name: "Available", value: 342, color: "#0D3778" },
-  { name: "Booked", value: 156, color: "#00C950" },
-  { name: "Maintenance", value: 69, color: "#FF6900" },
+  { name: "Available", value: 0, color: "#0D3778" },
+  { name: "Booked", value: 0, color: "#00C950" },
+  { name: "Maintenance", value: 0, color: "#FF6900" },
 ];
 
 export const FleetStatusChart = () => {
