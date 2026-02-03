@@ -16,10 +16,10 @@ function Tab({ tab, isActive, onClick }) {
   );
 }
 
-export function Tabs({ tabs, activeTab, onTabChange }) {
+export function Tabs({ tabs = [], activeTab, onTabChange }) {
   return (
     <div className="flex gap-2 border-b border-gray-200">
-      {tabs.map((tab) => (
+      {(tabs || []).map((tab) => (
         <Tab
           key={tab.id}
           tab={tab}
