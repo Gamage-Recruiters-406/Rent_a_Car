@@ -16,6 +16,7 @@ import {ResetPasswordPage} from "./pages/login/forgotpassword/ResetPasswordPage"
 import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
 import VehicleManagement from "./pages/admin/VehicleManagement.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import BookingHistory from "./pages/BookingHistory.jsx";
 import AddVehicle from "./pages/AddVehicle.jsx";
 import MyReviews from "./pages/MyReviews";
