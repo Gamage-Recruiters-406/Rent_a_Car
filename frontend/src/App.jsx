@@ -11,6 +11,10 @@ import { RentVehiclePage } from "./pages/RentVehiclePage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
+import CustomerReviews from "./pages/CustomerRating";
+import AdminBooking from "./pages/admin/AdminBooking.jsx";
+
+
 
 function App() {
   return (
@@ -24,6 +28,10 @@ function App() {
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/rent-vehicle" element={<RentVehiclePage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+        <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/customer-reviews" element={<CustomerReviews/>} />
+        <Route path="/admin/booking" element={<AdminBooking/>} />
+
 
         {/* login */}
 

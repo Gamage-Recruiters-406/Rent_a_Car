@@ -21,7 +21,30 @@ const AdminBooking = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
+        
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        console.log('Token check:', {
+          hasToken: !!token,
+          hasUser: !!user,
+          tokenPreview: token ? `${token.substring(0, 20)}...` : 'null'
+        });
+        
+        if (!token) {
+          console.log('No token found - redirecting to login');
+          setError('You need to be logged in to view bookings.');
+          setLoading(false);
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+          return;
+        }
+
+        console.log('Fetching bookings...');
         const response = await getAllBookings();
+        console.log('Response received:', response);
         
         if (response.success) {
           console.log('Raw booking data:', response.data);
@@ -73,16 +96,26 @@ const AdminBooking = () => {
         }
       } catch (err) {
         console.error('Error fetching bookings:', err);
+        console.error('Error details:', {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          message: err.message
+        });
         
         // Handle 401 Unauthorized error
-        if (err.response?.status === 401) {
-          setError('You need to be logged in as an admin to view bookings.');
+        if (err.response?.status === 401 || err.status === 401 || err.message?.includes('authentication token')) {
+          console.log('Authentication failed - clearing session');
+          setError('Your session has expired or you are not authorized. Please log in again.');
+          // Clear invalid token
+          localStorage.removeItem('token');
+          localStorage.removeItem('user'); // Also clear user data if exists
           // Redirect to login after 2 seconds
           setTimeout(() => {
             navigate('/login');
           }, 2000);
         } else {
-          setError(err.response?.data?.message || 'Failed to fetch bookings. Please try again.');
+          setError(err.response?.data?.message || err.message || 'Failed to fetch bookings. Please try again.');
         }
       } finally {
         setLoading(false);
