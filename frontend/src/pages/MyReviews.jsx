@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Star, MoreVertical } from 'lucide-react';
+import { Star, MoreVertical, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Layout from '../layouts/Layout';
 import axios from 'axios';
 
@@ -12,6 +13,8 @@ const MyReviews = () => {
   const [showMenu, setShowMenu] = useState(null);
   const [hover, setHover] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const API_VERSION = import.meta.env.VITE_API_VERSION;
@@ -29,6 +32,15 @@ const MyReviews = () => {
         setReviews(res.data.reviews);
     } catch (error) {
         console.error("Faile to fetch reviews", error);
+
+        if (error.request && !error.response) {
+            toast.error("Network error. Please try again later.");
+          } else {
+            toast.error(
+              error.response?.data?.message || "Failed to fetch reviews"
+            );
+          }
+
     } finally {
         setLoading(false);
     }
@@ -47,18 +59,65 @@ const MyReviews = () => {
     setShowMenu(null);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this review?')) {
-      setReviews(prev => prev.filter(r => r._id !== id));
-      setShowMenu(null);
+  const handleDelete = async () => {
+
+    try {
+        await axios.delete(
+            `${API_BASE_URL}${API_VERSION}/reviews/delete/${deleteTargetId}`,
+            {withCredentials:true}
+        );
+
+        await fetchMyReviews();
+        toast.success('Review deleted successfully');
+
+        setDeleteTargetId(null); // colse modal
+    } catch (error) {
+        console.error('Failed to delete review', error);
+        if (error.request && !error.response) {
+            toast.error("Network error. Please try again later.");
+          } else {
+            toast.error(
+              error.response?.data?.message || "Failed to delete review"
+            );
+          }
+
     }
   };
 
-  const handleUpdate = (id) => {
-    setReviews(prev => prev.map(r => 
-      r._id === id ? { ...r, rate: editRating, feedback: editFeedback } : r
-    ));
-    setEditingId(null);
+  const handleUpdate = async (reviewId) => {
+    try {
+        const res = await axios.put(
+            `${API_BASE_URL}${API_VERSION}/reviews/update/${reviewId}`,
+            {
+                rate: editRating,
+                feedback: editFeedback,
+            },
+            {withCredentials:true}
+        );
+        console.log('Update response:', res.data);
+
+        // Re-fetch latest reviews
+        await fetchMyReviews();
+
+        toast.success('Review updated successfully');
+
+
+        
+        setEditingId(null);
+        setEditRating(0);
+        setEditFeedback('');
+        setHover(0);
+    } catch (error) {
+        console.error('Failed to update review', error);
+       if (error.request && !error.response) {
+            toast.error("Network error. Please try again later.");
+        } else {
+            toast.error(
+            error.response?.data?.message || "Failed to update review"
+            );
+        }
+
+    }  
   };
 
   const handleCancelEdit = () => {
@@ -76,7 +135,7 @@ const MyReviews = () => {
 
         <div className="min-h-screen bg-gray-100 py-12 px-4">
         <div className="max-w-2xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-800 mb-12 text-center">{`My Reviews (${reviews.length})`}</h1>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-12 text-center">{`My Reviews (${reviews.length})`}</h1>
             
             <div className="space-y-6">
             {reviews.map((review) => (
@@ -145,7 +204,10 @@ const MyReviews = () => {
                                 </>
                             )}
                             <button
-                                onClick={() => handleDelete(review._id)}
+                                onClick={() => {
+                                    setDeleteTargetId(review._id);
+                                    setShowMenu(null);
+                                }}
                                 className="block w-full text-center px-4 py-2 text-sm text-red-600 hover:bg-red-500 hover:text-white rounded-b-md"
                             >
                                 Delete
@@ -243,6 +305,43 @@ const MyReviews = () => {
             )}
         </div>
         </div>
+
+        {deleteTargetId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 animate-scaleIn text-center">
+                    <div className="flex flex-col items-center mb-4">
+                        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
+                            <Trash2 className="w-6 h-6 text-red-600" />
+                        </div>
+                        <h2 className="text-md md:text-lg lg:text-xl font-semibold text-gray-800 mb-3 text-center">
+                            Delete Review
+                        </h2>
+                        </div>
+
+                    <p className="text-gray-600 mb-6">
+                        Are you sure you want to delete this review?  
+                        This action cannot be undone.
+                    </p>
+
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setDeleteTargetId(null)}
+                            className="flex-1 px-4 py-2 border-2 border-[#0D3778] text-[#0D3778] rounded-lg hover:bg-gray-100"
+                        >
+                        Cancel
+                        </button>
+
+                        <button
+                            onClick={handleDelete}
+                            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+            )}
+
     </Layout>
   );
 };
