@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Star, StarHalf, ChevronRight } from "lucide-react";
+import { Star, StarHalf, ChevronRight, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast';
 import axios from "axios";
 import Layout from "../layouts/Layout";
 
@@ -19,6 +20,9 @@ export default function CustomerReviews() {
   const [totalReviews, setTotalReviews] = useState(0);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedRating, setSubmittedRating] = useState(0);
+
 
 
 
@@ -47,6 +51,11 @@ export default function CustomerReviews() {
       console.log("Responses: ",response)
     } catch (error) {
       console.error("Failed to fetch review", error);
+      if (error.request && !error.response) {
+        toast.error("Network error. Please try again later.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to fetch review");
+      }
     } finally {
       setLoadingReviews(false);
     }
@@ -66,6 +75,11 @@ export default function CustomerReviews() {
       console.log("TotalRating: ",res.data.totalReviews);
     } catch (error) {
       console.error("Failed to load review summary", error);
+      if (error.request && !error.response) {
+        toast.error("Network error. Please try again later.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to load review summary");
+      }
     } finally {
       setLoadingSummary(false);
     }
@@ -170,16 +184,28 @@ export default function CustomerReviews() {
           withCredentials:true,
         }
       );
+
+      setSubmittedRating(rating);
+
+      //reset form
       setRating(0);
       setFeedback("");
 
       await Promise.all([
         fetchReviewsByVehicleId(vehicleId),
         loadReviewSummary(vehicleId)
-      ])
+      ]);
+
+      // Open Success Modal
+      setShowSuccessModal(true);
+
     } catch (error) {
       console.error("Failed to submit review", error);
-      alert("Failed to submit review. Please try again.");
+      if (error.request && !error.response) {
+        toast.error("Network error. Please try again later.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to submit review");
+      }
     } finally{
       setSubmitting(false);
     }
@@ -402,6 +428,53 @@ export default function CustomerReviews() {
       </div>
 
     </div>
+
+    {showSuccessModal && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full relative border-b-4 border-[#0D3778]">
+
+          {/* Header */}
+          <div className="relative bg-green-500 text-white px-4 py-3 rounded-t-2xl border-b-3 border-gray-400">
+            <button 
+              onClick={() => setShowSuccessModal(false)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition"
+              >
+                <X className="w-5 h-5 text-white" />
+            </button>
+            <p className=" text-center font-semibold">Review Submitted Successfully</p>
+            
+          </div>
+
+          {/* Body */}
+          <div className="p-6 text-center space-y-4">
+            <h2 className="text-md md:text-lg lg:text-xl font-semibold">Thank you for your feedback!</h2>
+
+            <div className="flex justify-center gap-1">
+              <span className="lg:font-semibold">Your Rating: </span>
+              {[1,2,3,4,5].map((star) => (
+                <Star
+                  key={star}
+                  className={
+                    star <= submittedRating
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-yellow-400"
+                  }
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={() => navigate("/")}
+              className="mt-4 px-6 py-2 border-2 border-[#0D3778] rounded-lg text-[#0D3778] hover:bg-[#0D3778] hover:text-white"
+            >
+              Back To Home
+            </button>
+          </div>
+
+        </div>
+      </div>
+    )}
+
     </Layout>
   );
 }
