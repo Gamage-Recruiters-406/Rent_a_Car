@@ -1,31 +1,106 @@
-import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Calendar, Edit, Save, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Phone, MapPin, Calendar, Edit, Save, X ,User} from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const apiVersion = import.meta.env.VITE_API_VERSION;
+
+// const defaultStats = {
+//   orders: 12,
+//   orderItems: 45,
+//   savedItems: 8,
+// };
+
+const defaultRecentActivity = [
+  { title: "Rented a Tesla Model 3", timestamp: "2 hours ago" },
+  { title: "Updated profile picture", timestamp: "1 day ago" },
+  { title: "Left a review for BMW X5", timestamp: "3 days ago" },
+];
 
 export const CustomerProfileEdit = ({
   'data-id': dataId,
-  profile,
-  stats,
-  recentActivity,
+  profile ,
+  stats ,
+  recentActivity = defaultRecentActivity,
   onSave,
   onProfileChange
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [activeProfile, setActiveProfile] = useState([]);
   const [editedProfile, setEditedProfile] = useState(profile);
-  const initials = profile.name.
-  split(' ').
-  map((n) => n[0]).
-  join('').
-  toUpperCase();
+    
+useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+       
+        if (storedUser && token) {
+          const userObj = JSON.parse(storedUser);
+          const userId = userObj.user ? userObj.user._id : (userObj._id || userObj.userid);
+
+          if (userId) {
+            document.cookie = `access_token=${token}`;
+            const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserbyId/${userId}`, {
+                withCredentials: true
+            });
+
+            if (response.data) {
+                const userData = response.data.user || response.data; 
+
+                const mappedProfile = {                    
+                    ...activeProfile,
+                    ...userData,
+                    contactNumber: userData.contactNumber || activeProfile.contactNumber || activeProfile.phone || defaultProfile.contactNumber,
+                    // If backend doesn't send subtitle, keep default "Admin"
+                    name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || activeProfile.name || defaultProfile.name,
+                    createdAt: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'
+                };
+                
+                setActiveProfile(mappedProfile);
+                setEditedProfile(mappedProfile);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        toast.error("Failed to load profile data");
+      }
+    };
+
+    fetchUserData();
+  }, []); // Run once on mount
+
   const handleEdit = () => {
     setIsEditing(true);
-    setEditedProfile(profile);
+    setEditedProfile(activeProfile); // Reset to active profile when starting edit
   };
-  const handleSave = () => {
+  const handleSave = async () => {
     onSave?.(editedProfile);
+    
+    try {
+      const token = localStorage.getItem('token');
+      document.cookie = `access_token=${token}`;
+
+      const response = await axios.put(`${baseUrl}${apiVersion}/authUser/updateUser/`, editedProfile, {
+      withCredentials: true
+      });
+      
+      if(response.data && response.data.success){
+        setActiveProfile(editedProfile);
+        toast.success("Profile updated successfully");
+      }
+
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      toast.error("Failed to update profile data");
+    }
     setIsEditing(false);
   };
+
   const handleCancel = () => {
-    setEditedProfile(profile);
+    setEditedProfile(activeProfile);
     setIsEditing(false);
   };
   const handleFieldChange = (field, value) => {
@@ -35,7 +110,8 @@ export const CustomerProfileEdit = ({
     }));
     onProfileChange?.(field, value);
   };
-  const currentProfile = isEditing ? editedProfile : profile;
+  const initials = activeProfile.name ? activeProfile.name.split(' ').map((n) => n[0]).join('').toUpperCase() : 'A';
+  const currentProfile = isEditing ? editedProfile : activeProfile;
   return (
     <div data-id={dataId} className="min-h-screen bg-gray-50 w-full">
       {/* Header */}
@@ -43,21 +119,18 @@ export const CustomerProfileEdit = ({
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl">
-              {profile.avatar ?
+              
               <img
-                src={profile.avatar}
-                alt={profile.name}
-                className="w-full h-full rounded-full object-cover" /> :
-
-
-              initials
-              }
+                src={ currentProfile.avatar ||"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop"}
+                alt={initials}
+                className="w-full h-full rounded-full object-cover" /> 
+            
             </div>
             <div>
-              <h1 className="text-white text-2xl font-semibold">
-                {profile.name}
+              <h1 className="text-white text-2xl font-semibold capitalize">
+                {currentProfile.first_name} {currentProfile.last_name}
               </h1>
-              <p className="text-white/80 text-sm">{profile.subtitle}</p>
+              <p className="text-white/80 text-sm">{"customer"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -104,6 +177,43 @@ export const CustomerProfileEdit = ({
                 Personal Information
               </h2>
               <div className="space-y-6">
+
+                <div className="flex items-start gap-3">
+                  <User className="w-5 h-5 text-[#999fa8] mt-1" />
+                  <div className="flex-1">
+                    <label className="text-[#999fa8] text-sm block mb-1">
+                     First Name
+                    </label>
+                    <input
+                      type="text"
+                      value={currentProfile.first_name||""}
+                      onChange={(e) =>
+                      handleFieldChange('first_name', e.target.value)
+                      }
+                      disabled={!isEditing}
+                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
+
+                  </div>
+                </div>
+
+                  <div className="flex items-start gap-3">
+                  <User className="w-5 h-5 text-[#999fa8] mt-1" />
+                  <div className="flex-1">
+                    <label className="text-[#999fa8] text-sm block mb-1">
+                     Last Name
+                    </label>
+                    <input
+                      type="text"
+                      value={currentProfile.last_name||""}
+                      onChange={(e) =>
+                      handleFieldChange('last_name', e.target.value)
+                      }
+                      disabled={!isEditing}
+                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
+
+                  </div>
+                </div>
+
                 <div className="flex items-start gap-3">
                   <Mail className="w-5 h-5 text-[#999fa8] mt-1" />
                   <div className="flex-1">
@@ -112,7 +222,7 @@ export const CustomerProfileEdit = ({
                     </label>
                     <input
                       type="email"
-                      value={currentProfile.email}
+                      value={currentProfile.email||""}
                       onChange={(e) =>
                       handleFieldChange('email', e.target.value)
                       }
@@ -130,9 +240,9 @@ export const CustomerProfileEdit = ({
                     </label>
                     <input
                       type="tel"
-                      value={currentProfile.phone}
+                      value={currentProfile.contactNumber||""}
                       onChange={(e) =>
-                      handleFieldChange('phone', e.target.value)
+                      handleFieldChange('contactNumber', e.target.value)
                       }
                       disabled={!isEditing}
                       className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
@@ -148,7 +258,7 @@ export const CustomerProfileEdit = ({
                     </label>
                     <input
                       type="text"
-                      value={currentProfile.location}
+                      value={currentProfile.location||""}
                       onChange={(e) =>
                       handleFieldChange('location', e.target.value)
                       }
@@ -165,7 +275,7 @@ export const CustomerProfileEdit = ({
                       Member Since
                     </label>
                     <div className="text-[#0A2E5C] font-medium">
-                      {profile.memberSince}
+                      {currentProfile.createdAt||""}
                     </div>
                   </div>
                 </div>
@@ -180,7 +290,7 @@ export const CustomerProfileEdit = ({
                 Bio
               </h2>
               <textarea
-                value={currentProfile.bio}
+                value={activeProfile.bio||""}
                 onChange={(e) => handleFieldChange('bio', e.target.value)}
                 disabled={!isEditing}
                 rows={4}
@@ -203,7 +313,7 @@ export const CustomerProfileEdit = ({
                     Orders
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {stats.orders}
+                    {"stats.orders" }
                   </div>
                 </div>
                 <div>
@@ -211,7 +321,7 @@ export const CustomerProfileEdit = ({
                     Order Items
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {stats.orderItems.toLocaleString()}
+                    {"stats.orderItems.toLocaleString()" }
                   </div>
                 </div>
                 <div>
@@ -219,7 +329,7 @@ export const CustomerProfileEdit = ({
                     Saved Items
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {stats.savedItems}
+                    {"stats.savedItems"}
                   </div>
                 </div>
               </div>

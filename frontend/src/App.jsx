@@ -14,6 +14,7 @@ import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPag
 
 import{OwnerProfileEdit} from "./pages/profilePages/OwnerProfileEdit";
 import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
+import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
 
 import CustomerReviews from "./pages/CustomerRating";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
@@ -56,6 +57,7 @@ function App() {
 
         <Route path="/owner-profile" element={<OwnerProfileEdit/>} />
         <Route path="/admin-profile" element={<AdminProfileEdit/>} /> 
+        <Route path="/customer-profile" element={<CustomerProfileEdit/>} />   
        
 
       </Routes>

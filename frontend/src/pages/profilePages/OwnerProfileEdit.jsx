@@ -12,6 +12,7 @@ const defaultProfile = {
   avatar: "https://avatar.iran.liara.run/public/boy?username=",
   email: "",
   phone: "",
+  contactNumber: "",
   location: "",
   first_name: "",
   last_name: "",
@@ -70,8 +71,7 @@ export const OwnerProfileEdit = ({
                     name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || activeProfile.name || defaultProfile.name,
                     createdAt: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'
                 };
-                console.log("mappedProfile", mappedProfile);
-                
+
                 setActiveProfile(mappedProfile);
                 setEditedProfile(mappedProfile);
                 
@@ -258,7 +258,7 @@ export const OwnerProfileEdit = ({
                     </label>
                     <input
                       type="email"
-                      value={currentProfile.email}
+                      value={currentProfile.email || ''}
                       onChange={(e) =>
                       handleFieldChange('email', e.target.value)
                       }
@@ -274,8 +274,8 @@ export const OwnerProfileEdit = ({
                       Phone Number
                     </label>
                     <input
-                      type="tel"
-                      value={currentProfile.contactNumber}
+                      type="number"
+                      value={currentProfile.contactNumber || ''}
                       onChange={(e) =>
                       handleFieldChange('contactNumber', e.target.value)
                       }
@@ -293,7 +293,7 @@ export const OwnerProfileEdit = ({
                     </label>
                     <input
                       type="text"
-                      value={currentProfile.location}
+                      value={currentProfile.location || ''}
                       onChange={(e) =>
                       handleFieldChange('location', e.target.value)
                       }
@@ -322,7 +322,7 @@ export const OwnerProfileEdit = ({
                   Bio
                 </h3>
                 <textarea
-                  value={currentProfile.bio}
+                  value={currentProfile.bio || ''}
                   onChange={(e) => handleFieldChange('bio', e.target.value)}
                   disabled={!isEditing}
                   rows={3}
