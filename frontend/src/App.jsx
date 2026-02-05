@@ -17,6 +17,7 @@ import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
 import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
 
 import CustomerReviews from "./pages/CustomerRating";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
 import BookingHistory from "./pages/BookingHistory.jsx";
 import MyReviews from "./pages/MyReviews";
