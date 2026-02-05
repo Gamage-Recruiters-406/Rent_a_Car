@@ -9,12 +9,12 @@ import {
 } from "recharts";
 
 const data = [
-  { month: "Jan", totalUsers: 800, newUsers: 650 },
-  { month: "Feb", totalUsers: 950, newUsers: 700 },
-  { month: "Mar", totalUsers: 900, newUsers: 750 },
-  { month: "Apr", totalUsers: 1000, newUsers: 800 },
-  { month: "May", totalUsers: 1100, newUsers: 850 },
-  { month: "Jun", totalUsers: 1200, newUsers: 900 },
+  { month: "Jan", totalUsers: 0, newUsers: 0 },
+  { month: "Feb", totalUsers: 0, newUsers: 0 },
+  { month: "Mar", totalUsers: 0, newUsers: 0 },
+  { month: "Apr", totalUsers: 0, newUsers: 0 },
+  { month: "May", totalUsers: 0, newUsers: 0 },
+  { month: "Jun", totalUsers: 0, newUsers: 0 },
 ];
 
 export const UserGrowthChart = () => {

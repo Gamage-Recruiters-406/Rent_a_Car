@@ -9,12 +9,12 @@ import {
 } from "recharts";
 
 const data = [
-  { month: "Jan", bookings: 650 },
-  { month: "Feb", bookings: 800 },
-  { month: "Mar", bookings: 720 },
-  { month: "Apr", bookings: 880 },
-  { month: "May", bookings: 780 },
-  { month: "Jun", bookings: 890 },
+  { month: "Jan", bookings: 0 },
+  { month: "Feb", bookings: 0 },
+  { month: "Mar", bookings: 0 },
+  { month: "Apr", bookings: 0 },
+  { month: "May", bookings: 0 },
+  { month: "Jun", bookings: 0 },
 ];
 
 export const BookingPerformanceChart = () => {

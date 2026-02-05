@@ -1,11 +1,6 @@
 import { Star } from "lucide-react";
 
-const performers = [
-  { name: "Toyota Prius", bookings: 52, revenue: "Rs. 496K", rating: 4.7 },
-  { name: "Toyota Aqua", bookings: 45, revenue: "Rs. 562K", rating: 4.9 },
-  { name: "Honda Civic", bookings: 38, revenue: "Rs. 684K", rating: 4.8 },
-  { name: "Toyota Prius", bookings: 32, revenue: "Rs. 496K", rating: 4.7 },
-];
+const performers = [];
 
 export const TopPerformers = () => {
   return (
@@ -14,23 +9,29 @@ export const TopPerformers = () => {
         <h3 className="text-lg font-semibold text-gray-900">Top Performers</h3>
       </div>
       <div className="space-y-4">
-        {performers.map((performer, index) => (
-          <div key={index} className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-gray-900">{performer.name}</p>
-              <p className="text-xs text-gray-500">
-                {performer.bookings} bookings
-              </p>
-              <p className="text-sm font-semibold text-[#0D3778]">
-                {performer.revenue}
-              </p>
+        {performers.length > 0 ? (
+          performers.map((performer, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-gray-900">{performer.name}</p>
+                <p className="text-xs text-gray-500">
+                  {performer.bookings} bookings
+                </p>
+                <p className="text-sm font-semibold text-[#0D3778]">
+                  {performer.revenue}
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                <span className="text-sm font-medium text-[#0D3778]">{performer.rating}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-              <span className="text-sm font-medium text-[#0D3778]">{performer.rating}</span>
-            </div>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">No data available</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
