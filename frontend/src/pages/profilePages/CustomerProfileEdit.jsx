@@ -310,7 +310,7 @@ useEffect(() => {
               <div className="space-y-6">
                 <div>
                   <div className="text-[#999fa8] text-sm mb-1">
-                    Orders
+                   All booking
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
                     {"stats.orders" }
@@ -318,7 +318,7 @@ useEffect(() => {
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-sm mb-1">
-                    Order Items
+                    Ongoing 
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
                     {"stats.orderItems.toLocaleString()" }
@@ -326,7 +326,7 @@ useEffect(() => {
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-sm mb-1">
-                    Saved Items
+                    Completed 
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
                     {"stats.savedItems"}
