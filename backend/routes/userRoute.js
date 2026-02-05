@@ -46,6 +46,7 @@ router.patch("/ResetPassword",ResetPassword); //reset password
 router.get("/getAllUsers",requiredSignIn, isAdmin, getAllUsers);
 //get customers
 router.get("/getAllCustomers", requiredSignIn, isAdmin, getAllCustomers);
+router.get("/getAllCustomersCount", getAllCustomers);
 //get all vehicle owners
 router.get("/getAllOwners", requiredSignIn, isAdmin, getAllOwners);
 
