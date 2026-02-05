@@ -20,6 +20,7 @@ export function SignInPage() {
     e.preventDefault();
     setIsLoading(true);
     
+
     try {
       const url = `${baseUrl}${apiVersion}/authUser/login`;
       const response = await fetch(url, {
@@ -48,6 +49,7 @@ export function SignInPage() {
     } catch (error) {
       setIsLoading(false);
       toast.error(error.message || "Server Side Error");
+
     }
   };
 
