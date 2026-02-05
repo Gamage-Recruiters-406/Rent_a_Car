@@ -38,7 +38,6 @@ function App() {
         {/*<Route path="/" element={<CustomerVehicleListPage />} />*/}
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
         <Route path="/rent-vehicle" element={<RentVehiclePage />} />
-        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/customer-reviews" element={<CustomerReviews />} />
         <Route path="/admin/booking" element={<AdminBooking />} />
@@ -47,6 +46,8 @@ function App() {
         <Route path="/my-reviews" element={<MyReviews />} />
         <Route path="/admin/settings" element={<AdminSettingsPage />} />
         <Route path="/booking" element={<BookingPage1 />} />
+
+
         {/* login */}
 
         <Route path="/login" element={<SignInPage />} />
