@@ -115,7 +115,13 @@ export const AdminProfileEdit = ({
 
   const handleVerify = async () => {
     try {
-        const response = await axios.patch(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {}, {
+      const token = localStorage.getItem('token');
+      if(!token){
+        toast.error("Please login and try again to verify your email");
+      }
+        
+        const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {
+            params: { token: token },
             withCredentials: true
         });
 

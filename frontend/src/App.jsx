@@ -6,6 +6,10 @@ import{SignUpPage} from "./pages/login/SignupPage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
+
+import{OwnerProfileEdit} from "./pages/profilePages/OwnerProfileEdit";
+import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
+
 function App() {
 
   return (
@@ -26,6 +30,11 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        <Route path="/owner-profile" element={<OwnerProfileEdit/>} />
+        <Route path="/admin-profile" element={<AdminProfileEdit/>} /> 
+       
+
       </Routes>
     </Router>
   )
