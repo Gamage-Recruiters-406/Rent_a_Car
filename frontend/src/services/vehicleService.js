@@ -68,7 +68,16 @@ export const getAllVehicles = async () => {
  * Backend: PATCH /api/v1/vehicle/admin/status/:id
  */
 export const updateVehicleStatus = async (id, status) => {
-  const res = await api.patch(`/vehicle/admin/status/${id}`, { status });
+  // Backend expects status with capitalized enum values: "Pending", "Approved", "Rejected"
+  let apiStatus = status;
+  if (typeof status === "string") {
+    const lower = status.toLowerCase();
+    if (lower === VEHICLE_STATUS.PENDING) apiStatus = "Pending";
+    else if (lower === VEHICLE_STATUS.APPROVED) apiStatus = "Approved";
+    else if (lower === VEHICLE_STATUS.REJECTED) apiStatus = "Rejected";
+  }
+
+  const res = await api.patch(`/vehicle/admin/status/${id}`, { status: apiStatus });
   return res.data; // { success, message, vehicle }
 };
 
