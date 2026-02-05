@@ -25,7 +25,6 @@ const VehicleBookingModal = ({
   const [loading, setLoading] = useState(!initialBooking);
   const [error, setError] = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [vehicleLoading, setVehicleLoading] = useState(false);
 
   useEffect(() => {
     if (initialBooking) {
@@ -234,7 +233,7 @@ const VehicleBookingModal = ({
 
       <div className="flex min-h-full items-start sm:items-center justify-center p-0 sm:p-4">
         <div className="relative bg-white w-full max-w-2xl max-h-screen sm:max-h-[95vh] sm:rounded-2xl shadow-2xl overflow-hidden">
-          {/* Header - Mobile responsive */}
+          {/* Header  */}
           <div className="sticky top-0 bg-[#0D3778] px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center z-10">
             <h2 className="text-lg sm:text-xl font-bold text-white">
               Booking Details
@@ -249,7 +248,7 @@ const VehicleBookingModal = ({
 
           <div className="overflow-y-auto max-h-[calc(100vh-60px)] sm:max-h-[calc(95vh-64px)]">
             <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-              {/* Vehicle Title and Status - Mobile responsive */}
+              {/* Vehicle Title and Status  */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
                 <h3 className="text-xl sm:text-2xl font-bold text-[#0D3778] break-words">
                   {booking.vehicleDetails.year} {booking.vehicleDetails.title}
@@ -261,14 +260,10 @@ const VehicleBookingModal = ({
                 </span>
               </div>
 
-              {/* Vehicle Images - Mobile responsive */}
+              {/* Vehicle Images */}
               <div className="space-y-3">
                 <div className="bg-gray-100 rounded-xl overflow-hidden h-48 sm:h-64">
-                  {vehicleLoading ? (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D3778]"></div>
-                    </div>
-                  ) : mainImage ? (
+                  {mainImage ? (
                     <img
                       src={`${API_BASE_URL}${mainImage}`}
                       alt={booking.vehicleDetails.title}
@@ -283,7 +278,7 @@ const VehicleBookingModal = ({
                   )}
                 </div>
 
-                {/* Thumbnail Images - Mobile responsive */}
+                {/* Thumbnail Images */}
                 {vehicleImages.length > 1 && (
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {vehicleImages.slice(0, 3).map((img, index) => {
@@ -310,13 +305,13 @@ const VehicleBookingModal = ({
                 )}
               </div>
 
-              {/* Booking Details Section - Mobile responsive */}
+              {/* Booking Details Section  */}
               <div className="bg-gray-50 rounded-xl p-4 sm:p-5">
                 <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">
                   Your Booking Details:
                 </h4>
 
-                {/* Total Amount - Mobile responsive */}
+                {/* Total Amount */}
                 <div className="text-right mb-3 sm:mb-4">
                   <div className="text-xs sm:text-sm text-gray-600">Total Amount</div>
                   <div className="text-2xl sm:text-3xl font-bold text-[#0D3778]">
@@ -324,7 +319,7 @@ const VehicleBookingModal = ({
                   </div>
                 </div>
 
-                {/* Date Range - Mobile responsive */}
+                {/* Date Range  */}
                 <div className="flex items-center gap-2 text-gray-700 bg-white rounded-lg px-3 sm:px-4 py-2 sm:py-3 border border-gray-200">
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
                   <span className="text-sm sm:text-base font-medium break-words">
@@ -333,7 +328,7 @@ const VehicleBookingModal = ({
                 </div>
               </div>
 
-              {/* Vehicle Specifications - Mobile responsive */}
+              {/* Vehicle Specifications  */}
               <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
                 <h4 className="text-base font-bold text-gray-900 mb-3 sm:mb-4">
                   Specifications
@@ -361,7 +356,7 @@ const VehicleBookingModal = ({
                 </div>
               </div>
 
-              {/* Owner Contact - Mobile responsive */}
+              {/* Owner Contact  */}
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
@@ -383,7 +378,7 @@ const VehicleBookingModal = ({
                 </div>
               </div>
 
-              {/* Reviews Section - Mobile responsive */}
+              {/* Reviews Section  */}
               <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
                 <h4 className="text-base font-bold text-gray-900 mb-3">
                   We'd love your feedback

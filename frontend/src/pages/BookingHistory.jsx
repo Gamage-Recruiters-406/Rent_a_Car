@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './BookingPageHeader';
 import Layout from '../layouts/Layout';
 import VehicleBookingModal from './VehicleBookingModal';
@@ -75,16 +75,8 @@ const BookingHistory = () => {
     setIsAuthenticated(false);
   };
 
-  // Fetch bookings only when user is authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchBookings();
-    } else if (user === null) {
-      setLoading(false);
-    }
-  }, [isAuthenticated, user]);
-
-  const fetchBookings = async () => {
+  // Define fetchBookings with useCallback to prevent infinite re-renders
+  const fetchBookings = useCallback(async () => {
     try {
       const userId = user?.userid || user?._id;
 
@@ -113,7 +105,16 @@ const BookingHistory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, API_BASE_URL, API_VERSION]); // Dependencies
+
+  // Fetch bookings only when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchBookings();
+    } else if (user === null) {
+      setLoading(false);
+    }
+  }, [isAuthenticated, user, fetchBookings]); // Added fetchBookings as dependency
 
   const getStatusStyles = (status) => {
     switch (status.toLowerCase()) {
