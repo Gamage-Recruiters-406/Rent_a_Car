@@ -7,6 +7,7 @@ import { SignUpPage } from './pages/login/SignupPage';
 
 import { CustomerVehicleListPage } from './pages/CustomerVehicleListPage';
 import { RentVehiclePage } from './pages/RentVehiclePage';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 
 import { ForgotPasswordPage } from './pages/login/forgotpassword/ForgotPasswordPage';
 import { VerifyCodePage } from './pages/login/forgotpassword/VerifyCodePage';
@@ -31,6 +32,7 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         
         <Route path="/admin/booking" element={<AdminBooking />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/report" element={<AdminReport />} />
         {/* customer */}
         <Route path="/booking-history" element={<BookingHistory />} />

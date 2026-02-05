@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, Car, DollarSign, Calendar, Clock, XCircle } from 'lucide-react';
+import { Users, Car, HandCoins, FileText, Hourglass, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Layout from '../../layouts/Layout';
 
@@ -9,9 +9,7 @@ const apiVersion = import.meta.env.VITE_API_VERSION;
 const StatCard = ({ icon: Icon, title, value, subtitle, bgColor }) => (
   <div className="bg-white rounded-xl p-6 shadow-md border-l-[6px] border-l-[#0D3778] hover:shadow-xl transition-all">
     <div className="flex items-center gap-5">
-      <div className={`p-5 rounded-2xl ${bgColor} flex-shrink-0 shadow-lg`}>
-        <Icon className="w-12 h-12 text-white" strokeWidth={2.5} />
-      </div>
+      <Icon className="w-16 h-16 text-[#0D3778] flex-shrink-0" strokeWidth={2.5} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-slate-600 mb-1">{title}</p>
         <h3 className="text-4xl font-bold text-[#0D3778]">{value}</h3>
@@ -21,75 +19,97 @@ const StatCard = ({ icon: Icon, title, value, subtitle, bgColor }) => (
   </div>
 );
 
-const RentStatusChart = ({ available = 0, booked = 0, maintenance = 0 }) => {
-  const total = available + booked + maintenance || 1;
-  const availablePercent = (available / total) * 100;
-  const bookedPercent = (booked / total) * 100;
-  const maintenancePercent = (maintenance / total) * 100;
+const VehicleStatusChart = ({ approved = 0, pending = 0, rejected = 0 }) => {
+  const total = approved + pending + rejected || 1;
+  const approvedPercent = (approved / total) * 100;
+  const pendingPercent = (pending / total) * 100;
+  const rejectedPercent = (rejected / total) * 100;
+
+  // Small gap between segments (in percentage)
+  const gap = 1.0;
+  
+  // Calculate arc lengths with gaps
+  const approvedArc = approvedPercent > 0 ? (approvedPercent - gap) * 1.88 : 0;
+  const pendingArc = pendingPercent > 0 ? (pendingPercent - gap) * 1.88 : 0;
+  const rejectedArc = rejectedPercent > 0 ? (rejectedPercent - gap) * 1.88 : 0;
+
+  // Calculate offsets including gaps
+  const approvedOffset = 0;
+  const pendingOffset = -(approvedPercent * 1.88);
+  const rejectedOffset = -((approvedPercent + pendingPercent) * 1.88);
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-      <h3 className="text-base font-semibold text-[#0D3778] mb-6">Rent Status</h3>
+      <h3 className="text-base font-semibold text-[#0D3778] mb-6">Vehicle Status</h3>
       <div className="flex flex-col items-center gap-6">
         <div className="relative w-40 h-40">
           <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-            <circle
-              cx="50"
-              cy="50"
-              r="30"
-              fill="none"
-              stroke="#0D3778"
-              strokeWidth="18"
-              strokeDasharray={`${availablePercent * 1.88} 188.4`}
-              strokeDashoffset="0"
-              strokeLinecap="round"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="30"
-              fill="none"
-              stroke="#10B981"
-              strokeWidth="18"
-              strokeDasharray={`${bookedPercent * 1.88} 188.4`}
-              strokeDashoffset={`-${availablePercent * 1.88}`}
-              strokeLinecap="round"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="30"
-              fill="none"
-              stroke="#FBBF24"
-              strokeWidth="18"
-              strokeDasharray={`${maintenancePercent * 1.88} 188.4`}
-              strokeDashoffset={`-${(availablePercent + bookedPercent) * 1.88}`}
-              strokeLinecap="round"
-            />
+            {/* Approved segment - Green */}
+            {approvedPercent > 0 && (
+              <circle
+                cx="50"
+                cy="50"
+                r="30"
+                fill="none"
+                stroke="#10B981"
+                strokeWidth="18"
+                strokeDasharray={`${approvedArc} 188.4`}
+                strokeDashoffset={approvedOffset}
+                strokeLinecap="butt"
+              />
+            )}
+            {/* Pending segment - Amber */}
+            {pendingPercent > 0 && (
+              <circle
+                cx="50"
+                cy="50"
+                r="30"
+                fill="none"
+                stroke="#FBBF24"
+                strokeWidth="18"
+                strokeDasharray={`${pendingArc} 188.4`}
+                strokeDashoffset={pendingOffset}
+                strokeLinecap="butt"
+              />
+            )}
+            {/* Rejected segment - Red */}
+            {rejectedPercent > 0 && (
+              <circle
+                cx="50"
+                cy="50"
+                r="30"
+                fill="none"
+                stroke="#EF4444"
+                strokeWidth="18"
+                strokeDasharray={`${rejectedArc} 188.4`}
+                strokeDashoffset={rejectedOffset}
+                strokeLinecap="butt"
+              />
+            )}
           </svg>
         </div>
 
         <div className="w-full space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#0D3778]"></div>
-              <span className="text-xs font-medium text-slate-600">Available</span>
-            </div>
-            <span className="text-xs font-semibold text-slate-900">{available}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-              <span className="text-xs font-medium text-slate-600">Booked</span>
+              <span className="text-xs font-medium text-slate-600">Approved</span>
             </div>
-            <span className="text-xs font-semibold text-slate-900">{booked}</span>
+            <span className="text-xs font-semibold text-slate-900">{approved}</span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
-              <span className="text-xs font-medium text-slate-600">Maintenance</span>
+              <span className="text-xs font-medium text-slate-600">Pending</span>
             </div>
-            <span className="text-xs font-semibold text-slate-900">{maintenance}</span>
+            <span className="text-xs font-semibold text-slate-900">{pending}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+              <span className="text-xs font-medium text-slate-600">Rejected</span>
+            </div>
+            <span className="text-xs font-semibold text-slate-900">{rejected}</span>
           </div>
         </div>
       </div>
@@ -98,7 +118,34 @@ const RentStatusChart = ({ available = 0, booked = 0, maintenance = 0 }) => {
 };
 
 const BookingOverviewChart = ({ data = [] }) => {
-  const maxValue = Math.max(...data.map(d => Math.max(d.done, d.cancelled)), 1);
+  // Calculate max value from actual data
+  const maxDone = Math.max(...data.map(d => d.done), 0);
+  const maxCancelled = Math.max(...data.map(d => d.cancelled), 0);
+  const maxValue = Math.max(maxDone, maxCancelled);
+
+  // Determine appropriate scale based on data
+  let maxYAxisValue;
+  if (maxValue <= 5) {
+    maxYAxisValue = 5;
+  } else if (maxValue <= 10) {
+    maxYAxisValue = 10;
+  } else if (maxValue <= 20) {
+    maxYAxisValue = 20;
+  } else if (maxValue <= 50) {
+    maxYAxisValue = 50;
+  } else if (maxValue <= 100) {
+    maxYAxisValue = 100;
+  } else if (maxValue <= 200) {
+    maxYAxisValue = 200;
+  } else if (maxValue <= 400) {
+    maxYAxisValue = 400;
+  } else {
+    // For values > 400, round up to nearest 100
+    maxYAxisValue = Math.ceil(maxValue / 100) * 100;
+  }
+
+  // Calculate Y-axis labels (top to bottom: max, mid, 0, mid, max)
+  const midValue = maxYAxisValue / 2;
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
@@ -121,11 +168,11 @@ const BookingOverviewChart = ({ data = [] }) => {
       <div className="flex gap-4">
         {/* Y-axis labels */}
         <div className="flex flex-col justify-between text-right pr-2" style={{ width: '40px', height: '280px' }}>
-          <span className="text-xs text-slate-500 font-medium">400</span>
-          <span className="text-xs text-slate-500 font-medium">200</span>
+          <span className="text-xs text-slate-500 font-medium">{maxYAxisValue}</span>
+          <span className="text-xs text-slate-500 font-medium">{midValue}</span>
           <span className="text-xs text-slate-500 font-medium">0</span>
-          <span className="text-xs text-slate-500 font-medium">200</span>
-          <span className="text-xs text-slate-500 font-medium">400</span>
+          <span className="text-xs text-slate-500 font-medium">{midValue}</span>
+          <span className="text-xs text-slate-500 font-medium">{maxYAxisValue}</span>
         </div>
 
         {/* Chart area */}
@@ -144,8 +191,9 @@ const BookingOverviewChart = ({ data = [] }) => {
             {/* Bars */}
             <div className="w-full h-full flex items-center justify-between gap-1 relative z-10">
               {data.map((item, index) => {
-                const doneHeight = (item.done / maxValue) * 50;
-                const cancelledHeight = (item.cancelled / maxValue) * 50;
+                // Calculate height based on dynamic maxYAxisValue
+                const doneHeight = maxYAxisValue > 0 ? Math.min((item.done / maxYAxisValue) * 100, 100) : 0;
+                const cancelledHeight = maxYAxisValue > 0 ? Math.min((item.cancelled / maxYAxisValue) * 100, 100) : 0;
 
                 return (
                   <div key={index} className="flex-1 flex flex-col items-center h-full justify-center">
@@ -219,10 +267,10 @@ export default function AdminDashboard() {
     pendingBookings: 0,
     cancelledBookings: 0,
   });
-  const [rentStatus, setRentStatus] = useState({
-    available: 0,
-    booked: 0,
-    maintenance: 0,
+  const [vehicleStatus, setVehicleStatus] = useState({
+    approved: 0,
+    pending: 0,
+    rejected: 0,
   });
   const [bookingData, setBookingData] = useState([]);
   const [mostRentedCars, setMostRentedCars] = useState([]);
@@ -264,28 +312,24 @@ export default function AdminDashboard() {
         const cancelledCount = bookings.filter(b => b.status === 'cancelled').length;
 
         const approvedVehicles = vehicles.filter(v => v.status === 'Approved');
-        const bookedVehicleIds = new Set(
-          bookings
-            .filter(b => b.status === 'approved' || b.status === 'pending')
-            .map(b => b.vehicleId?._id || b.vehicleId)
-        );
-
-        const bookedCount = approvedVehicles.filter(v => bookedVehicleIds.has(v._id)).length;
-        const availableCount = approvedVehicles.length - bookedCount;
+        // Count vehicles by status
+        const approvedVehicleCount = vehicles.filter(v => v.status === 'Approved').length;
+        const pendingVehicleCount = vehicles.filter(v => v.status === 'Pending').length;
+        const rejectedVehicleCount = vehicles.filter(v => v.status === 'Rejected').length;
 
         setStats({
           totalUsers: users.length,
-          totalVehicles: vehicles.length,
+          totalVehicles: approvedVehicleCount,
           totalRevenue,
           totalBookings: bookings.length,
           pendingBookings: pendingCount,
           cancelledBookings: cancelledCount,
         });
 
-        setRentStatus({
-          available: availableCount,
-          booked: bookedCount,
-          maintenance: 0,
+        setVehicleStatus({
+          approved: approvedVehicleCount,
+          pending: pendingVehicleCount,
+          rejected: rejectedVehicleCount,
         });
 
         const monthlyData = calculateMonthlyBookings(bookings);
@@ -317,7 +361,7 @@ export default function AdminDashboard() {
       return {
         month,
         done: monthBookings.filter(b => b.status === 'approved').length,
-        cancelled: monthBookings.filter(b => b.status === 'cancelled' || b.status === 'rejected').length,
+        cancelled: monthBookings.filter(b => b.status === 'cancelled').length,
       };
     });
 
@@ -325,11 +369,13 @@ export default function AdminDashboard() {
   };
 
   const calculateMostRentedCars = (bookings, vehicles) => {
+    const approvedVehicles = vehicles.filter(v => v.status === 'Approved');
     const vehicleRentCount = {};
 
     bookings.forEach(booking => {
       const vehicleId = booking.vehicleId?._id || booking.vehicleId;
-      if (vehicleId && (booking.status === 'approved' || booking.status === 'pending')) {
+      const vehicle = approvedVehicles.find(v => v._id === vehicleId);
+      if (vehicleId && vehicle && booking.status === 'approved') {
         vehicleRentCount[vehicleId] = (vehicleRentCount[vehicleId] || 0) + 1;
       }
     });
@@ -389,20 +435,20 @@ export default function AdminDashboard() {
                   bgColor="bg-[#0D3778]"
                 />
                 <StatCard
-                  icon={DollarSign}
+                  icon={HandCoins}
                   title="Total Revenue (LKR)"
                   value={stats.totalRevenue.toLocaleString()}
                   bgColor="bg-[#0D3778]"
                 />
                 <StatCard
-                  icon={Calendar}
+                  icon={FileText}
                   title="Total Bookings"
                   value={stats.totalBookings}
                   subtitle="Owners + Customers"
                   bgColor="bg-[#0D3778]"
                 />
                 <StatCard
-                  icon={Clock}
+                  icon={Hourglass}
                   title="Pending Bookings"
                   value={stats.pendingBookings}
                   bgColor="bg-amber-500"
@@ -416,12 +462,12 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Right Side - Rent Status */}
+            {/* Right Side - Vehicle Status */}
             <div className="lg:col-span-1">
-              <RentStatusChart
-                available={rentStatus.available}
-                booked={rentStatus.booked}
-                maintenance={rentStatus.maintenance}
+              <VehicleStatusChart
+                approved={vehicleStatus.approved}
+                pending={vehicleStatus.pending}
+                rejected={vehicleStatus.rejected}
               />
             </div>
           </div>
