@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Star, StarHalf, ChevronRight, X } from "lucide-react";
+import { Star, StarHalf, ChevronRight, X, Eye } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 import axios from "axios";
@@ -22,6 +22,10 @@ export default function CustomerReviews() {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submittedRating, setSubmittedRating] = useState(0);
+  const [canReview, setCanReview] = useState(false);
+  const [checkingPermission, setCheckingPermission] = useState(true);
+  const [reviewReason, setReviewReason] = useState("");
+
 
 
 
@@ -210,6 +214,33 @@ export default function CustomerReviews() {
       setSubmitting(false);
     }
   }
+
+  const checkCanReview = async () => {
+    try {
+      setCheckingPermission(true);
+  
+      const res = await axios.get(
+        `${API_BASE_URL}${API_VERSION}/reviews/can-review/${vehicleId}`,
+        { withCredentials: true }
+      );
+      console.log("Can Review:",res);
+      setCanReview(res.data.canReview);
+      setReviewReason(res.data.reason || "");
+  
+    } catch (error) {
+      console.error("Failed to check review permission", error);
+      setCanReview(false);
+    } finally {
+      setCheckingPermission(false);
+    }
+  };
+
+  useEffect(()=>{
+    if (vehicleId) {
+      checkCanReview();
+    }
+  }, [vehicleId]);
+   
   
   
 
@@ -269,65 +300,85 @@ export default function CustomerReviews() {
       </div>
 
       {/* User Rating */}
-      <div className="max-w-3xl mx-auto mt-14">
-        <h3 className="text-center text-lg font-medium mb-4">Your Rating</h3>
-        <div className="flex justify-center gap-2 mb-6">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              className="p-1"
-              key={star}
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHover(star)}
-              onMouseLeave={() => setHover(0)}
+      {checkingPermission ? (
+        <p className="text-center text-gray-500">Checking review permission...</p>
+      ) : canReview ? (
+        <>
+          <div className="max-w-3xl mx-auto mt-14">
+            <h3 className="text-center text-lg font-medium mb-4">Your Rating</h3>
+            <div className="flex justify-center gap-2 mb-6">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  className="p-1"
+                  key={star}
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHover(star)}
+                  onMouseLeave={() => setHover(0)}
+                  
+                >
+                  <Star
               
-            >
-              <Star
-          
-                className={`w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 ${
-                  star <= (hover || rating)
-                    ? "text-yellow-400 fill-yellow-400"
-                    : "text-yellow-400"
-                }`}
-              />
+                    className={`w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 ${
+                      star <= (hover || rating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-yellow-400"
+                    }`}
+                  />
 
-            </button>
-          ))}
-        </div>
+                </button>
+              ))}
+            </div>
 
-        {/* Feedback */}
-        <label className="block mb-2 font-medium">Write Feedback</label>
-        <textarea
-          placeholder="Share your experience..."
-          value={feedback}
-          onChange={(e)=> setFeedback(e.target.value)}
-          className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#0D3778]"
-          rows="4"
-        />
+            {/* Feedback */}
+            <label className="block mb-2 font-medium">Write Feedback</label>
+            <textarea
+              placeholder="Share your experience..."
+              value={feedback}
+              onChange={(e)=> setFeedback(e.target.value)}
+              className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#0D3778]"
+              rows="4"
+            />
 
-        <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
-          <button 
-            onClick={()=>{
-              setRating(0);
-              setHover(0);
-              setFeedback("");
-            }}
-            className="px-6 py-2 bg-white border-2 border-[#0D3778] rounded-lg text-[#0D3778] hover:bg-[#0D3778] hover:text-white">
-            Cancel
+            <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
+              <button 
+                onClick={()=>{
+                  setRating(0);
+                  setHover(0);
+                  setFeedback("");
+                }}
+                className="px-6 py-2 bg-white border-2 border-[#0D3778] rounded-lg text-[#0D3778] hover:bg-[#0D3778] hover:text-white">
+                Cancel
+              </button>
+              <button 
+                onClick={handleSubmitReview}
+                disabled={isSubmitDisabled}
+                className={`px-6 py-2 rounded-lg transition
+                  ${
+                    isSubmitDisabled
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#0D3778] text-white  hover:bg-blue-950"
+                  }
+                  `}>
+                {submitting ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          </div>        
+        </>
+      ) : (
+        <div className="max-w-2xl mx-auto mt-10 bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-lg shadow-sm text-center space-y-2">
+          <p className="text-center text-yellow-800 font-medium text-lg">
+            {"You've already reviewed this vehicle." || reviewReason}
+          </p>
+          <button
+            onClick={() => navigate("/my-reviews")}
+            className="inline-flex items-center gap-1 text-[#0D3778] font-semibold hover:underline hover:text-blue-900 transition"
+          >
+           <Eye className="w-4 h-4 opacity-70" />
+            View your review
           </button>
-          <button 
-            onClick={handleSubmitReview}
-            disabled={isSubmitDisabled}
-            className={`px-6 py-2 rounded-lg transition
-              ${
-                isSubmitDisabled
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#0D3778] text-white  hover:bg-blue-950"
-              }
-              `}>
-            {submitting ? "Submitting..." : "Submit Review"}
-          </button>
         </div>
-      </div>
+      )}
+      
 
       {/* Clients Reviews */}
       <div className="mt-20 py-14 relative bg-cover bg-center"
@@ -436,7 +487,10 @@ export default function CustomerReviews() {
           {/* Header */}
           <div className="relative bg-green-500 text-white px-4 py-3 rounded-t-2xl border-b-3 border-gray-400">
             <button 
-              onClick={() => setShowSuccessModal(false)}
+              onClick={async () => {
+                setShowSuccessModal(false);
+                await checkCanReview();
+              }}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition"
               >
                 <X className="w-5 h-5 text-white" />
