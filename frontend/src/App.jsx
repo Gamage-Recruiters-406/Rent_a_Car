@@ -38,6 +38,7 @@ function App() {
         <Route path="/admin/report" element={<AdminReport />} />
         <Route path="/booking-history" element={<BookingHistory />} />
         <Route path="/my-reviews" element={<MyReviews />} />
+        <Route path="/booking" element={<BookingPage1 />} />
         {/* login */}
 
         <Route path="/login" element={<SignInPage />} />
