@@ -19,6 +19,7 @@ import RentalHistoryPage from "./pages/RentalHistoryPage";
 import { BookingPage1 } from "./pages/BookingPage1";
 import { Homepage } from "./pages/Homepage";
 import AdminReport from "./pages/admin/AdminReport";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         <Route path="/admin/report" element={<AdminReport />} />
         <Route path="/booking-history" element={<BookingHistory />} />
         <Route path="/my-reviews" element={<MyReviews />} />
+        <Route path="/admin/settings" element={<AdminSettingsPage />} />
         {/* login */}
 
         <Route path="/login" element={<SignInPage />} />
