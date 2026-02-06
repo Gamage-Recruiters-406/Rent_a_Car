@@ -281,7 +281,7 @@ const MyVehicleOwner = () => {
 
                       {/* Vehicle Specs */}
                       <p className="text-gray-700 font-medium text-sm mb-2 break-words">
-                        {vehicle.model} • {vehicle.year} • {vehicle.vehicleType} • {vehicle.transmission}
+                        {vehicle.model} • {vehicle.year} • {vehicle.vehicleType} • {vehicle.transmission} • {vehicle.seats} {vehicle.seats === 1 ? 'Seat' : 'Seats'}
                       </p>
 
                       {/* Plate and Pricing */}
