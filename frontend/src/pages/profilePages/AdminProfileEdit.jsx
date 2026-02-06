@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Mail, Phone, MapPin, Calendar, Edit, Save, User, X, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Footer from '../../layouts/Footer';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -253,8 +254,7 @@ export const AdminProfileEdit = ({
                 <input
                   type="email"
                   value={currentProfile.email || ''}
-                  onChange={(e) => handleFieldChange('email', e.target.value)}
-                  disabled={!isEditing}
+                  disabled={isEditing}
                   className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} 
                 />
               </div>
@@ -352,6 +352,8 @@ export const AdminProfileEdit = ({
 
         </div>
       </div>
+      <Footer />
     </div>
+    
   );
 };

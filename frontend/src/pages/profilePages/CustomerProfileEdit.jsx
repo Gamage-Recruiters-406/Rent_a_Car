@@ -2,15 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Calendar, Edit, Save, X ,User} from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Footer from '../../layouts/Footer';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
 
-// const defaultStats = {
-//   orders: 12,
-//   orderItems: 45,
-//   savedItems: 8,
-// };
 
 const defaultRecentActivity = [
   { title: "Rented a Tesla Model 3", timestamp: "2 hours ago" },
@@ -29,6 +25,7 @@ export const CustomerProfileEdit = ({
   const [isEditing, setIsEditing] = useState(false);
   const [activeProfile, setActiveProfile] = useState([]);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [customerBookings, setCustomerBookings] = useState([]);
     
 useEffect(() => {
     const fetchUserData = async () => {
@@ -46,6 +43,10 @@ useEffect(() => {
                 withCredentials: true
             });
 
+            const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/customer/${userId}`, {
+                withCredentials: true
+            });
+
             if (response.data) {
                 const userData = response.data.user || response.data; 
 
@@ -60,6 +61,12 @@ useEffect(() => {
                 
                 setActiveProfile(mappedProfile);
                 setEditedProfile(mappedProfile);
+            }
+
+            if(response2.data){
+              const customerBookings = response2.data.data;
+              setCustomerBookings(customerBookings);
+              console.log(customerBookings);
             }
           }
         }
@@ -223,10 +230,7 @@ useEffect(() => {
                     <input
                       type="email"
                       value={currentProfile.email||""}
-                      onChange={(e) =>
-                      handleFieldChange('email', e.target.value)
-                      }
-                      disabled={!isEditing}
+                      disabled={isEditing}
                       className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
 
                   </div>
@@ -313,23 +317,31 @@ useEffect(() => {
                    All booking
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {"stats.orders" }
+                    {customerBookings.length }
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-sm mb-1">
-                    Ongoing 
+                    pending bookings 
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {"stats.orderItems.toLocaleString()" }
+                    {customerBookings.filter((booking) => booking.status === 'pending').length}
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-sm mb-1">
-                    Completed 
+                    cancelled bookings 
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {"stats.savedItems"}
+                    {customerBookings.filter((booking) => booking.status === 'cancelled').length}
+                  </div>
+                </div>
+               <div>
+                  <div className="text-[#999fa8] text-sm mb-1">
+                    total spends 
+                  </div>
+                  <div className="text-[#0A2E5C] text-3xl font-bold">
+                    {customerBookings.reduce((totalAmount, tot) => totalAmount + tot.totalAmount, 0) }
                   </div>
                 </div>
               </div>
@@ -359,6 +371,7 @@ useEffect(() => {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>);
 
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Footer from '../../layouts/Footer';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -10,7 +11,7 @@ const defaultProfile = {
   name: "",
   subtitle: "Owner",
   avatar: "https://avatar.iran.liara.run/public/boy?username=",
-  email: "",
+  //email: "",
   phone: "",
   contactNumber: "",
   location: "",
@@ -20,26 +21,22 @@ const defaultProfile = {
   bio: ""
 };
 
-const defaultStats = {
-  vehicals: 1,
-  bookings: 0,
-  ongoingBookings: 20,
-  totalRevenue: 0,
-  profit: 0
-};
 
 
 export const OwnerProfileEdit = ({
   'data-id': dataId,
   profile = defaultProfile,
-  stats = defaultStats,
+  stats,
   onSave,
   onProfileChange
 }) => {
   const [activeProfile, setActiveProfile] = useState(profile);
-  const [activeStats, setActiveStats] = useState(stats);
+  const [activeStats, setActiveStats] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [earningansRevenue, setEarningansRevenue] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [vehiclecount, setVehiclecount] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -58,12 +55,22 @@ export const OwnerProfileEdit = ({
             const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserbyId/${userId}`, {
                 withCredentials: true
             });
+            const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/earnings/${userId}`, {
+                withCredentials: true
+            });
+            const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/${userId}`, {
+                withCredentials: true
+            });
+            const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/owner/${userId}`, {
+                withCredentials: true
+            });
+
     
             if (response.data) {
                 const userData = response.data.user || response.data; 
 
                 const mappedProfile = {
-                    ...defaultProfile,
+                    //...defaultProfile,
                     ...activeProfile,
                     ...userData,
                     phone: userData.contactNumber || activeProfile.phone || defaultProfile.phone,
@@ -74,11 +81,33 @@ export const OwnerProfileEdit = ({
 
                 setActiveProfile(mappedProfile);
                 setEditedProfile(mappedProfile);
+
+               // set earnings and revenue
+                if(response2.data){
+                    const earningsData = response2.data.data;
+                    setEarningansRevenue(earningsData);
+                    //console.log(earningsData);
+                }
+                
+                // set bookings count
+                if(response3.data){
+                    const bookingsData = response3.data.data.length;
+                    setBookings(bookingsData);
+                    
+                }
+                
+                // set vehicle count
+                if(response4.data){
+                    const vehicleData = response4.data;
+                    setVehiclecount(vehicleData);
+                    console.log(vehicleData);
+                    
+                }
                 
                 // If stats are part of the response, update them too
-                if (userData.stats) {
-                    setActiveStats({ ...defaultStats, ...userData.stats });
-                }
+                // if (userData.stats) {
+                //     setActiveStats({ ...defaultStats, ...userData.stats });
+                // }
             }
           }
         }
@@ -146,9 +175,10 @@ export const OwnerProfileEdit = ({
 
   const currentProfile = isEditing ? editedProfile : activeProfile;
 
-
+ 
 
   return (
+ 
     <div data-id={dataId} className="min-h-screen bg-gray-50 w-full">
       {/* Header */}
       <div className="bg-[#0A2E5C] px-6 py-8">
@@ -259,10 +289,7 @@ export const OwnerProfileEdit = ({
                     <input
                       type="email"
                       value={currentProfile.email || ''}
-                      onChange={(e) =>
-                      handleFieldChange('email', e.target.value)
-                      }
-                      disabled={!isEditing}
+                      disabled={isEditing}
                       className={`w-full text-[#0A2E5C]] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
                   </div>
                 </div>
@@ -345,43 +372,43 @@ export const OwnerProfileEdit = ({
                     Vehicals
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.vehicals}
+                    {vehiclecount.count}
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-xs mb-1">
-                    Bookings
+                    Total Bookings
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.bookings.toLocaleString()}
+                    {bookings}
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-xs mb-1">
-                    Ongoing Bookings
+                    totalEarnings
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.ongoingBookings}
+                    {"RS."+earningansRevenue.totalEarnings}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[#999fa8] text-xs mb-1">
-                    Total Revenue
+                   <div className="text-[#999fa8] text-xs mb-1">
+                    Total Bookings pendingcount
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.totalRevenue.toLocaleString()}
+                    {vehiclecount.pendingcount}
                   </div>
                 </div>
-                <div>
+               {/* <div>
                   <div className="text-[#999fa8] text-xs mb-1">
                     Profit
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.profit}
+                    {0}
                   </div>
-                </div>
+                </div> */}
           {/* status */}
-                    <div className="mt-8 border-t pt-6">
+               <div className="mt-8 border-t pt-6">
                       <h3 className="text-[#0A2E5C] font-semibold text-base mb-3">
                         Account Status
                       </h3>
@@ -406,12 +433,14 @@ export const OwnerProfileEdit = ({
                           </button>
                         </div>
                       )}
-                    </div>
+               </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>);
-
+      
+      <Footer />
+    </div>
+  );
 };
