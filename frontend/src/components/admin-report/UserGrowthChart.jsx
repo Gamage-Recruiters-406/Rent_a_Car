@@ -8,16 +8,23 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { month: "Jan", totalUsers: 0, newUsers: 0 },
-  { month: "Feb", totalUsers: 0, newUsers: 0 },
-  { month: "Mar", totalUsers: 0, newUsers: 0 },
-  { month: "Apr", totalUsers: 0, newUsers: 0 },
-  { month: "May", totalUsers: 0, newUsers: 0 },
-  { month: "Jun", totalUsers: 0, newUsers: 0 },
-];
+export const UserGrowthChart = ({ data = [] }) => {
+  // Transform data from backend format to chart format
+  const chartData = data.length > 0 
+    ? data.map(item => ({
+        month: item.month.substring(5), // Get "MM" from "YYYY-MM"
+        totalUsers: item.totalUsers,
+        newUsers: item.newUsers
+      }))
+    : [
+        { month: "01", totalUsers: 0, newUsers: 0 },
+        { month: "02", totalUsers: 0, newUsers: 0 },
+        { month: "03", totalUsers: 0, newUsers: 0 },
+        { month: "04", totalUsers: 0, newUsers: 0 },
+        { month: "05", totalUsers: 0, newUsers: 0 },
+        { month: "06", totalUsers: 0, newUsers: 0 },
+      ];
 
-export const UserGrowthChart = () => {
   return (
     <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200">
       <div className="flex items-start justify-between mb-4">
@@ -40,7 +47,7 @@ export const UserGrowthChart = () => {
       </div>
       <div className="h-[250px]">
         <ResponsiveContainer width="100%" height="100%" minHeight={250}>
-          <AreaChart data={data}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#0D3778" stopOpacity={0.3} />
