@@ -95,3 +95,37 @@ export const getVehicleAvailabilityReport = async () => {
     throw error;
   }
 };
+
+// Get monthly approved booking chart data
+export const getMonthlyBookingChart = async () => {
+  setAuthCookie();
+  try {
+    const res = await api.get('/adminReports/admin/booking-performance');
+    return res.data; // { success, data: [...] }
+  } catch (error) {
+    console.error('Error fetching booking performance chart:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+    throw error;
+  }
+};
+
+// Get best performance vehicles
+export const getBestPerformanceVehicles = async (limit = 5) => {
+  setAuthCookie();
+  try {
+    const res = await api.get(`/adminReports/admin/best-perform-vehicles?limit=${limit}`);
+    return res.data; // { success, data: [...] }
+  } catch (error) {
+    console.error('Error fetching best performance vehicles:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+    throw error;
+  }
+};
