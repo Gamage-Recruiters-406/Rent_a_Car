@@ -284,6 +284,86 @@ export const getBookingReportStats = async (req, res) => {
   }
 };
 
+//booking performance chart
+export const getMonthlyApprovedBookingChart = async (req, res) => {
+  try {
+    const data = await Booking.aggregate([
+      {
+        // only approved bookings
+        $match: {
+          status: "approved"
+        }
+      },
+      {
+        // group by year & month
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" }
+          },
+          bookingCount: { $sum: 1 }
+        }
+      },
+      {
+        // ⬆sort chronologically
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1
+        }
+      }
+    ]);
+
+    // format for frontend chart
+    const formattedData = data.map(item => ({
+      month: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`,
+      bookings: item.bookingCount
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedData
+    });
+
+  } catch (error) {
+    console.error("Booking Performance Chart Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    });
+  }
+};
+
+//get best performance vehicle list
+export const getBestPerformanceVehicles = async (req, res) => {
+  try {
+    const limit = Number(req.query.limit) || 5;
+
+    const vehicles = await Vehicle.find({ status: "Approved" })
+      .sort({
+        averageRating: -1,
+        reviewCount: -1 // tie-breaker
+      })
+      .limit(limit)
+      .select(
+        "title model vehicleType averageRating reviewCount pricePerDay"
+      );
+
+    res.status(200).json({
+      success: true,
+      data: vehicles
+    });
+
+  } catch (error) {
+    console.error("Best Performance Vehicle Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    });
+  }
+};
+
+
+
 
 
 
