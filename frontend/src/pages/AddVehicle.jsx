@@ -18,6 +18,7 @@ const AddVehicle = () => {
     description: "",
     numberPlate: "",
     km: "",
+    seats: "",
     pricePerDay: "",
     pricePerKm: "",
     transmission: "",
@@ -167,7 +168,7 @@ const AddVehicle = () => {
     e.preventDefault();
 
     if (!formData.title || !formData.model || !formData.vehicleType || !formData.year || !formData.fuelType ||
-      !formData.numberPlate || !formData.km || !formData.pricePerDay || !formData.pricePerKm ||
+      !formData.numberPlate || !formData.km || !formData.seats || !formData.pricePerDay || !formData.pricePerKm ||
       !formData.transmission || !formData.address) {
       toast.error("Please fill all required fields");
       return;
@@ -193,6 +194,7 @@ const AddVehicle = () => {
       formDataToSend.append("description", formData.description);
       formDataToSend.append("numberPlate", formData.numberPlate);
       formDataToSend.append("km", formData.km);
+      formDataToSend.append("seats", formData.seats);
       formDataToSend.append("pricePerDay", formData.pricePerDay);
       formDataToSend.append("pricePerKm", formData.pricePerKm);
       formDataToSend.append("transmission", formData.transmission);
@@ -384,9 +386,9 @@ const AddVehicle = () => {
                 />
               </div>
 
-              {/* Number Plate & KM */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
+              {/* Number Plate, KM & Seats - Horizontal Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+                <div className="md:col-span-2">
                   <label className="block text-sm font-semibold mb-2" style={{ color: "#0D3778" }}>
                     Number Plate <span className="text-red-500">*</span>
                   </label>
@@ -401,7 +403,7 @@ const AddVehicle = () => {
                     required
                   />
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-semibold mb-2" style={{ color: "#0D3778" }}>
                     KM <span className="text-red-500">*</span>
                   </label>
@@ -410,9 +412,26 @@ const AddVehicle = () => {
                     name="km"
                     value={formData.km}
                     onChange={handleChange}
+                    min="0"
                     className="w-full border-2 rounded-md px-3 py-2.5 focus:outline-none focus:border-blue-500 transition-all text-gray-800"
                     style={{ borderColor: "#0D3778" }}
-                    placeholder="100km"
+                    placeholder="50000"
+                    required
+                  />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-semibold mb-2" style={{ color: "#0D3778" }}>
+                    Seat Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="seats"
+                    value={formData.seats}
+                    onChange={handleChange}
+                    min="1"
+                    className="w-full border-2 rounded-md px-3 py-2.5 focus:outline-none focus:border-blue-500 transition-all text-gray-800"
+                    style={{ borderColor: "#0D3778" }}
+                    placeholder="e.g., 5"
                     required
                   />
                 </div>
