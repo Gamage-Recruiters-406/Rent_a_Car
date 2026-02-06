@@ -127,36 +127,21 @@ function VehiclePricing({ pricePerDay, pricePerKm }) {
   );
 }
 
-function VehicleActionButtons({ status, onApprove, onReject }) {
-  if (status?.toLowerCase() !== 'pending') {
-    return null;
-  }
-
+function VehicleDetailsButton({ onDetails }) {
   return (
-    <div className="flex gap-3">
-      <button
-        onClick={onApprove}
-        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
-      >
-        <Check className="w-4 h-4" />
-        Approve
-      </button>
-      <button
-        onClick={onReject}
-        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-      >
-        <X className="w-4 h-4" />
-        Reject
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={onDetails}
+      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+    >
+      Details
+    </button>
   );
 }
 
 export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) {
   if (!vehicle) return null;
 
-  const handleApprove = () => onApprove?.(vehicle.id);
-  const handleReject = () => onReject?.(vehicle.id);
   const handleDelete = () => onDelete?.(vehicle.id);
   const handleView = () => onView?.(vehicle);
 
@@ -187,11 +172,7 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
             pricePerKm={vehicle.pricePerKm ?? 0}
           />
 
-          <VehicleActionButtons
-            status={vehicle.status}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
+          <VehicleDetailsButton onDetails={handleView} />
 
           <p className="text-sm text-gray-500 mt-3">
             Submitted: {vehicle.submittedDate ?? '-'}

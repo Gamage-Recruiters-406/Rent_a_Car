@@ -96,11 +96,162 @@ function VehicleList({ vehicles, loading, searchQuery, activeTab, onApprove, onR
   );
 }
 
+// Pending Vehicle Details Modal
+function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) {
+  if (!isOpen || !vehicle) return null;
+
+  const handleApprove = () => {
+    onApprove?.(vehicle.id);
+  };
+
+  const handleReject = () => {
+    onReject?.(vehicle.id);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="relative max-w-4xl w-full mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 shadow hover:bg-white"
+        >
+          <XCircle className="w-5 h-5 text-gray-700" />
+        </button>
+
+        {/* Image */}
+        <div className="h-64 md:h-80 w-full bg-gray-100 overflow-hidden">
+          {vehicle.images && vehicle.images.length > 0 ? (
+            <img
+              src={vehicle.images[0]}
+              alt={vehicle.name}
+              className="w-full h-full object-cover"
+            />
+          ) : vehicle.image ? (
+            <img
+              src={vehicle.image}
+              alt={vehicle.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+              No image available
+            </div>
+          )}
+        </div>
+
+        {/* Details */}
+        <div className="p-6 md:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Vehicle Type
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {vehicle.name}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Vehicle Number
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {vehicle.plateNumber}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Owner
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {vehicle.owner}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Model &amp; Year
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {vehicle.year}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Fuel Type
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {vehicle.fuelType}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Transmission
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {vehicle.transmission}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Price Per Day
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                LKR {vehicle.pricePerDay}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Price Per KM
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                LKR {vehicle.pricePerKm}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Location
+              </p>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {vehicle.location}
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="mt-6 flex flex-col md:flex-row gap-3 md:gap-4 justify-center items-center border-t border-gray-200 pt-4">
+            <button
+              type="button"
+              onClick={handleApprove}
+              className="w-full md:w-56 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Approve
+            </button>
+            <button
+              type="button"
+              onClick={handleReject}
+              className="w-full md:w-56 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            >
+              <XCircle className="w-4 h-4" />
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function VehicleManagement() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(VEHICLE_STATUS.PENDING);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Get user from localStorage
   const getUser = () => {
@@ -326,9 +477,8 @@ export function VehicleManagement() {
   };
 
   const handleView = (vehicle) => {
-    console.log('View vehicle details:', vehicle);
-    // TODO: Implement view details modal or navigation
-    toast.info('Vehicle details view - Coming soon');
+    setSelectedVehicle(vehicle);
+    setIsDetailsOpen(true);
   };
 
   const handleExport = () => {
@@ -480,6 +630,14 @@ export function VehicleManagement() {
           </div>
         </div>
       </div>
+
+      <VehicleDetailsModal
+        vehicle={selectedVehicle}
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 }

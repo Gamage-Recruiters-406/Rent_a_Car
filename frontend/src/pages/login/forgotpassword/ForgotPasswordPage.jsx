@@ -66,7 +66,7 @@ export function ForgotPasswordPage() {
 
         <div className="text-center">
           <Link
-            to="/signin"
+            to="/login"
             className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-[#0d3778] transition-colors">
 
             <ArrowLeft className="w-4 h-4 mr-2" />
