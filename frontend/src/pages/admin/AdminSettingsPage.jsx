@@ -166,7 +166,7 @@ export default function AdminSettingsPage() {
       <div ref={scrollRef} className="h-screen bg-slate-50 overflow-y-auto">
         {/* Top Header */}
         <div className="sticky top-0 z-20 bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-xl font-bold text-[#0d3778]">Settings</h1>
               <p className="text-sm text-slate-500">
@@ -175,7 +175,7 @@ export default function AdminSettingsPage() {
             </div>
             <button
               onClick={onSaveUIOnly}
-              className="h-10 px-5 rounded-lg bg-[#0D3778] text-white font-semibold hover:opacity-95"
+              className="self-start sm:self-auto h-10 px-5 rounded-lg bg-[#0D3778] text-white font-semibold hover:opacity-95"
             >
               Save Changes
             </button>
