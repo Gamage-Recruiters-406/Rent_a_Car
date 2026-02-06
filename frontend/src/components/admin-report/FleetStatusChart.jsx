@@ -1,14 +1,24 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useState } from "react";
 
-const data = [
-  { name: "Available", value: 0, color: "#0D3778" },
-  { name: "Booked", value: 0, color: "#00C950" },
-  { name: "Maintenance", value: 0, color: "#FF6900" },
-];
+export const FleetStatusChart = ({ data: apiData = {} }) => {
+  // Transform data from backend API to chart format
+  const { totals = {}, percentages = {} } = apiData;
+  
+  const data = [
+    { 
+      name: "Available", 
+      value: totals.availableVehicles || 0, 
+      color: "#0D3778" 
+    },
+    { 
+      name: "Booked", 
+      value: totals.bookedVehicles || 0, 
+      color: "#00C950" 
+    },
+  ];
 
-export const FleetStatusChart = () => {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const total = totals.totalVehicles || 0;
   const [activeIndex, setActiveIndex] = useState(1); // Default to "Booked" index
 
   const onPieEnter = (_, index) => {
