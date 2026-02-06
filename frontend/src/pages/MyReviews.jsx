@@ -3,6 +3,8 @@ import { Star, MoreVertical, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Layout from '../layouts/Layout';
 import axios from 'axios';
+import carPlaceholder from "../assets/ContactUsBG.jpeg";
+
 
 const MyReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -146,7 +148,10 @@ const MyReviews = () => {
                         {review.vehicle_id?.photos?.length > 0 ? (
                             <img
                                 src={`${IMAGE_BASE_URL}${review.vehicle_id.photos[0].url}`}
-                                alt={review.vehicle_id?.model}
+                                alt={review.vehicle_id?.model || "Vehicle"}
+                                onError={(e) => {
+                                    e.target.src= carPlaceholder;
+                                }}
                                 className="w-full h-full object-cover"
                             />
                         ) : (
