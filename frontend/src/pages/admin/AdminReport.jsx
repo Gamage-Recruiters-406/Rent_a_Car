@@ -14,7 +14,9 @@ import {
   getVehicleReportStats, 
   getBookingReportStats,
   getMonthlyUserChart,
-  getVehicleAvailabilityReport
+  getVehicleAvailabilityReport,
+  getMonthlyBookingChart,
+  getBestPerformanceVehicles
 } from "../../services/adminReportApi";
 
 const AdminReport = () => {
@@ -23,6 +25,8 @@ const AdminReport = () => {
   const [bookingStats, setBookingStats] = useState({ totalBookings: 0, thisMonthBookings: 0, percentage: 0 });
   const [userChartData, setUserChartData] = useState([]);
   const [vehicleAvailability, setVehicleAvailability] = useState({ totals: {}, percentages: {} });
+  const [bookingChartData, setBookingChartData] = useState([]);
+  const [topPerformers, setTopPerformers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -34,12 +38,14 @@ const AdminReport = () => {
         setError(null);
 
         // Fetch all data in parallel
-        const [users, vehicles, bookings, userChart, availability] = await Promise.all([
+        const [users, vehicles, bookings, userChart, availability, bookingChart, performers] = await Promise.all([
           getUserReportStats(),
           getVehicleReportStats(),
           getBookingReportStats(),
           getMonthlyUserChart(),
-          getVehicleAvailabilityReport()
+          getVehicleAvailabilityReport(),
+          getMonthlyBookingChart(),
+          getBestPerformanceVehicles(5)
         ]);
 
         // Set all state
@@ -73,6 +79,14 @@ const AdminReport = () => {
 
         if (availability.success) {
           setVehicleAvailability(availability.data);
+        }
+
+        if (bookingChart.success) {
+          setBookingChartData(bookingChart.data);
+        }
+
+        if (performers.success) {
+          setTopPerformers(performers.data);
         }
 
       } catch (err) {
@@ -114,6 +128,16 @@ Booked: ${vehicleAvailability.totals?.bookedVehicles || 0} (${vehicleAvailabilit
 USER GROWTH TREND
 -----------------
 ${userChartData.map(item => `${item.month}: ${item.newUsers} new users (Total: ${item.totalUsers})`).join('\n')}
+
+BOOKING PERFORMANCE
+-------------------
+${bookingChartData.map(item => `${item.month}: ${item.bookings} bookings`).join('\n')}
+
+TOP PERFORMING VEHICLES
+-----------------------
+${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
+   Rating: ${v.averageRating?.toFixed(1)} (${v.reviewCount} reviews)
+   Price: Rs. ${v.pricePerDay}/day`).join('\n')}
     `;
 
     // Create blob and download
@@ -208,14 +232,14 @@ ${userChartData.map(item => `${item.month}: ${item.newUsers} new users (Total: $
 
             {/* Booking Performance + Revenue Target */}
             <div className="grid grid-cols-2 gap-4">
-              <BookingPerformanceChart />
+              <BookingPerformanceChart data={bookingChartData} />
               <RevenueTargetChart />
             </div>
 
             {/* Top Performers + Transactions */}
             <div className="grid grid-cols-4 gap-4">
               <div className="col-span-1">
-                <TopPerformers />
+                <TopPerformers data={topPerformers} />
               </div>
               <div className="col-span-3">
                 <RecentTransactions />
