@@ -12,7 +12,10 @@ import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPag
 import CustomerReviews from "./pages/CustomerRating";
 import { HomePage } from "./pages/HomePage";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
-import AddVehicle from "./pages/AddVehicle";
+import AddVehicle from "./pages/AddVehicle.jsx";
+import MyVehicleOwner from "./pages/MyVehicleOwner.jsx";
+
+
 
 function App() {
   return (
@@ -21,6 +24,15 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        
+        {/* owner */}
+        <Route path="/rental-history" element={<RentalHistoryPage />} />
+        <Route path="/owner/vehicles" element={<MyVehicleOwner />} />
+        <Route path="/owner/vehicles/new" element={<AddVehicle />} />
+
+        {/* public */}
+        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+        <Route path="/contact" element={<ContactPage/>} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/CustomerVehicleListPage" element={<CustomerVehicleListPage />} />
         <Route path="/vehicles" element={<CustomerVehicleListPage />} />
