@@ -17,7 +17,7 @@ const BookingTable = ({ data = [], loading = false, onViewAction }) => {
   const dummyData = [
     {
       _id: "1",
-      customerId: { first_name: "Jason", last_name: "Lee", email: "jasonlee@example.com", profileImage: "https://img.freepik.com/premium-photo/portrait-happy-business-man-suit-crossed-arms-white-background_457222-56605.jpg" },
+      customerId: { first_name: "Jason", last_name: "Lee", email: "jasonlee@example.com", profileImage: "https://i.pravatar.cc/150?u=jason" },
       vehicleId: { title: "Toyota Corolla", numberPlate: "CA-1234", pricePerDay: 8000, images: ["https://www.toyota.com.lk/wp-content/uploads/2020/07/corolla-red.png"] },
       startingDate: "2026-01-23",
       endDate: "2026-01-25",
