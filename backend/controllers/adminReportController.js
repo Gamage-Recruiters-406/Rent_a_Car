@@ -8,7 +8,9 @@ export const getMonthlyUserChart = async (req, res) => {
   try {
     const monthlyUsers = await User.aggregate([
       {
-        $match: { role: { $in: [1, 2] } }
+        $match: { 
+          status: "verified",
+          role: { $in: [1, 2] } }
       },
       {
         $group: {
