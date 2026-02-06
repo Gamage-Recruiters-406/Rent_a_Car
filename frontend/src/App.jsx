@@ -17,6 +17,7 @@ import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
 import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
 
 import CustomerReviews from "./pages/CustomerRating";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
 import BookingHistory from "./pages/BookingHistory.jsx";
 import MyReviews from "./pages/MyReviews";
@@ -42,6 +43,7 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/customer-reviews" element={<CustomerReviews />} />
         <Route path="/admin/booking" element={<AdminBooking />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/report" element={<AdminReport />} />
         <Route path="/booking-history" element={<BookingHistory />} />
         <Route path="/my-reviews" element={<MyReviews />} />
