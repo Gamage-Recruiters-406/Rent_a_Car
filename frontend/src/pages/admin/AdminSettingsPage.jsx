@@ -118,25 +118,28 @@ export default function AdminSettingsPage() {
       .map((n) => document.getElementById(n.target))
       .filter(Boolean);
 
-    if (!sections.length) return;
+    if (!rootEl || !sections.length) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (isClickScrolling.current) return;
 
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        // pick section closest to top (stable)
+        const visibleEntries = entries.filter((e) => e.isIntersecting);
 
-        if (!visible) return;
+        if (!visibleEntries.length) return;
 
-        const found = navItems.find((n) => n.target === visible.target.id);
+        const topMost = visibleEntries.sort(
+          (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+        )[0];
+
+        const found = navItems.find((n) => n.target === topMost.target.id);
         if (found) setActive(found.key);
       },
       {
         root: rootEl,
-        threshold: 0.35,
-        rootMargin: "-25% 0px -55% 0px",
+        threshold: [0.1, 0.2, 0.3, 0.4],
+        rootMargin: "-10% 0px -80% 0px", // key: makes top section win
       },
     );
 
@@ -148,12 +151,17 @@ export default function AdminSettingsPage() {
     setActive(key);
     isClickScrolling.current = true;
 
+    const rootEl = mainRef.current;
     const el = document.getElementById(target);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    if (rootEl && el) {
+      const top = el.offsetTop - 16; // small padding
+      rootEl.scrollTo({ top, behavior: "smooth" });
+    }
 
     setTimeout(() => {
       isClickScrolling.current = false;
-    }, 600);
+    }, 800);
   };
 
   const onSaveUIOnly = () => {
@@ -233,7 +241,7 @@ export default function AdminSettingsPage() {
               {/* General Settings */}
               <section
                 id="sec-general"
-                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+                className="bg-white border rounded-2xl p-5 scroll-mt-6"
               >
                 <h2 className="text-lg font-bold text-[#0d3778]">
                   General Settings
@@ -285,7 +293,7 @@ export default function AdminSettingsPage() {
               {/* Notification Settings */}
               <section
                 id="sec-notifications"
-                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+                className="bg-white border rounded-2xl p-5 scroll-mt-6"
               >
                 <h2 className="text-lg font-bold text-[#0d3778]">
                   Notification Settings
@@ -367,7 +375,7 @@ export default function AdminSettingsPage() {
               {/* Terms */}
               <section
                 id="sec-terms"
-                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+                className="bg-white border rounded-2xl p-5 scroll-mt-6"
               >
                 <h2 className="text-lg font-bold text-[#0d3778]">
                   Terms and Policies
@@ -404,7 +412,7 @@ export default function AdminSettingsPage() {
               {/* Localization */}
               <section
                 id="sec-localization"
-                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+                className="bg-white border rounded-2xl p-5 scroll-mt-6"
               >
                 <h2 className="text-lg font-bold text-slate-900">
                   Localization
@@ -435,7 +443,7 @@ export default function AdminSettingsPage() {
               {/* Payment */}
               <section
                 id="sec-payment"
-                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+                className="bg-white border rounded-2xl p-5 scroll-mt-6"
               >
                 <h2 className="text-lg font-bold text-[#0d3778]">
                   Payment Settings
