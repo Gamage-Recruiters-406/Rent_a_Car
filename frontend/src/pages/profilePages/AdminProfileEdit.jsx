@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Mail, Phone, MapPin, Calendar, Edit, Save, User, X, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Save, User, X, CheckCircle, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Footer from '../../layouts/Footer';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -31,6 +32,8 @@ export const AdminProfileEdit = ({
   const [activeProfile, setActiveProfile] = useState(profile);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -75,6 +78,20 @@ export const AdminProfileEdit = ({
     fetchUserData();
   }, []); // Run once on mount
 
+    useEffect(() => {
+        if (activeProfile.profilePicture) {
+            setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
+        }
+    }, [activeProfile.profilePicture]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
   const initials = activeProfile.name ? activeProfile.name.split(' ').map((n) => n[0]).join('').toUpperCase() : 'A';
 
   const handleEdit = () => {
@@ -84,20 +101,38 @@ export const AdminProfileEdit = ({
 
   const handleSave = async () => {
     try {
-        // Optimistic update
-        onSave?.(editedProfile);
+        const formData = new FormData();
+        Object.keys(editedProfile).forEach(key => {
+            formData.append(key, editedProfile[key]);
+        });
+        
+        if (imageFile) {
+            formData.append("profilePicture", imageFile);
+        }
+
+        // Optimistic update (skip for file upload as we need backend url)
+        // onSave?.(editedProfile);
         
         // API update
         const token = localStorage.getItem('token');
         document.cookie = `access_token=${token}`;
-        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, editedProfile, {
-            withCredentials: true
+        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, formData, {
+            withCredentials: true,
+            headers: { "Content-Type": "multipart/form-data" },
         });
 
         if (response.data && response.data.success) {
             toast.success("Profile updated successfully");
-            setActiveProfile(editedProfile);
+            // Refresh profile data to get new image URL
+             const updatedProfile = { ...editedProfile };
+             if(response.data.user && response.data.user.profilePicture){
+                 updatedProfile.profilePicture = response.data.user.profilePicture;
+                 setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
+             }
+
+            setActiveProfile(updatedProfile);
             setIsEditing(false);
+            setImageFile(null);
         } else {
              // Revert or show error (for now just toast)
              toast.error(response.data?.message || "Failed to update profile");
@@ -111,6 +146,8 @@ export const AdminProfileEdit = ({
   const handleCancel = () => {
     setEditedProfile(activeProfile);
     setIsEditing(false);
+    setImageFile(null);
+    setImagePreview(activeProfile.profilePicture ? `${baseUrl}/${activeProfile.profilePicture}` : null);
   };
 
   const handleVerify = async () => {
@@ -152,16 +189,38 @@ export const AdminProfileEdit = ({
       <div className="bg-[#0A2E5C] px-6 py-8">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl">
-              {currentProfile.avatar ? (
-                <img
-                  src={currentProfile.avatar}
-                  alt={currentProfile.name}
-                  className="w-full h-full rounded-full object-cover" 
-                />
-              ) : (
-                initials
-              )}
+            <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
+                {imagePreview ? (
+                    <img
+                    src={imagePreview}
+                    alt={currentProfile.name}
+                    className="w-full h-full object-cover" 
+                    />
+                ) : (
+                    currentProfile.avatar ? (
+                        <img 
+                            src={currentProfile.avatar} 
+                            alt={currentProfile.name} 
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        initials
+                    )
+                )}
+                </div>
+                {isEditing && (
+                    <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
+                        <Camera className="w-4 h-4 text-[#0A2E5C]" />
+                        <input 
+                            type="file" 
+                            id="profile-upload" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleImageChange}
+                        />
+                    </label>
+                )}
             </div>
             <div>
               <h1 className="text-white text-2xl font-semibold">
@@ -253,8 +312,8 @@ export const AdminProfileEdit = ({
                 <input
                   type="email"
                   value={currentProfile.email || ''}
-                  onChange={(e) => handleFieldChange('email', e.target.value)}
-                  disabled={!isEditing}
+                  readOnly
+                  disabled={isEditing}
                   className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} 
                 />
               </div>
@@ -352,6 +411,8 @@ export const AdminProfileEdit = ({
 
         </div>
       </div>
+      <Footer />
     </div>
+    
   );
 };

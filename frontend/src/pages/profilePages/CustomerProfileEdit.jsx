@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Calendar, Edit, Save, X ,User} from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Save, X ,User, Camera} from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Footer from '../../layouts/Footer';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
 
-// const defaultStats = {
-//   orders: 12,
-//   orderItems: 45,
-//   savedItems: 8,
-// };
 
 const defaultRecentActivity = [
   { title: "Rented a Tesla Model 3", timestamp: "2 hours ago" },
@@ -29,6 +25,7 @@ export const CustomerProfileEdit = ({
   const [isEditing, setIsEditing] = useState(false);
   const [activeProfile, setActiveProfile] = useState([]);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [customerBookings, setCustomerBookings] = useState([]);
     
 useEffect(() => {
     const fetchUserData = async () => {
@@ -43,6 +40,10 @@ useEffect(() => {
           if (userId) {
             document.cookie = `access_token=${token}`;
             const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserbyId/${userId}`, {
+                withCredentials: true
+            });
+
+            const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/customer/${userId}`, {
                 withCredentials: true
             });
 
@@ -61,6 +62,12 @@ useEffect(() => {
                 setActiveProfile(mappedProfile);
                 setEditedProfile(mappedProfile);
             }
+
+            if(response2.data){
+              const customerBookings = response2.data.data;
+              setCustomerBookings(customerBookings);
+              console.log(customerBookings);
+            }
           }
         }
       } catch (error) {
@@ -72,36 +79,73 @@ useEffect(() => {
     fetchUserData();
   }, []); // Run once on mount
 
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+
+    useEffect(() => {
+        if (activeProfile.profilePicture) {
+            setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
+        }
+    }, [activeProfile.profilePicture]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
   const handleEdit = () => {
     setIsEditing(true);
     setEditedProfile(activeProfile); // Reset to active profile when starting edit
   };
   const handleSave = async () => {
-    onSave?.(editedProfile);
     
     try {
+      const formData = new FormData();
+      Object.keys(editedProfile).forEach(key => {
+          formData.append(key, editedProfile[key]);
+      });
+      
+      if (imageFile) {
+          formData.append("profilePicture", imageFile);
+      }
+
       const token = localStorage.getItem('token');
       document.cookie = `access_token=${token}`;
 
-      const response = await axios.put(`${baseUrl}${apiVersion}/authUser/updateUser/`, editedProfile, {
-      withCredentials: true
+      const response = await axios.put(`${baseUrl}${apiVersion}/authUser/updateUser/`, formData, {
+      withCredentials: true,
+      headers: { "Content-Type": "multipart/form-data" },
       });
       
       if(response.data && response.data.success){
-        setActiveProfile(editedProfile);
+        // Refresh profile data to get new image URL
+         const updatedProfile = { ...editedProfile };
+         if(response.data.user && response.data.user.profilePicture){
+             updatedProfile.profilePicture = response.data.user.profilePicture;
+             setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
+         }
+
+        setActiveProfile(updatedProfile);
         toast.success("Profile updated successfully");
+        setIsEditing(false);
+        setImageFile(null);
+        onSave?.(updatedProfile);
       }
 
     } catch (error) {
       console.error("Error updating user data:", error);
       toast.error("Failed to update profile data");
     }
-    setIsEditing(false);
   };
 
   const handleCancel = () => {
     setEditedProfile(activeProfile);
     setIsEditing(false);
+    setImageFile(null);
+    setImagePreview(activeProfile.profilePicture ? `${baseUrl}/${activeProfile.profilePicture}` : null);
   };
   const handleFieldChange = (field, value) => {
     setEditedProfile((prev) => ({
@@ -118,13 +162,27 @@ useEffect(() => {
       <div className="bg-[#0A2E5C] px-6 py-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl">
-              
-              <img
-                src={ currentProfile.avatar ||"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop"}
-                alt={initials}
-                className="w-full h-full rounded-full object-cover" /> 
-            
+            <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
+                
+                <img
+                    src={ imagePreview || currentProfile.avatar ||"https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop"}
+                    alt={initials}
+                    className="w-full h-full object-cover" /> 
+                
+                </div>
+                {isEditing && (
+                    <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
+                        <Camera className="w-4 h-4 text-[#0A2E5C]" />
+                        <input 
+                            type="file" 
+                            id="profile-upload" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleImageChange}
+                        />
+                    </label>
+                )}
             </div>
             <div>
               <h1 className="text-white text-2xl font-semibold capitalize">
@@ -223,10 +281,8 @@ useEffect(() => {
                     <input
                       type="email"
                       value={currentProfile.email||""}
-                      onChange={(e) =>
-                      handleFieldChange('email', e.target.value)
-                      }
-                      disabled={!isEditing}
+                      readOnly
+                      disabled={isEditing}
                       className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
 
                   </div>
@@ -313,23 +369,31 @@ useEffect(() => {
                    All booking
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {"stats.orders" }
+                    {customerBookings.length }
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-sm mb-1">
-                    Ongoing 
+                    pending bookings 
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {"stats.orderItems.toLocaleString()" }
+                    {customerBookings.filter((booking) => booking.status === 'pending').length}
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-sm mb-1">
-                    Completed 
+                    cancelled bookings 
                   </div>
                   <div className="text-[#0A2E5C] text-3xl font-bold">
-                    {"stats.savedItems"}
+                    {customerBookings.filter((booking) => booking.status === 'cancelled').length}
+                  </div>
+                </div>
+               <div>
+                  <div className="text-[#999fa8] text-sm mb-1">
+                    total spends 
+                  </div>
+                  <div className="text-[#0A2E5C] text-3xl font-bold">
+                    {customerBookings.reduce((totalAmount, tot) => totalAmount + tot.totalAmount, 0) }
                   </div>
                 </div>
               </div>
@@ -359,6 +423,7 @@ useEffect(() => {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>);
 
 };
