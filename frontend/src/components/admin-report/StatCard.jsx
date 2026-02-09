@@ -24,19 +24,19 @@ export const StatCard = ({
   variant,
 }) => {
   return (
-    <div className={`rounded-xl bg-white p-5 shadow-sm border border-gray-200 border-l-4 ${borderStyles[variant]}`}>
+    <div className={`rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200 border-l-4 ${borderStyles[variant]}`}>
       <div className="flex items-start justify-between">
-        <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-white ${variantStyles[variant]}`}>
-          <Icon className="h-6 w-6" />
+        <div className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl text-white ${variantStyles[variant]}`}>
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
         </div>
-        <span className={`text-sm font-medium ${changeType === "positive" ? "text-green-600" : "text-red-600"}`}>
+        <span className={`text-xs sm:text-sm font-medium ${changeType === "positive" ? "text-green-600" : "text-red-600"}`}>
           {changeType === "positive" ? "+" : ""}
           {change}
         </span>
       </div>
-      <div className="mt-4">
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <div className="mt-3 sm:mt-4">
+        <p className="text-xs sm:text-sm text-gray-500">{title}</p>
+        <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
         <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
       </div>
     </div>

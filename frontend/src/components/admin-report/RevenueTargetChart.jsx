@@ -9,12 +9,12 @@ import {
 } from "recharts";
 
 const data = [
-  { month: "Jan", actual: 0, target: 0 },
-  { month: "Feb", actual: 0, target: 0 },
-  { month: "Mar", actual: 0, target: 0 },
-  { month: "Apr", actual: 0, target: 0 },
-  { month: "May", actual: 0, target: 0 },
-  { month: "Jun", actual: 0, target: 0 },
+  { month: "Jan", actual: 450000, target: 500000 },
+  { month: "Feb", actual: 520000, target: 550000 },
+  { month: "Mar", actual: 580000, target: 600000 },
+  { month: "Apr", actual: 620000, target: 650000 },
+  { month: "May", actual: 710000, target: 700000 },
+  { month: "Jun", actual: 780000, target: 750000 },
 ];
 
 const formatValue = (value) => {
@@ -26,13 +26,13 @@ const formatValue = (value) => {
 
 export const RevenueTargetChart = () => {
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200">
+    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Revenue vs Target</h3>
-        <p className="text-sm text-gray-500">Actual revenue against targets</p>
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Revenue vs Target</h3>
+        <p className="text-xs sm:text-sm text-gray-500">Actual revenue against targets</p>
       </div>
-      <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+      <div className="h-[180px] sm:h-[220px]">
+        <ResponsiveContainer width="100%" height="100%" minHeight={180}>
           <LineChart data={data}>
             <defs>
               <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
