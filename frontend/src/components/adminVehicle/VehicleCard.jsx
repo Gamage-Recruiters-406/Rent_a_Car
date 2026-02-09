@@ -1,7 +1,7 @@
 // VehicleCard.jsx
 
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Calendar, Fuel, Settings, Eye, Trash2, Check, X } from 'lucide-react';
+import { User, MapPin, Calendar, Fuel, Settings, Eye, Trash2, Check, X, CheckCircle, XCircle } from 'lucide-react';
 
 const PLACEHOLDER = 'https://via.placeholder.com/400x300?text=Vehicle';
 
@@ -114,7 +114,17 @@ function VehicleSpecs({ year, fuelType, transmission }) {
   );
 }
 
-function VehiclePricing({ pricePerDay, pricePerKm }) {
+function VehiclePricing({ pricePerDay, pricePerKm, showSinglePrice = false }) {
+  if (showSinglePrice) {
+    return (
+      <div className="mb-4">
+        <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full font-semibold text-sm">
+          LKR {pricePerDay}/day
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex items-center gap-4 mb-4">
       <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold">
@@ -122,6 +132,33 @@ function VehiclePricing({ pricePerDay, pricePerKm }) {
       </div>
       <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold">
         LKR {pricePerKm}/km
+      </div>
+    </div>
+  );
+}
+
+function ApprovalBadge({ approvalDate }) {
+  return (
+    <div className="flex items-center gap-2 mb-4 text-green-600">
+      <CheckCircle className="w-5 h-5" />
+      <span className="text-sm font-medium">
+        Approved on {approvalDate}
+      </span>
+    </div>
+  );
+}
+
+function RejectionBadge({ rejectionReason }) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+      <div className="flex items-start gap-3">
+        <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-red-700">Rejection Reason:</p>
+          <p className="text-sm text-red-600 mt-1">
+            {rejectionReason || 'No reason provided'}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -139,11 +176,15 @@ function VehicleDetailsButton({ onDetails }) {
   );
 }
 
-export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) {
+export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView, status = null }) {
   if (!vehicle) return null;
 
   const handleDelete = () => onDelete?.(vehicle.id);
   const handleView = () => onView?.(vehicle);
+  
+  // Determine vehicle status
+  const isApproved = status === 'approved' || vehicle.status === 'approved';
+  const isRejected = status === 'rejected' || vehicle.status === 'rejected';
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all">
@@ -161,6 +202,14 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
             <VehicleActions onView={handleView} onDelete={handleDelete} />
           </div>
 
+          {isApproved && vehicle.submittedDate && (
+            <ApprovalBadge approvalDate={vehicle.submittedDate} />
+          )}
+
+          {isRejected && vehicle.rejectionReason && (
+            <RejectionBadge rejectionReason={vehicle.rejectionReason} />
+          )}
+
           <VehicleSpecs
             year={vehicle.year ?? ''}
             fuelType={vehicle.fuelType ?? ''}
@@ -170,13 +219,16 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
           <VehiclePricing
             pricePerDay={vehicle.pricePerDay ?? 0}
             pricePerKm={vehicle.pricePerKm ?? 0}
+            showSinglePrice={isApproved}
           />
 
-          <VehicleDetailsButton onDetails={handleView} />
+          {!isApproved && !isRejected && <VehicleDetailsButton onDetails={handleView} />}
 
-          <p className="text-sm text-gray-500 mt-3">
-            Submitted: {vehicle.submittedDate ?? '-'}
-          </p>
+          {!isApproved && !isRejected && (
+            <p className="text-sm text-gray-500 mt-3">
+              Submitted: {vehicle.submittedDate ?? '-'}
+            </p>
+          )}
         </div>
       </div>
     </div>
