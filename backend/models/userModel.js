@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         enum: ["verified" , "suspend" , "pending"]
     },
+    profilePicture: {
+        type: String,
+        default: null
+    },
     //email verification
     emailVerifyTokenHash: { 
         type: String 
