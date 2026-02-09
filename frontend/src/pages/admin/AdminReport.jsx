@@ -159,8 +159,8 @@ ${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
       <Header />
-      <div className="flex-1 overflow-auto bg-gray-50 p-12">
-        <div className="max-w-full space-y-4">
+      <div className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-6 md:p-8 lg:p-12 print:p-8 print:bg-white">
+        <div className="max-w-full space-y-4 md:space-y-6 print:space-y-6">
         
         {/* Loading State */}
         {loading && (
@@ -181,7 +181,7 @@ ${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
         {!loading && !error && (
           <>
             {/* Stats Row */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               <StatCard
                 title="Total Users"
                 value={userStats.totalUsers.toString()}
@@ -221,8 +221,8 @@ ${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
             </div>
 
             {/* User Growth + Fleet Status */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2">
                 <UserGrowthChart data={userChartData} />
               </div>
               <div>
@@ -231,33 +231,34 @@ ${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
             </div>
 
             {/* Booking Performance + Revenue Target */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <BookingPerformanceChart data={bookingChartData} />
               <RevenueTargetChart />
             </div>
 
             {/* Top Performers + Transactions */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-1">
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+              <div className="xl:col-span-1">
                 <TopPerformers data={topPerformers} />
               </div>
-              <div className="col-span-3">
+              <div className="xl:col-span-3">
                 <RecentTransactions />
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 print:hidden">
               <button 
                 onClick={handleDownloadReport}
-                className="flex items-center gap-2 px-4 py-2 bg-[#0D3778] hover:bg-[#0A2855] text-white rounded-lg font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#0D3778] hover:bg-[#0A2855] text-white rounded-lg font-medium text-sm sm:text-base"
               >
                 <Download className="h-4 w-4" />
-                Download Full Report
+                <span className="hidden sm:inline">Download Full Report</span>
+                <span className="sm:hidden">Download</span>
               </button>
               <button 
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-medium text-sm sm:text-base"
               >
                 <Printer className="h-4 w-4" />
                 Print

@@ -2,12 +2,12 @@ import { Star } from "lucide-react";
 
 export const TopPerformers = ({ data = [] }) => {
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200 h-full">
+    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200 h-full">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Top Performers</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Top Performers</h3>
         <p className="text-xs text-gray-500">Best rated vehicles</p>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {data.length > 0 ? (
           data.map((vehicle, index) => (
             <div key={vehicle._id || index} className="flex items-center justify-between">

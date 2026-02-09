@@ -26,20 +26,20 @@ export const FleetStatusChart = ({ data: apiData = {} }) => {
   };
 
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200 h-full">
+    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200 h-full">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Fleet Status</h3>
-        <p className="text-sm text-gray-500">Current vehicle availability</p>
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Fleet Status</h3>
+        <p className="text-xs sm:text-sm text-gray-500">Current vehicle availability</p>
       </div>
-      <div className="h-[160px] relative" style={{ outline: 'none' }}>
-        <ResponsiveContainer width="100%" height="100%" minHeight={160}>
+      <div className="h-[140px] sm:h-[160px] relative" style={{ outline: 'none' }}>
+        <ResponsiveContainer width="100%" height="100%" minHeight={140}>
           <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={50}
-              outerRadius={70}
+              innerRadius={40}
+              outerRadius={60}
               paddingAngle={2}
               dataKey="value"
               onMouseEnter={onPieEnter}
