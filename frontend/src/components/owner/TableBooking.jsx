@@ -1,7 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FileText, Calendar, Car, User, CreditCard } from "lucide-react";
 
 const BookingTable = ({ data = [], loading = false, onViewAction }) => {
+  useEffect(() => {
+    const vehicleIds = data.map(booking => ({
+      id: booking.vehicleId?._id,
+      title: booking.vehicleId?.title,
+      numberPlate: booking.vehicleId?.numberPlate
+    }));
+    console.log('Vehicle IDs:', vehicleIds);
+  }, [data]);
   const tableHeaders = [
     "Customer", "Vehicle No", "Vehicle Name", "Pickup date", 
     "Return date", "Total Price (LKR)", "Status", "Action",
