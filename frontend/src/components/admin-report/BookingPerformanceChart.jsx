@@ -9,19 +9,32 @@ import {
 } from "recharts";
 
 export const BookingPerformanceChart = ({ data = [] }) => {
+  // Convert month number to abbreviated name
+  const getMonthName = (monthStr) => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNum = parseInt(monthStr) - 1;
+    return monthNames[monthNum] || monthStr;
+  };
+
   // Transform data from backend format to chart format
   const chartData = data.length > 0 
     ? data.map(item => ({
-        month: item.month.substring(5), // Get "MM" from "YYYY-MM"
+        month: getMonthName(item.month.substring(5)), // Get "MM" from "YYYY-MM" and convert to name
         bookings: item.bookings
       }))
     : [
-        { month: "01", bookings: 0 },
-        { month: "02", bookings: 0 },
-        { month: "03", bookings: 0 },
-        { month: "04", bookings: 0 },
-        { month: "05", bookings: 0 },
-        { month: "06", bookings: 0 },
+        { month: "Jan", bookings: 0 },
+        { month: "Feb", bookings: 0 },
+        { month: "Mar", bookings: 0 },
+        { month: "Apr", bookings: 0 },
+        { month: "May", bookings: 0 },
+        { month: "Jun", bookings: 0 },
+        { month: "Jul", bookings: 0 },
+        { month: "Aug", bookings: 0 },
+        { month: "Sep", bookings: 0 },
+        { month: "Oct", bookings: 0 },
+        { month: "Nov", bookings: 0 },
+        { month: "Dec", bookings: 0 },
       ];
 
   return (
