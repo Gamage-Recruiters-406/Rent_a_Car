@@ -128,7 +128,7 @@ const BookingModal = ({ isOpen, onClose, data, refreshData, allBookings = [] }) 
 
           {/* Vehicle Details Section */}
           <section className="space-y-3">
-            <h4 className="text-[12px] sm:text-[14px] font-bold text-[#0D3778] uppercase tracking-wider border-b border-gray-100 pb-2">
+            <h4 className="text-[12px] sm:text-[14px] font-bold text-[#0D3778] uppercase tracking-wider pb-2">
               Vehicle Details
             </h4>
             <div className="flex justify-between items-start gap-4 py-1">
@@ -142,8 +142,7 @@ const BookingModal = ({ isOpen, onClose, data, refreshData, allBookings = [] }) 
                 <p className="font-semibold text-[#0D3778] text-[11px]">
                   Number Plate: {data.vehicleId?.numberPlate || 'N/A'}
                 </p>
-                
-                {/* Color එක වෙනුවට මේ ටික දාන්න */}
+            
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="text-[10px] font-semibold bg-[#0D3778]/5 text-[#0D3778] px-2 py-1 rounded-md border border-[#0D3778]/10">
                     {data.vehicleId?.transmission === 'automatic' ? 'Automatic' : 'Manual'}
@@ -159,18 +158,27 @@ const BookingModal = ({ isOpen, onClose, data, refreshData, allBookings = [] }) 
               </div>
 
               {/* Vehicle Photo */}
-              <div className="w-32 sm:w-36 shrink-0">
+              <div className="w-36 sm:w-40 shrink-0">
                 <img 
-                  src={data.vehicleId?.photos?.[0]?.url ? `${API_BASE_URL}/${data.vehicleId.photos[0].url}` : "https://via.placeholder.com/150"} 
-                  className="w-full h-24 object-cover rounded-2xl shadow-sm border border-gray-100" 
+                 
+                  src={
+                    data.vehicleId?.photos?.[0]?.url 
+                      ? `${API_BASE_URL}/${data.vehicleId.photos[0].url}` 
+                      : "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&q=80&w=300" 
+                  } 
+                  className="w-full h-auto object-cover rounded-2xl shadow-sm sm:-mt-6" 
                   alt="vehicle" 
+                  
+                  onError={(e) => {
+                      e.target.src = "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&q=80&w=300";
+                  }}
                 />
               </div>
             </div>
           </section>
 
           <hr className="border-gray-300 my-2 mb-6" />
-          
+
           {/* Documents Section */}
           <section className="space-y-3">
             <h4 className="text-[14px] font-bold text-[#0D3778] uppercase tracking-wider pb-2">Uploaded Documents</h4>
