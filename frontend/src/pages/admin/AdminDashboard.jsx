@@ -279,19 +279,28 @@ const BookingOverviewChart = ({ data = [] }) => {
 const MostRentedCars = ({ vehicles = [] }) => (
   <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
     <h3 className="text-lg font-semibold text-[#0D3778] mb-6">Most Rented Cars</h3>
-    <div className="space-y-4">
+    <div className="space-y-5">
       {vehicles.map((vehicle, index) => (
-        <div key={index} className="flex items-center gap-4 pb-4 border-b border-slate-100 last:border-b-0">
-          <img
-            src={vehicle.image || 'https://via.placeholder.com/60'}
-            alt={vehicle.title}
-            className="w-16 h-16 rounded object-cover shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <h4 className="text-base font-semibold text-slate-900">{vehicle.title}</h4>
-            <p className="text-sm text-slate-500">{vehicle.numberPlate}</p>
+        <div key={index} className="flex items-center justify-between pb-5 last:pb-0">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full flex-shrink-0 overflow-hidden bg-gray-100 border border-slate-200">
+                <img
+                  src={vehicle.image || 'https://via.placeholder.com/80'}
+                  alt={vehicle.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute -top-1 -left-1 bg-[#0D3778] text-white text-xs font-bold px-1.5 py-0.5 rounded">
+                #{index + 1}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-slate-900">{vehicle.title}</h4>
+              <p className="text-xs text-slate-500 mt-0.5">{vehicle.numberPlate}</p>
+            </div>
           </div>
-          <span className="text-base font-semibold text-[#0D3778] whitespace-nowrap">{vehicle.rentCount} Rents</span>
+          <span className="text-base font-bold text-[#0D3778] ml-4 whitespace-nowrap">{vehicle.rentCount} Rents</span>
         </div>
       ))}
     </div>
@@ -426,11 +435,13 @@ export default function AdminDashboard() {
       .slice(0, 4)
       .map(([vehicleId, count]) => {
         const vehicle = vehicles.find(v => v._id === vehicleId);
+        const photoUrl = vehicle?.photos?.[0]?.url;
+        const fullImageUrl = photoUrl ? `${baseUrl}${photoUrl}` : null;
         return {
           title: vehicle?.title || vehicle?.model || 'Unknown',
           numberPlate: vehicle?.numberPlate || 'N/A',
           rentCount: count,
-          image: vehicle?.photos?.[0]?.url || null,
+          image: fullImageUrl,
         };
       });
 
