@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Calendar,
-  User,
-  Phone,
-  Star,
-  X,
-  MessageSquare,
-} from 'lucide-react';
+import { Calendar, User, Phone, Star, X, MessageSquare } from 'lucide-react';
 import {
   getEnrichedBooking,
-  enrichBookingData
+  enrichBookingData,
 } from '../services/bookingHistoryService';
 
 const VehicleBookingModal = ({
@@ -30,14 +23,18 @@ const VehicleBookingModal = ({
     if (initialBooking) {
       const enrichExistingBooking = async () => {
         try {
-          const enriched = await enrichBookingData(initialBooking, API_BASE_URL, API_VERSION);
+          const enriched = await enrichBookingData(
+            initialBooking,
+            API_BASE_URL,
+            API_VERSION,
+          );
           setBooking(enriched);
         } catch (err) {
           console.error('Error enriching existing booking:', err);
           setBooking(initialBooking);
         }
       };
-      
+
       enrichExistingBooking();
       return;
     }
@@ -49,21 +46,38 @@ const VehicleBookingModal = ({
         setLoading(true);
         setError(null);
 
-        const enrichedBooking = await getEnrichedBooking(bookingId, API_BASE_URL, API_VERSION);
+        const enrichedBooking = await getEnrichedBooking(
+          bookingId,
+          API_BASE_URL,
+          API_VERSION,
+        );
         setBooking(enrichedBooking);
       } catch (err) {
         console.error('Error fetching booking details:', err);
-        
-        if (err.message?.includes('404') || err.message?.includes('not found')) {
+
+        if (
+          err.message?.includes('404') ||
+          err.message?.includes('not found')
+        ) {
           setError('Booking not found. It may have been deleted.');
-        } else if (err.message?.includes('403') || err.message?.includes('permission')) {
-          setError('Access denied. You do not have permission to view this booking.');
-        } else if (err.message?.includes('401') || err.message?.includes('sign in')) {
+        } else if (
+          err.message?.includes('403') ||
+          err.message?.includes('permission')
+        ) {
+          setError(
+            'Access denied. You do not have permission to view this booking.',
+          );
+        } else if (
+          err.message?.includes('401') ||
+          err.message?.includes('sign in')
+        ) {
           setError('Please sign in to view booking details.');
         } else if (err.message?.includes('Network error')) {
           setError('Network error. Please check your connection.');
         } else {
-          setError(err.message || 'Error loading booking details. Please try again.');
+          setError(
+            err.message || 'Error loading booking details. Please try again.',
+          );
         }
       } finally {
         setLoading(false);
@@ -131,10 +145,10 @@ const VehicleBookingModal = ({
 
   const getVehicleImage = (vehicle, index = 0) => {
     if (!vehicle?.photos?.[index] && !vehicle?.images?.[index]) return null;
-    
+
     const imageArray = vehicle.photos || vehicle.images || [];
     if (index >= imageArray.length) return null;
-    
+
     const firstImage = imageArray[index];
     return typeof firstImage === 'object' ? firstImage.url : firstImage;
   };
@@ -165,8 +179,12 @@ const VehicleBookingModal = ({
     const textSize = size === 'sm' ? 'text-sm' : 'text-2xl';
 
     return (
-      <div className={`flex flex-col sm:flex-row sm:items-center gap-2 ${size === 'sm' ? 'items-start' : 'items-center'}`}>
-        <span className={`${textSize} font-bold text-gray-900`}>{rating.toFixed(1)}</span>
+      <div
+        className={`flex flex-col sm:flex-row sm:items-center gap-2 ${size === 'sm' ? 'items-start' : 'items-center'}`}
+      >
+        <span className={`${textSize} font-bold text-gray-900`}>
+          {rating.toFixed(1)}
+        </span>
         <div className="flex items-center gap-0.5">
           {[...Array(5)].map((_, index) => (
             <Star
@@ -224,12 +242,16 @@ const VehicleBookingModal = ({
   }
 
   const statusStyle = getStatusStyles(booking.status);
-  const vehicleImages = booking.vehicleDetails.photos || booking.vehicleDetails.images || [];
+  const vehicleImages =
+    booking.vehicleDetails.photos || booking.vehicleDetails.images || [];
   const mainImage = getVehicleImage(booking.vehicleDetails, selectedImageIndex);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-black/50 transition-opacity"
+        onClick={onClose}
+      />
 
       <div className="flex min-h-full items-start sm:items-center justify-center p-0 sm:p-4">
         <div className="relative bg-white w-full max-w-2xl max-h-screen sm:max-h-[95vh] sm:rounded-2xl shadow-2xl overflow-hidden">
@@ -262,7 +284,7 @@ const VehicleBookingModal = ({
 
               {/* Vehicle Images */}
               <div className="space-y-3">
-                <div className="bg-gray-100 rounded-xl overflow-hidden h-48 sm:h-64">
+                <div className="bg-gray-100 rounded-xl overflow-hidden h-52 sm:h-72 md:h-80 lg:h-96">
                   {mainImage ? (
                     <img
                       src={`${API_BASE_URL}${mainImage}`}
@@ -272,7 +294,9 @@ const VehicleBookingModal = ({
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="text-gray-400 text-center">
-                        <p className="text-sm font-medium">No Image Available</p>
+                        <p className="text-sm font-medium">
+                          No Image Available
+                        </p>
                       </div>
                     </div>
                   )}
@@ -313,7 +337,9 @@ const VehicleBookingModal = ({
 
                 {/* Total Amount */}
                 <div className="text-right mb-3 sm:mb-4">
-                  <div className="text-xs sm:text-sm text-gray-600">Total Amount</div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    Total Amount
+                  </div>
                   <div className="text-2xl sm:text-3xl font-bold text-[#0D3778]">
                     {formatCurrency(booking.totalAmount)}
                   </div>
@@ -323,7 +349,8 @@ const VehicleBookingModal = ({
                 <div className="flex items-center gap-2 text-gray-700 bg-white rounded-lg px-3 sm:px-4 py-2 sm:py-3 border border-gray-200">
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
                   <span className="text-sm sm:text-base font-medium break-words">
-                    {formatDate(booking.startingDate)} - {formatDate(booking.endDate)}
+                    {formatDate(booking.startingDate)} -{' '}
+                    {formatDate(booking.endDate)}
                   </span>
                 </div>
               </div>
@@ -335,19 +362,40 @@ const VehicleBookingModal = ({
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 sm:gap-x-6 gap-y-2 sm:gap-y-3">
                   {[
-                    { label: 'Number Plate', value: booking.vehicleDetails.numberPlate },
-                    { label: 'Vehicle Type', value: booking.vehicleDetails.vehicleType },
-                    { label: 'Fuel Type', value: booking.vehicleDetails.fuelType },
-                    { label: 'Transmission', value: booking.vehicleDetails.transmission },
+                    {
+                      label: 'Number Plate',
+                      value: booking.vehicleDetails.numberPlate,
+                    },
+                    {
+                      label: 'Vehicle Type',
+                      value: booking.vehicleDetails.vehicleType,
+                    },
+                    {
+                      label: 'Fuel Type',
+                      value: booking.vehicleDetails.fuelType,
+                    },
+                    {
+                      label: 'Transmission',
+                      value: booking.vehicleDetails.transmission,
+                    },
                     { label: 'Year', value: booking.vehicleDetails.year },
-                    { label: 'Current KM', value: `${booking.vehicleDetails.km?.toLocaleString() || '0'} km` },
-                    { label: 'Price per KM', value: formatCurrency(booking.vehicleDetails.pricePerKm), colSpan: 'col-span-1 sm:col-span-2' },
+                    {
+                      label: 'Current KM',
+                      value: `${booking.vehicleDetails.km?.toLocaleString() || '0'} km`,
+                    },
+                    {
+                      label: 'Price per KM',
+                      value: formatCurrency(booking.vehicleDetails.pricePerKm),
+                      colSpan: 'col-span-1 sm:col-span-2',
+                    },
                   ].map((spec, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className={`flex justify-between ${spec.colSpan || ''}`}
                     >
-                      <span className="text-xs sm:text-sm text-gray-600">{spec.label}</span>
+                      <span className="text-xs sm:text-sm text-gray-600">
+                        {spec.label}
+                      </span>
                       <span className="text-xs sm:text-sm font-medium text-gray-900 text-right break-words max-w-[50%]">
                         {spec.value}
                       </span>
@@ -383,7 +431,7 @@ const VehicleBookingModal = ({
                 <h4 className="text-base font-bold text-gray-900 mb-3">
                   We'd love your feedback
                 </h4>
-                
+
                 <div className="mb-4">
                   <StarRating
                     rating={booking.vehicleDetails.rating}
