@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getVehicleById } from "../services/vehicleApi";
 
 import DropdownCard from "../components/vehicle/DropdownCard";
@@ -38,6 +38,7 @@ function formatMonthLabel(yyyyMm) {
 
 export default function VehicleDetailsPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [vehicle, setVehicle] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
@@ -385,7 +386,9 @@ export default function VehicleDetailsPage() {
             <div className="flex justify-stretch">
               <button
                 className="w-full h-[48px] rounded-xl bg-[#0d3778] text-white font-semibold text-[14px] hover:opacity-95"
-                onClick={() => alert("Book Now ")}
+                onClick={() =>
+                  navigate("/booking", { state: { vehicleId: id } })
+                }
               >
                 Book Now
               </button>
