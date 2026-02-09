@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
-import { Car } from 'lucide-react';
+import { Car, Eye, EyeOff } from 'lucide-react';
+import logo from '../../assets/Rent My Car.png';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -19,6 +20,8 @@ export function SignUpPage() {
     agreeTerms: false
   });
 
+  const [showPassword, setShowPassword] = useState(false); 
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
 
@@ -34,19 +37,10 @@ export function SignUpPage() {
     }
 
     try {
-      
-      let url;
-      if (formData.userType === 'owner') {
-        url = `${baseUrl}${apiVersion}/authUser/OwnerRegistration`;
-      } else {
-        url = `${baseUrl}${apiVersion}/authUser/register`;
-      }
-      
+      const url = `${baseUrl}${apiVersion}/authUser/register`;           
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json',},      
         body: JSON.stringify(formData),
       });
 
@@ -76,7 +70,7 @@ export function SignUpPage() {
       <div className="w-full lg:w-[40%] bg-[#0A2E5C] p-8 lg:p-12 flex flex-col justify-between text-white min-h-[300px] lg:min-h-screen relative overflow-hidden">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <Car className="w-8 h-8" />
+           <img src={logo} alt="Rent My Car" className="w-12 h-12 object-contain" />
           <span className="text-xl font-medium tracking-wide">Rent My Car</span>
         </div>
 
@@ -200,20 +194,29 @@ export function SignUpPage() {
 
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="Create a password"
-                  required
-                  minLength={8}
-                  className="w-full px-4 py-3 bg-[#F3F4F6] border-transparent focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-lg transition-all outline-none text-gray-900 placeholder-gray-500"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      password: e.target.value
-                    })
-                  } />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-3 bg-[#F3F4F6] border-transparent focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-lg transition-all outline-none text-gray-900 placeholder-gray-500 pr-10"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        password: e.target.value
+                      })
+                    } />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
 
                 <p className="text-xs text-gray-500">
                   Must be at least 8 characters
@@ -227,19 +230,28 @@ export function SignUpPage() {
 
                   Confirm Password
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm your password"
-                  required
-                  className="w-full px-4 py-3 bg-[#F3F4F6] border-transparent focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-lg transition-all outline-none text-gray-900 placeholder-gray-500"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      confirmPassword: e.target.value
-                    })
-                  } />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    required
+                    className="w-full px-4 py-3 bg-[#F3F4F6] border-transparent focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 rounded-lg transition-all outline-none text-gray-900 placeholder-gray-500 pr-10"
+                    value={formData.confirmPassword}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value
+                      })
+                    } />
+                   <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
 
               </div>
             </div>
@@ -334,7 +346,7 @@ export function SignUpPage() {
             <p className="text-center text-sm text-gray-500">
               If have an already account?{' '}
               <Link
-                to="/signin"
+                to="/login"
                 className="font-medium text-[#0A2E5C] hover:text-blue-800">
 
                 Sign In
