@@ -113,7 +113,7 @@ export default function AdminSettingsPage() {
   }, [navigate]);
 
   useEffect(() => {
-    const rootEl = scrollRef.current;
+    const rootEl = mainRef.current;
     const sections = navItems
       .map((n) => document.getElementById(n.target))
       .filter(Boolean);
@@ -161,9 +161,11 @@ export default function AdminSettingsPage() {
     toast.success("Updated");
   };
 
+  const mainRef = useRef(null);
+
   return (
     <Layout>
-      <div ref={scrollRef} className="h-screen bg-slate-50 overflow-y-auto">
+      <div className="h-screen bg-slate-50 flex flex-col">
         {/* Top Header */}
         <div className="sticky top-0 z-20 bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -183,287 +185,291 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Layout */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-          {/* Sidebar */}
-          <aside className="lg:sticky lg:top-24 h-fit">
-            {/* Mobile Tabs */}
-            <div className="lg:hidden bg-white border rounded-2xl p-2 overflow-x-auto">
-              <div className="flex gap-2 w-max">
-                {navItems.map((it) => (
-                  <button
-                    key={it.key}
-                    onClick={() => scrollTo(it.key, it.target)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold transition
+        <div className="flex-1 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 h-full">
+            {/* Sidebar */}
+            <aside className="self-start">
+              {/* Mobile Tabs */}
+              <div className="lg:hidden bg-white border rounded-2xl p-2 overflow-x-auto">
+                <div className="flex gap-2 w-max">
+                  {navItems.map((it) => (
+                    <button
+                      key={it.key}
+                      onClick={() => scrollTo(it.key, it.target)}
+                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold transition
                     ${
                       active === it.key
                         ? "bg-[#0D3778] text-white"
                         : "bg-slate-100 text-[#0d3778]"
                     }`}
-                  >
-                    {it.label}
-                  </button>
-                ))}
+                    >
+                      {it.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:block bg-white border rounded-2xl p-3 max-h-[calc(100vh-7rem)] overflow-y-auto">
-              {navItems.map((it) => (
-                <button
-                  key={it.key}
-                  onClick={() => scrollTo(it.key, it.target)}
-                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition
+              {/* Desktop Sidebar */}
+              <div className="hidden lg:block bg-white border rounded-2xl p-3 max-h-[calc(100vh-7rem)] overflow-y-auto">
+                {navItems.map((it) => (
+                  <button
+                    key={it.key}
+                    onClick={() => scrollTo(it.key, it.target)}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold transition
                   ${
                     active === it.key
                       ? "bg-[#0D3778]/10 text-[#0D3778]"
                       : "hover:bg-slate-100 text-slate-700"
                   }`}
-                >
-                  {it.label}
-                </button>
-              ))}
-            </div>
-          </aside>
-
-          {/* Content */}
-          <main className="space-y-6">
-            {/* General Settings */}
-            <section
-              id="sec-general"
-              className="bg-white border rounded-2xl p-5 scroll-mt-28"
-            >
-              <h2 className="text-lg font-bold text-[#0d3778]">
-                General Settings
-              </h2>
-
-              <div className="mt-4 border rounded-2xl p-4">
-                <h3 className="text-sm font-bold text-[#0D3778]">
-                  Platform Information
-                </h3>
-
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ReadOnlyRow
-                    label="Support Email"
-                    value={form.platformInfo.supportEmail}
-                  />
-                  <ReadOnlyRow
-                    label="Contact Number"
-                    value={form.platformInfo.contactNumber}
-                  />
-                  <ReadOnlyRow
-                    label="Platform Status"
-                    value={form.platformInfo.platformStatus}
-                  />
-                  <ReadOnlyRow
-                    label="Default Currency"
-                    value={form.platformInfo.defaultCurrency}
-                  />
-                </div>
+                  >
+                    {it.label}
+                  </button>
+                ))}
               </div>
+            </aside>
 
-              <div className="mt-4 border rounded-2xl p-4">
-                <h3 className="text-sm font-bold text-[#0D3778]">
-                  Operating Hours
-                </h3>
+            {/* Content */}
+            <main ref={mainRef} className="space-y-6 overflow-y-auto pr-2">
+              {/* General Settings */}
+              <section
+                id="sec-general"
+                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+              >
+                <h2 className="text-lg font-bold text-[#0d3778]">
+                  General Settings
+                </h2>
 
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ReadOnlyRow
-                    label="Support Hours"
-                    value={form.operatingHours.supportHours}
-                  />
-                  <ReadOnlyRow
-                    label="Timezone"
-                    value={form.operatingHours.timezone}
-                  />
-                </div>
-              </div>
-            </section>
+                <div className="mt-4 border rounded-2xl p-4">
+                  <h3 className="text-sm font-bold text-[#0D3778]">
+                    Platform Information
+                  </h3>
 
-            {/* Notification Settings */}
-            <section
-              id="sec-notifications"
-              className="bg-white border rounded-2xl p-5 scroll-mt-28"
-            >
-              <h2 className="text-lg font-bold text-[#0d3778]">
-                Notification Settings
-              </h2>
-
-              {loadingUser && (
-                <p className="text-sm text-slate-500 mt-2">Loading...</p>
-              )}
-
-              <div className="mt-4 grid grid-cols-1 gap-3">
-                <ToggleRow
-                  title="Email Notifications"
-                  subtitle="Receive notifications via email"
-                  checked={form.notifications.email}
-                  onChange={async (v) => {
-                    setForm((p) => ({
-                      ...p,
-                      notifications: { ...p.notifications, email: v },
-                    }));
-
-                    try {
-                      await updateEmailNotify(v);
-                      toast.success("Email notification updated");
-                    } catch (err) {
-                      setForm((p) => ({
-                        ...p,
-                        notifications: { ...p.notifications, email: !v },
-                      }));
-
-                      if (err?.response?.status === 401) {
-                        toast.error("Session expired. Login again.");
-                        navigate("/login");
-                      } else {
-                        toast.error(
-                          err?.response?.data?.message ||
-                            err?.message ||
-                            "Update failed",
-                        );
-                      }
-                    }
-                  }}
-                />
-              </div>
-            </section>
-
-            {/* Security */}
-            <section
-              id="sec-security"
-              className="bg-white border rounded-2xl p-5 scroll-mt-28"
-            >
-              <h2 className="text-lg font-bold text-[#0d3778]">
-                Security and Privacy
-              </h2>
-
-              <div className="mt-4 border rounded-2xl p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ReadOnlyRow
-                    label="Two-Factor Authentication"
-                    value={
-                      form.security.twoFactorEnabled ? "Enabled" : "Disabled"
-                    }
-                  />
-                  <ReadOnlyRow
-                    label="Session Timeout (minutes)"
-                    value={String(form.security.sessionTimeoutMinutes)}
-                  />
-                  <ReadOnlyRow
-                    label="Minimum Password Length"
-                    value={String(form.security.minPasswordLength)}
-                  />
-                  <ReadOnlyRow
-                    label="Data Retention Period (days)"
-                    value={String(form.security.dataRetentionDays)}
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Terms */}
-            <section
-              id="sec-terms"
-              className="bg-white border rounded-2xl p-5 scroll-mt-28"
-            >
-              <h2 className="text-lg font-bold text-[#0d3778]">
-                Terms and Policies
-              </h2>
-
-              <div className="mt-4 border rounded-2xl p-4">
-                <ReadOnlyRow
-                  label="Terms of Service"
-                  value={`By using this rental car platform, you agree to provide accurate information and use vehicles responsibly. Vehicles must be returned on time and in good condition.
-
-                The platform connects customers and vehicle owners and is not responsible for accidents, damages, or violations during rentals. Breaking rules may lead to account suspension.`}
-                />
-              </div>
-
-              <div className="mt-4 border rounded-2xl p-4">
-                <ReadOnlyRow
-                  label="Privacy Policy"
-                  value={`We collect basic information like name, contact details, and booking data to manage rentals and payments.
-
-                Your data is kept secure and used only for platform services, safety, and support. We do not sell your personal information.`}
-                />
-              </div>
-
-              <div className="mt-4 border rounded-2xl p-4">
-                <ReadOnlyRow
-                  label="Cancellation Policy"
-                  value={`Cancel 24+ hours before pickup → Full refund
-                        Cancel 12–24 hours before → 50% refund
-                        Cancel under 12 hours → No refund`}
-                />
-              </div>
-            </section>
-
-            {/* Localization */}
-            <section
-              id="sec-localization"
-              className="bg-white border rounded-2xl p-5 scroll-mt-28"
-            >
-              <h2 className="text-lg font-bold text-slate-900">Localization</h2>
-
-              <div className="mt-4 border rounded-2xl p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ReadOnlyRow
-                    label="Default Language"
-                    value={form.localization.defaultLanguage}
-                  />
-                  <ReadOnlyRow
-                    label="Default Currency"
-                    value={form.localization.defaultCurrency}
-                  />
-                  <ReadOnlyRow
-                    label="Date Format"
-                    value={form.localization.dateFormat}
-                  />
-                  <ReadOnlyRow
-                    label="Distance Unit"
-                    value={form.localization.distanceUnit}
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* Payment */}
-            <section
-              id="sec-payment"
-              className="bg-white border rounded-2xl p-5 scroll-mt-28"
-            >
-              <h2 className="text-lg font-bold text-[#0d3778]">
-                Payment Settings
-              </h2>
-
-              <div className="mt-4 border rounded-2xl p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ReadOnlyRow
-                    label="Platform Commission Rate (%)"
-                    value={String(form.payment.platformCommissionRate)}
-                  />
-                  <ReadOnlyRow
-                    label="Minimum Booking Amount (LKR)"
-                    value={String(form.payment.minBookingAmount)}
-                  />
-                </div>
-
-                <div className="mt-5">
-                  <p className="text-sm font-bold text-[#0D3778] mb-3">
-                    Accepted Payment Methods
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {form.payment.acceptedPaymentMethods.map((method) => (
-                      <ReadOnlyChip key={method} text={method} />
-                    ))}
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyRow
+                      label="Support Email"
+                      value={form.platformInfo.supportEmail}
+                    />
+                    <ReadOnlyRow
+                      label="Contact Number"
+                      value={form.platformInfo.contactNumber}
+                    />
+                    <ReadOnlyRow
+                      label="Platform Status"
+                      value={form.platformInfo.platformStatus}
+                    />
+                    <ReadOnlyRow
+                      label="Default Currency"
+                      value={form.platformInfo.defaultCurrency}
+                    />
                   </div>
                 </div>
-              </div>
-            </section>
 
-            <div className="h-10" />
-          </main>
+                <div className="mt-4 border rounded-2xl p-4">
+                  <h3 className="text-sm font-bold text-[#0D3778]">
+                    Operating Hours
+                  </h3>
+
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyRow
+                      label="Support Hours"
+                      value={form.operatingHours.supportHours}
+                    />
+                    <ReadOnlyRow
+                      label="Timezone"
+                      value={form.operatingHours.timezone}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Notification Settings */}
+              <section
+                id="sec-notifications"
+                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+              >
+                <h2 className="text-lg font-bold text-[#0d3778]">
+                  Notification Settings
+                </h2>
+
+                {loadingUser && (
+                  <p className="text-sm text-slate-500 mt-2">Loading...</p>
+                )}
+
+                <div className="mt-4 grid grid-cols-1 gap-3">
+                  <ToggleRow
+                    title="Email Notifications"
+                    subtitle="Receive notifications via email"
+                    checked={form.notifications.email}
+                    onChange={async (v) => {
+                      setForm((p) => ({
+                        ...p,
+                        notifications: { ...p.notifications, email: v },
+                      }));
+
+                      try {
+                        await updateEmailNotify(v);
+                        toast.success("Email notification updated");
+                      } catch (err) {
+                        setForm((p) => ({
+                          ...p,
+                          notifications: { ...p.notifications, email: !v },
+                        }));
+
+                        if (err?.response?.status === 401) {
+                          toast.error("Session expired. Login again.");
+                          navigate("/login");
+                        } else {
+                          toast.error(
+                            err?.response?.data?.message ||
+                              err?.message ||
+                              "Update failed",
+                          );
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </section>
+
+              {/* Security */}
+              <section
+                id="sec-security"
+                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+              >
+                <h2 className="text-lg font-bold text-[#0d3778]">
+                  Security and Privacy
+                </h2>
+
+                <div className="mt-4 border rounded-2xl p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyRow
+                      label="Two-Factor Authentication"
+                      value={
+                        form.security.twoFactorEnabled ? "Enabled" : "Disabled"
+                      }
+                    />
+                    <ReadOnlyRow
+                      label="Session Timeout (minutes)"
+                      value={String(form.security.sessionTimeoutMinutes)}
+                    />
+                    <ReadOnlyRow
+                      label="Minimum Password Length"
+                      value={String(form.security.minPasswordLength)}
+                    />
+                    <ReadOnlyRow
+                      label="Data Retention Period (days)"
+                      value={String(form.security.dataRetentionDays)}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Terms */}
+              <section
+                id="sec-terms"
+                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+              >
+                <h2 className="text-lg font-bold text-[#0d3778]">
+                  Terms and Policies
+                </h2>
+
+                <div className="mt-4 border rounded-2xl p-4">
+                  <ReadOnlyRow
+                    label="Terms of Service"
+                    value={`By using this rental car platform, you agree to provide accurate information and use vehicles responsibly. Vehicles must be returned on time and in good condition.
+
+                The platform connects customers and vehicle owners and is not responsible for accidents, damages, or violations during rentals. Breaking rules may lead to account suspension.`}
+                  />
+                </div>
+
+                <div className="mt-4 border rounded-2xl p-4">
+                  <ReadOnlyRow
+                    label="Privacy Policy"
+                    value={`We collect basic information like name, contact details, and booking data to manage rentals and payments.
+
+                Your data is kept secure and used only for platform services, safety, and support. We do not sell your personal information.`}
+                  />
+                </div>
+
+                <div className="mt-4 border rounded-2xl p-4">
+                  <ReadOnlyRow
+                    label="Cancellation Policy"
+                    value={`Cancel 24+ hours before pickup → Full refund
+                        Cancel 12–24 hours before → 50% refund
+                        Cancel under 12 hours → No refund`}
+                  />
+                </div>
+              </section>
+
+              {/* Localization */}
+              <section
+                id="sec-localization"
+                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+              >
+                <h2 className="text-lg font-bold text-slate-900">
+                  Localization
+                </h2>
+
+                <div className="mt-4 border rounded-2xl p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyRow
+                      label="Default Language"
+                      value={form.localization.defaultLanguage}
+                    />
+                    <ReadOnlyRow
+                      label="Default Currency"
+                      value={form.localization.defaultCurrency}
+                    />
+                    <ReadOnlyRow
+                      label="Date Format"
+                      value={form.localization.dateFormat}
+                    />
+                    <ReadOnlyRow
+                      label="Distance Unit"
+                      value={form.localization.distanceUnit}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Payment */}
+              <section
+                id="sec-payment"
+                className="bg-white border rounded-2xl p-5 scroll-mt-28"
+              >
+                <h2 className="text-lg font-bold text-[#0d3778]">
+                  Payment Settings
+                </h2>
+
+                <div className="mt-4 border rounded-2xl p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ReadOnlyRow
+                      label="Platform Commission Rate (%)"
+                      value={String(form.payment.platformCommissionRate)}
+                    />
+                    <ReadOnlyRow
+                      label="Minimum Booking Amount (LKR)"
+                      value={String(form.payment.minBookingAmount)}
+                    />
+                  </div>
+
+                  <div className="mt-5">
+                    <p className="text-sm font-bold text-[#0D3778] mb-3">
+                      Accepted Payment Methods
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {form.payment.acceptedPaymentMethods.map((method) => (
+                        <ReadOnlyChip key={method} text={method} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className="h-10" />
+            </main>
+          </div>
         </div>
       </div>
     </Layout>
