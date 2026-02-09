@@ -18,7 +18,7 @@ import {
   fetchAndEnrichCustomerBookings,
   formatBookingDate,
   formatCurrency,
-  getVehicleImageUrl
+  getVehicleImageUrl,
 } from '../services/bookingHistoryService';
 
 const BookingHistory = () => {
@@ -42,7 +42,7 @@ const BookingHistory = () => {
     const getUserDetails = async () => {
       try {
         const userResponse = await fetchUserDetails(API_BASE_URL, API_VERSION);
-        
+
         if (userResponse.success && userResponse.user) {
           setUser(userResponse.user);
           setRole(userResponse.user.role ?? 1);
@@ -88,9 +88,9 @@ const BookingHistory = () => {
       }
 
       const bookingsResponse = await fetchAndEnrichCustomerBookings(
-        userId, 
-        API_BASE_URL, 
-        API_VERSION
+        userId,
+        API_BASE_URL,
+        API_VERSION,
       );
 
       if (bookingsResponse.success) {
@@ -114,14 +114,18 @@ const BookingHistory = () => {
     } else if (user === null) {
       setLoading(false);
     }
-  }, [isAuthenticated, user, fetchBookings]); // Added fetchBookings as dependency
+  }, [isAuthenticated, user, fetchBookings]); //  fetchBookings as dependency
 
   const getStatusStyles = (status) => {
     switch (status.toLowerCase()) {
       case 'pending':
         return { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock };
       case 'approved':
-        return { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle };
+        return {
+          bg: 'bg-green-100',
+          text: 'text-green-800',
+          icon: CheckCircle,
+        };
       case 'rejected':
         return { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle };
       default:
@@ -133,7 +137,7 @@ const BookingHistory = () => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
-  // Star rating component 
+  // Star rating component
   const StarRating = ({ rating = 0, size = 'sm', showNumber = true }) => {
     const starSize = size === 'sm' ? 'h-3 w-3' : 'h-4 w-4';
 
@@ -185,7 +189,7 @@ const BookingHistory = () => {
 
   // handleViewDetails to open modal
   const handleViewDetails = (bookingId) => {
-    const booking = bookings.find(b => b._id === bookingId);
+    const booking = bookings.find((b) => b._id === bookingId);
     setSelectedBookingId(bookingId);
     setSelectedBooking(booking);
     setShowModal(true);
@@ -198,49 +202,28 @@ const BookingHistory = () => {
     setSelectedBooking(null);
   };
 
-  const renderVehicleImage = (booking) => {
-    const imageUrl = getVehicleImageUrl(booking.vehicleDetails, 0);
-
-    if (imageUrl) {
-      return (
-        <div className="w-full md:w-40 h-40 md:h-auto relative flex-shrink-0">
-          <img
-            src={imageUrl}
-            alt={booking.vehicleDetails.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full md:w-40 h-40 md:h-auto relative flex-shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-        <div className="text-gray-400 text-center p-4">
-          <Car className="h-10 w-10 mx-auto mb-2" />
-          <p className="text-sm font-medium">No Image</p>
-        </div>
-      </div>
-    );
-  };
-
-  // Mobile booking card 
+  // Mobile booking card
   const MobileBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
-    const imageUrl = getVehicleImageUrl(booking.vehicleDetails, 0, API_BASE_URL);
+    const imageUrl = getVehicleImageUrl(
+      booking.vehicleDetails,
+      0,
+      API_BASE_URL,
+    );
 
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        {/* Image and Status */}
-        <div className="relative">
+        {/* Image and Status  */}
+        <div className="relative h-48">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={booking.vehicleDetails.title}
-              className="w-full h-36 object-cover"
+              className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-36 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
               <Car className="h-12 w-12 text-gray-400" />
             </div>
           )}
@@ -283,13 +266,11 @@ const BookingHistory = () => {
             <h3 className="font-bold text-base text-[#0D3778]">
               {booking.vehicleDetails.title}
             </h3>
-            <p className="text-gray-500 text-xs mt-0.5">
-              Booking ID: <span className="font-medium">{booking._id}</span>
-            </p>
           </div>
 
-          {/* Date Info - Owner below pickup */}
-          <div className="space-y-1.5 mb-3">
+          {/* Date Info */}
+          <div className="space-y-2 mb-3">
+            {/* Pickup Date */}
             <div className="flex items-start gap-2">
               <Calendar className="h-3.5 w-3.5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
@@ -297,19 +278,21 @@ const BookingHistory = () => {
                 <p className="text-xs font-medium truncate">
                   {formatBookingDate(booking.startingDate)}
                 </p>
-                {/* Owner information */}
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <User className="h-3 w-3 text-purple-600 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Owner</p>
-                    <p className="text-xs font-medium truncate">
-                      {booking.ownerName}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
 
+            {/* Owner Information  */}
+            <div className="flex items-start gap-2">
+              <User className="h-3.5 w-3.5 text-purple-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500">Owner</p>
+                <p className="text-xs font-medium truncate">
+                  {booking.ownerName}
+                </p>
+              </div>
+            </div>
+
+            {/* Drop-off Date */}
             <div className="flex items-start gap-2">
               <Calendar className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
@@ -338,44 +321,61 @@ const BookingHistory = () => {
     );
   };
 
-  // Desktop booking card 
+  // Desktop booking card
   const DesktopBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
 
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
-        <div className="flex">
-          {renderVehicleImage(booking)}
-
-          <div className="flex-1 p-4">
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-lg font-bold text-[#0D3778]">
+        <div className="flex flex-col md:flex-row h-auto md:h-64">
+          {/* Image container */}
+          <div className="w-full md:w-80 h-48 md:h-full relative flex-shrink-0">
+            {getVehicleImageUrl(booking.vehicleDetails, 0, API_BASE_URL) ? (
+              <img
+                src={getVehicleImageUrl(
+                  booking.vehicleDetails,
+                  0,
+                  API_BASE_URL,
+                )}
+                alt={booking.vehicleDetails.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                <div className="text-gray-400 text-center p-4">
+                  <Car className="h-10 w-10 mx-auto mb-2" />
+                  <p className="text-sm font-medium">No Image</p>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Content area */}
+          <div className="flex-1 p-4 flex flex-col">
+            <div className="flex flex-col sm:flex-row justify-between items-start mb-2">
+              <div className="flex-1 min-w-0 pr-3 mb-2 sm:mb-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold text-[#0D3778] truncate">
                     {booking.vehicleDetails.title}
                   </h3>
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.text}`}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.text} flex-shrink-0 self-start sm:self-center`}
                   >
                     <StatusIcon className="h-3 w-3" />
                     {getStatusText(booking.status)}
                   </span>
                 </div>
-                <p className="text-gray-500 text-sm">
-                  Booking ID: <span className="font-medium">{booking._id}</span>
-                </p>
               </div>
-              {/* Stars and Price */}
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-1 mb-1">
+
+              <div className="text-right flex-shrink-0">
+                <div className="flex items-center justify-end gap-1 mb-0.5">
                   <StarRating
                     rating={booking.vehicleDetails.rating}
                     size="sm"
                     showNumber={true}
                   />
                 </div>
-                <div className="text-lg font-bold text-[#0D3778]">
+                <div className="text-xl font-bold text-[#0D3778]">
                   {formatCurrency(booking.totalAmount, 'LKR')}
                 </div>
                 <p className="text-xs text-gray-500">
@@ -384,11 +384,11 @@ const BookingHistory = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {/* Pickup Date with Owner */}
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 flex-grow">
+              {/* Pickup Date */}
+              <div className="space-y-4">
                 <div className="flex items-start gap-2">
-                  <div className="bg-blue-50 p-1.5 rounded-lg">
+                  <div className="bg-blue-50 p-1.5 rounded-lg flex-shrink-0">
                     <Calendar className="h-4 w-4 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -396,23 +396,26 @@ const BookingHistory = () => {
                     <p className="text-sm font-medium truncate">
                       {formatBookingDate(booking.startingDate)}
                     </p>
-                    {/* Owner information */}
-                    <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-100">
-                      <User className="h-3.5 w-3.5 text-purple-600 flex-shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-xs text-gray-500">Owner</p>
-                        <p className="text-xs font-medium truncate">
-                          {booking.ownerName}
-                        </p>
-                      </div>
-                    </div>
+                  </div>
+                </div>
+
+                {/* Owner information  */}
+                <div className="flex items-start gap-2">
+                  <div className="bg-purple-50 p-1.5 rounded-lg flex-shrink-0">
+                    <User className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500">Owner</p>
+                    <p className="text-sm font-medium truncate">
+                      {booking.ownerName}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Drop-off Date */}
               <div className="flex items-start gap-2">
-                <div className="bg-green-50 p-1.5 rounded-lg">
+                <div className="bg-green-50 p-1.5 rounded-lg flex-shrink-0">
                   <Calendar className="h-4 w-4 text-green-600" />
                 </div>
                 <div className="min-w-0">
@@ -424,7 +427,7 @@ const BookingHistory = () => {
               </div>
             </div>
 
-            <div className="flex justify-end items-center pt-3 border-t border-gray-100">
+            <div className="flex justify-end items-center pt-3 border-t border-gray-100 mt-auto">
               <button
                 onClick={() => handleViewDetails(booking._id)}
                 className="px-4 py-2 bg-[#0D3778] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
@@ -557,9 +560,9 @@ const BookingHistory = () => {
                   </a>
                 </div>
               ) : (
-                <div className="space-y-3 md:space-y-4">
+                <div className="space-y-4">
                   {bookings.map((booking) => (
-                    <div key={booking._id}>
+                    <div key={booking._id} className="booking-card">
                       {/* Mobile View */}
                       <div className="md:hidden">
                         <MobileBookingCard booking={booking} />

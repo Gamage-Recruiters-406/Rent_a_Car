@@ -25,13 +25,13 @@ export const BookingPerformanceChart = ({ data = [] }) => {
       ];
 
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200">
+    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Booking Performance</h3>
-        <p className="text-sm text-gray-500">Monthly booking volume</p>
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Booking Performance</h3>
+        <p className="text-xs sm:text-sm text-gray-500">Monthly booking volume</p>
       </div>
-      <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+      <div className="h-[180px] sm:h-[220px]">
+        <ResponsiveContainer width="100%" height="100%" minHeight={180}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
             <XAxis
