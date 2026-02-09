@@ -61,7 +61,7 @@ export const OwnerProfileEdit = ({
             const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/${userId}`, {
                 withCredentials: true
             });
-            const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/owner/${userId}`, {
+            const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/get-my-all`, {
                 withCredentials: true
             });
 
@@ -99,7 +99,8 @@ export const OwnerProfileEdit = ({
                 // set vehicle count
                 if(response4.data){
                     const vehicleData = response4.data;
-                    setVehiclecount(vehicleData);
+                    const pendingcount = vehicleData.vehicles.filter(v => v.status === "Pending").length;
+                    setVehiclecount(pendingcount);
                     console.log(vehicleData);
                     
                 }
@@ -393,10 +394,10 @@ export const OwnerProfileEdit = ({
                 </div>
                 <div>
                    <div className="text-[#999fa8] text-xs mb-1">
-                    Total Bookings pendingcount
+                    Total pendingcount
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {vehiclecount.pendingcount}
+                    {vehiclecount}
                   </div>
                 </div>
                {/* <div>
