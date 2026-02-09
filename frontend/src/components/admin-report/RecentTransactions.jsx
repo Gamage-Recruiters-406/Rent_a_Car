@@ -1,4 +1,5 @@
 import { Search, Filter, Eye } from "lucide-react";
+import Swal from 'sweetalert2';
 
 const transactions = [
   {
@@ -53,7 +54,92 @@ const avatarColors = [
 
 export const RecentTransactions = () => {
   const handleViewTransaction = (transaction) => {
-    alert(`Transaction Details:\n\nID: ${transaction.id}\nCustomer: ${transaction.customer}\nVehicle: ${transaction.vehicle}\nRevenue: ${transaction.revenue}\nStatus: ${transaction.status}`);
+    Swal.fire({
+      html: `
+        <div style="text-align: left; font-family: 'Inter', system-ui, -apple-system, sans-serif;">
+          <!-- Header with ID Badge -->
+          <div style="text-align: center; margin-bottom: 18px;">
+            <h2 style="color: #1e293b; font-size: 20px; font-weight: 700; margin: 0 0 10px 0;">Transaction Details</h2>
+            <div style="display: inline-block; background: linear-gradient(135deg, #0D3778 0%, #1e5bb8 100%); color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(13, 55, 120, 0.25);">
+              ${transaction.id}
+            </div>
+          </div>
+
+          <!-- Compact Details Grid -->
+          <div style="display: grid; gap: 10px; margin-top: 16px;">
+            <!-- Customer -->
+            <div style="background: #f1f5f9; padding: 12px 14px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+              <div style="background: #0D3778; color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">👤</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Customer</div>
+                <div style="font-size: 14px; color: #1e293b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${transaction.customer}</div>
+              </div>
+            </div>
+
+            <!-- Vehicle -->
+            <div style="background: #f1f5f9; padding: 12px 14px; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+              <div style="background: #6366f1; color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">🚗</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Vehicle</div>
+                <div style="font-size: 14px; color: #1e293b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${transaction.vehicle}</div>
+              </div>
+            </div>
+
+            <!-- Revenue & Status Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <!-- Revenue -->
+              <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 12px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 10px; color: #065f46; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">💰 Revenue</div>
+                <div style="font-size: 15px; color: #059669; font-weight: 700; white-space: nowrap;">${transaction.revenue}</div>
+              </div>
+
+              <!-- Status -->
+              <div style="background: ${transaction.status === 'Completed' ? '#d1fae5' : '#fef3c7'}; padding: 12px; border-radius: 8px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size: 10px; color: ${transaction.status === 'Completed' ? '#065f46' : '#78350f'}; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Status</div>
+                <div style="background: ${transaction.status === 'Completed' ? '#10b981' : '#f59e0b'}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; display: inline-block; margin: 0 auto;">
+                  ${transaction.status === 'Completed' ? '✓' : '⏳'} ${transaction.status}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      showCloseButton: false,
+      showConfirmButton: true,
+      confirmButtonText: 'Close',
+      confirmButtonColor: '#0D3778',
+      width: '380px',
+      padding: '24px',
+      background: '#ffffff',
+      backdrop: 'rgba(0, 0, 0, 0.4)',
+      customClass: {
+        popup: 'swal-compact-popup',
+        confirmButton: 'swal-compact-button',
+      },
+      didOpen: () => {
+        // Add custom styles
+        const style = document.createElement('style');
+        style.textContent = `
+          .swal-compact-popup {
+            border-radius: 16px !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          }
+          .swal-compact-button {
+            border-radius: 8px !important;
+            padding: 10px 24px !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: all 0.2s !important;
+          }
+          .swal-compact-button:hover {
+            background: #0a2d5f !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(13, 55, 120, 0.3) !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    });
   };
 
   return (
