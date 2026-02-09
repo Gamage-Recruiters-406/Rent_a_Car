@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X } from 'lucide-react';
+import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Footer from '../../layouts/Footer';
 
@@ -120,6 +120,23 @@ export const OwnerProfileEdit = ({
     fetchUserData();
   }, []);
 
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+
+    useEffect(() => {
+        if (activeProfile.profilePicture) {
+            setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
+        }
+    }, [activeProfile.profilePicture]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
   const initials = activeProfile.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || '';
 
   const handleEdit = () => {
@@ -128,15 +145,34 @@ export const OwnerProfileEdit = ({
   };
   const handleSave = async () => {
     try {
-        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, editedProfile, {
-            withCredentials: true
+        const formData = new FormData();
+        Object.keys(editedProfile).forEach(key => {
+            formData.append(key, editedProfile[key]);
+        });
+        
+        if (imageFile) {
+            formData.append("profilePicture", imageFile);
+        }
+
+        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, formData, {
+            withCredentials: true,
+            headers: { "Content-Type": "multipart/form-data" },
         });
 
         if (response.data && response.data.success) {
             toast.success(response.data.message || "Profile updated successfully");
-            setActiveProfile(editedProfile);
-            onSave?.(editedProfile);
+            
+            // Refresh profile data to get new image URL
+             const updatedProfile = { ...editedProfile };
+             if(response.data.user && response.data.user.profilePicture){
+                 updatedProfile.profilePicture = response.data.user.profilePicture;
+                 setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
+             }
+
+            setActiveProfile(updatedProfile);
+            onSave?.(updatedProfile);
             setIsEditing(false);
+            setImageFile(null);
         } else {
             toast.error(response.data?.message || "Failed to update profile");
         }
@@ -148,6 +184,8 @@ export const OwnerProfileEdit = ({
   const handleCancel = () => {
     setEditedProfile(activeProfile);
     setIsEditing(false);
+    setImageFile(null);
+    setImagePreview(activeProfile.profilePicture ? `${baseUrl}/${activeProfile.profilePicture}` : null);
   };
   const handleFieldChange = (field, value) => {
     setEditedProfile((prev) => ({
@@ -185,14 +223,34 @@ export const OwnerProfileEdit = ({
       <div className="bg-[#0A2E5C] px-6 py-8">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl">
-              {activeProfile.avatar ?
-              <img
-                src={activeProfile.avatar}
-                alt={activeProfile.name}
-                className="w-full h-full rounded-full object-cover" /> :
-              initials
-              }
+            <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
+                {imagePreview ? (
+                     <img
+                     src={imagePreview}
+                     alt={activeProfile.name}
+                     className="w-full h-full object-cover" />
+                ) : (
+                    activeProfile.avatar ?
+                    <img
+                        src={activeProfile.avatar}
+                        alt={activeProfile.name}
+                        className="w-full h-full object-cover" /> :
+                    initials
+                )}
+                </div>
+                {isEditing && (
+                    <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
+                        <Camera className="w-4 h-4 text-[#0A2E5C]" />
+                        <input 
+                            type="file" 
+                            id="profile-upload" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleImageChange}
+                        />
+                    </label>
+                )}
             </div>
             <div>
               <h1 className="text-white text-2xl font-semibold">
@@ -219,7 +277,6 @@ export const OwnerProfileEdit = ({
                   Save Changes
                 </button>
               </> :
-
             <button
               onClick={handleEdit}
               className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
@@ -290,6 +347,7 @@ export const OwnerProfileEdit = ({
                     <input
                       type="email"
                       value={currentProfile.email || ''}
+                      readOnly
                       disabled={isEditing}
                       className={`w-full text-[#0A2E5C]] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
                   </div>
