@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Car, Hourglass, CheckCircle2, XCircle } from 'lucide-react';
 import StatsCard from './../../components/owner/StatusCard';
@@ -29,32 +29,8 @@ const Dashboard = () => {
     { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-status-rejected' },
   ]);
 
-  // Modal eka open karanna function eka
-  const handleViewDetails = (booking) => {
-    setSelectedBooking(booking);
-    setIsModalOpen(true);
-  };
-
-  const filteredBookings = bookings.filter(booking => {
-    const matchesTab = filterStatus === 'All' || 
-      booking.status?.toLowerCase() === filterStatus.toLowerCase();
-    
-    const searchString = searchTerm.toLowerCase();
-    const matchesSearch = 
-      searchTerm === '' || 
-      (booking.customerId?.first_name?.toLowerCase().includes(searchString)) ||
-      (booking.customerId?.last_name?.toLowerCase().includes(searchString)) ||
-      (booking.vehicleId?.title?.toLowerCase().includes(searchString)) || 
-      (booking.vehicleId?.numberPlate?.toLowerCase().includes(searchString));
-
-    return matchesTab && matchesSearch;
-  });
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  // Data fetch karana function eka (useCallback use kare modal eka refresh weddi performance optimize karanna)
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -79,6 +55,7 @@ const Dashboard = () => {
         const fetchedData = response.data.data || [];
         setBookings(fetchedData);
         
+        // Stats update kirima
         setStats([
           { label: 'Total Requests', val: fetchedData.length.toString(), icon: <Car size={40} />, color: 'border-brand-dark' },
           { label: 'Pending Requests', val: fetchedData.filter(b => b.status === 'pending').length.toString(), icon: <Hourglass size={40} />, color: 'border-status-pending text-status-pending' },
@@ -91,7 +68,32 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Modal eka open karanna function eka
+  const handleViewDetails = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
   };
+
+  const filteredBookings = bookings.filter(booking => {
+    const matchesTab = filterStatus === 'All' || 
+      booking.status?.toLowerCase() === filterStatus.toLowerCase();
+    
+    const searchString = searchTerm.toLowerCase();
+    const matchesSearch = 
+      searchTerm === '' || 
+      (booking.customerId?.first_name?.toLowerCase().includes(searchString)) ||
+      (booking.customerId?.last_name?.toLowerCase().includes(searchString)) ||
+      (booking.vehicleId?.title?.toLowerCase().includes(searchString)) || 
+      (booking.vehicleId?.numberPlate?.toLowerCase().includes(searchString));
+
+    return matchesTab && matchesSearch;
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
@@ -106,7 +108,7 @@ const Dashboard = () => {
               {stats.map((s, i) => <StatsCard key={i} {...s} />)}
             </div>
 
-            <div className="rounded-xl overflow-hidden">
+            <div className="rounded-xl overflow-hidden bg-white shadow-sm">
               <TableHeader 
                 activeFilter={filterStatus} 
                 onFilterChange={setFilterStatus}
@@ -115,12 +117,14 @@ const Dashboard = () => {
               />
               
               {loading ? (
-                <div className="p-20 text-center text-gray-400 animate-pulse">Loading bookings...</div>
+                <div className="p-20 text-center text-gray-400 animate-pulse font-['Nunito']">
+                  Loading bookings...
+                </div>
               ) : (
                 <BookingTable 
                   data={filteredBookings} 
                   refreshData={fetchDashboardData} 
-                  onViewAction={handleViewDetails} // Prop eka pass karanawa
+                  onViewAction={handleViewDetails} 
                 />
               )}
             </div>
@@ -129,12 +133,13 @@ const Dashboard = () => {
       </div>
       <Footer />
 
-      {/* Modal eka render kirima */}
+      {/* Booking Modal - Connection ekata refreshData prop eka pass karala thiyenne */}
       <BookingModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         data={selectedBooking} 
-        refreshData={fetchDashboardData}
+        allBookings={bookings}
+        refreshData={fetchDashboardData} // Meka wagabalaganna
       />
     </div>
   );
