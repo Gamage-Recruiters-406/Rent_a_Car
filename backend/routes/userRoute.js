@@ -1,4 +1,5 @@
 import express from 'express';
+import { uploadVehiclePhotos } from '../middlewares/uploadMiddleware.js';
 import {registerUser,
     SignIn,
     verifyEmail,
@@ -51,7 +52,7 @@ router.get("/getAllCustomersCount", getAllCustomers);
 router.get("/getAllOwners", requiredSignIn, isAdmin, getAllOwners);
 
 //update user details
-router.put("/Updateuser", requiredSignIn, Updateuser);
+router.put("/Updateuser", requiredSignIn, uploadVehiclePhotos.single("profilePicture"), Updateuser);
 //get signin user details
 router.get("/getUserDetails",requiredSignIn, getUserDetails);
 //get user details by id, only admin can get other user details
