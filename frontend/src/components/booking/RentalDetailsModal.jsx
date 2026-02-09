@@ -211,27 +211,6 @@ const RentalDetailsModal = ({
             </div>
           )}
 
-          {/* Additional Information */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-blue-900 mb-3">
-              ADDITIONAL INFORMATION
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Booking ID:</span>
-                <p className="font-medium">{rental.bookingId || rental.id}</p>
-              </div>
-              <div>
-                <span className="text-gray-500">Pickup Location:</span>
-                <p className="font-medium">{rental.pickupLocation || "N/A"}</p>
-              </div>
-              <div>
-                <span className="text-gray-500">Return Location:</span>
-                <p className="font-medium">{rental.returnLocation || "N/A"}</p>
-              </div>
-            </div>
-          </div>
-
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             <button

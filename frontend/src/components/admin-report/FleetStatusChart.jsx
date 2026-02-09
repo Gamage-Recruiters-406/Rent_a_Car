@@ -1,14 +1,24 @@
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { useState } from "react";
 
-const data = [
-  { name: "Available", value: 0, color: "#0D3778" },
-  { name: "Booked", value: 0, color: "#00C950" },
-  { name: "Maintenance", value: 0, color: "#FF6900" },
-];
+export const FleetStatusChart = ({ data: apiData = {} }) => {
+  // Transform data from backend API to chart format
+  const { totals = {}, percentages = {} } = apiData;
+  
+  const data = [
+    { 
+      name: "Available", 
+      value: totals.availableVehicles || 0, 
+      color: "#0D3778" 
+    },
+    { 
+      name: "Booked", 
+      value: totals.bookedVehicles || 0, 
+      color: "#00C950" 
+    },
+  ];
 
-export const FleetStatusChart = () => {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const total = totals.totalVehicles || 0;
   const [activeIndex, setActiveIndex] = useState(1); // Default to "Booked" index
 
   const onPieEnter = (_, index) => {
@@ -16,20 +26,20 @@ export const FleetStatusChart = () => {
   };
 
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200 h-full">
+    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200 h-full">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Fleet Status</h3>
-        <p className="text-sm text-gray-500">Current vehicle availability</p>
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Fleet Status</h3>
+        <p className="text-xs sm:text-sm text-gray-500">Current vehicle availability</p>
       </div>
-      <div className="h-[160px] relative" style={{ outline: 'none' }}>
-        <ResponsiveContainer width="100%" height="100%" minHeight={160}>
+      <div className="h-[140px] sm:h-[160px] relative" style={{ outline: 'none' }}>
+        <ResponsiveContainer width="100%" height="100%" minHeight={140}>
           <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={50}
-              outerRadius={70}
+              innerRadius={40}
+              outerRadius={60}
               paddingAngle={2}
               dataKey="value"
               onMouseEnter={onPieEnter}

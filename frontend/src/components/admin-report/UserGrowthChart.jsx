@@ -8,26 +8,33 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { month: "Jan", totalUsers: 0, newUsers: 0 },
-  { month: "Feb", totalUsers: 0, newUsers: 0 },
-  { month: "Mar", totalUsers: 0, newUsers: 0 },
-  { month: "Apr", totalUsers: 0, newUsers: 0 },
-  { month: "May", totalUsers: 0, newUsers: 0 },
-  { month: "Jun", totalUsers: 0, newUsers: 0 },
-];
+export const UserGrowthChart = ({ data = [] }) => {
+  // Transform data from backend format to chart format
+  const chartData = data.length > 0 
+    ? data.map(item => ({
+        month: item.month.substring(5), // Get "MM" from "YYYY-MM"
+        totalUsers: item.totalUsers,
+        newUsers: item.newUsers
+      }))
+    : [
+        { month: "01", totalUsers: 0, newUsers: 0 },
+        { month: "02", totalUsers: 0, newUsers: 0 },
+        { month: "03", totalUsers: 0, newUsers: 0 },
+        { month: "04", totalUsers: 0, newUsers: 0 },
+        { month: "05", totalUsers: 0, newUsers: 0 },
+        { month: "06", totalUsers: 0, newUsers: 0 },
+      ];
 
-export const UserGrowthChart = () => {
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200">
-      <div className="flex items-start justify-between mb-4">
+    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">User Growth Trend</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">User Growth Trend</h3>
+          <p className="text-xs sm:text-sm text-gray-500">
             Monthly active users and new registrations
           </p>
         </div>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm flex-wrap">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#0D3778]" />
             <span className="text-gray-500">Total Users</span>
@@ -38,9 +45,9 @@ export const UserGrowthChart = () => {
           </div>
         </div>
       </div>
-      <div className="h-[250px]">
-        <ResponsiveContainer width="100%" height="100%" minHeight={250}>
-          <AreaChart data={data}>
+      <div className="h-[200px] sm:h-[250px]">
+        <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#0D3778" stopOpacity={0.3} />

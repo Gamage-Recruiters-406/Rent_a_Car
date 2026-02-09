@@ -8,25 +8,31 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { month: "Jan", bookings: 0 },
-  { month: "Feb", bookings: 0 },
-  { month: "Mar", bookings: 0 },
-  { month: "Apr", bookings: 0 },
-  { month: "May", bookings: 0 },
-  { month: "Jun", bookings: 0 },
-];
+export const BookingPerformanceChart = ({ data = [] }) => {
+  // Transform data from backend format to chart format
+  const chartData = data.length > 0 
+    ? data.map(item => ({
+        month: item.month.substring(5), // Get "MM" from "YYYY-MM"
+        bookings: item.bookings
+      }))
+    : [
+        { month: "01", bookings: 0 },
+        { month: "02", bookings: 0 },
+        { month: "03", bookings: 0 },
+        { month: "04", bookings: 0 },
+        { month: "05", bookings: 0 },
+        { month: "06", bookings: 0 },
+      ];
 
-export const BookingPerformanceChart = () => {
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200">
+    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Booking Performance</h3>
-        <p className="text-sm text-gray-500">Monthly booking volume</p>
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900">Booking Performance</h3>
+        <p className="text-xs sm:text-sm text-gray-500">Monthly booking volume</p>
       </div>
-      <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%" minHeight={220}>
-          <BarChart data={data}>
+      <div className="h-[180px] sm:h-[220px]">
+        <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+          <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
             <XAxis
               dataKey="month"

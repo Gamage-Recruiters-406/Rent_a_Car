@@ -17,7 +17,11 @@ import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
 import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
 
 import CustomerReviews from "./pages/CustomerRating";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
+import AddVehicle from "./pages/AddVehicle.jsx";
+import MyVehicleOwner from "./pages/MyVehicleOwner.jsx";
+
 import BookingHistory from "./pages/BookingHistory.jsx";
 import MyReviews from "./pages/MyReviews";
 import RentalHistoryPage from "./pages/RentalHistoryPage";
@@ -34,6 +38,15 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        
+        {/* owner */}
+        <Route path="/rental-history" element={<RentalHistoryPage />} />
+        <Route path="/owner/vehicles" element={<MyVehicleOwner />} />
+        <Route path="/owner/vehicles/new" element={<AddVehicle />} />
+
+        {/* public */}
+        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+        <Route path="/contact" element={<ContactPage/>} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/" element={<Homepage />} />
         {/*<Route path="/" element={<CustomerVehicleListPage />} />*/}
@@ -41,7 +54,10 @@ function App() {
         <Route path="/rent-vehicle" element={<RentVehiclePage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/customer-reviews" element={<CustomerReviews />} />
+        {/*<Route path="/admin/booking" element={<AdminBooking />} />*/}
+        <Route path="/add-vehicle" element={<AddVehicle />} />
         <Route path="/admin/booking" element={<AdminBooking />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/report" element={<AdminReport />} />
         <Route path="/booking-history" element={<BookingHistory />} />
         <Route path="/my-reviews" element={<MyReviews />} />

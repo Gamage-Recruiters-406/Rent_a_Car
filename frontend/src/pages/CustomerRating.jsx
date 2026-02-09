@@ -33,16 +33,20 @@ export default function CustomerReviews() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const {vehicleName, vehicleImage } = location.state || {};
+  const {vehicleId, vehicleName, vehicleImage } = location.state || {};
 
-  const vehicleId = "696f19b58b0b00033e2af308"; // needs to set the Id recieve dynamicaly
+  console.log("VehicleId:", vehicleId);
+  console.log("VehicleName:", vehicleName);
+  console.log("VehicleImage:", vehicleImage);
+
+  //const vehicleId = "696f19b58b0b00033e2af308"; // needs to set the Id recieve dynamicaly
   const AUTO_SLIDE_DELAY = 4000; // 4 seconds
   const sliderRef = useRef(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const API_VERSION = import.meta.env.VITE_API_VERSION;
 
-  console.log("Vehicle ID: ",vehicleId);
+  // console.log("Vehicle ID: ",vehicleId);
 
   const fetchReviewsByVehicleId = async () =>{
     try {
@@ -103,11 +107,11 @@ export default function CustomerReviews() {
     }
   }, [vehicleId]);
 
-  // useEffect(() => {
-  //   if (!vehicleId) {
-  //     navigate("/customer-reviews");
-  //   }
-  // }, [vehicleId, navigate]);
+  useEffect(() => {
+    if (!vehicleId) {
+      navigate("/booking-history");
+    }
+  }, [vehicleId, navigate]);
 
   
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
@@ -257,7 +261,7 @@ export default function CustomerReviews() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         {/* Car Image */}
         <img
-          src={vehicleImage || "https://images.unsplash.com/photo-1503376780353-7e6692767b70"}
+          src={`${API_BASE_URL}${vehicleImage}`}
           alt={vehicleName || "Vehicle"}
           className="rounded-lg shadow"
         />
@@ -367,7 +371,7 @@ export default function CustomerReviews() {
       ) : (
         <div className="max-w-2xl mx-auto mt-10 bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-lg shadow-sm text-center space-y-2">
           <p className="text-center text-yellow-800 font-medium text-lg">
-            {"You've already reviewed this vehicle." || reviewReason}
+            {reviewReason || "You've already reviewed this vehicle."}
           </p>
           <button
             onClick={() => navigate("/my-reviews")}
