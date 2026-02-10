@@ -362,7 +362,7 @@ export const getAllOwners = async (req, res) => {
 export const Updateuser = async(req, res) => {
   try {
     const id = req.user.userid;
-    const {first_name, last_name, contactNumber} = req.body;
+    const {first_name, last_name, contactNumber, location, bio} = req.body;
     const user = await User.findById(id);
 
     if(!user){
@@ -376,6 +376,8 @@ export const Updateuser = async(req, res) => {
     if(first_name !== undefined) updateUser.first_name = first_name;
     if(last_name !== undefined) updateUser.last_name = last_name;
     if(contactNumber !== undefined) updateUser.contactNumber = contactNumber;
+    if(location !== undefined) updateUser.location = location;
+    if(bio !== undefined) updateUser.bio = bio;
 
     // Profile picture update
     if (req.file && req._uploadTempDir) {
