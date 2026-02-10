@@ -7,8 +7,6 @@ import { BookingPerformanceChart } from "../../components/admin-report/BookingPe
 import { RevenueTargetChart } from "../../components/admin-report/RevenueTargetChart";
 import { TopPerformers } from "../../components/admin-report/TopPerformers";
 import { RecentTransactions } from "../../components/admin-report/RecentTransactions";
-import Header from "../../layouts/Header";
-import Footer from "../../layouts/Footer";
 import { 
   getUserReportStats, 
   getVehicleReportStats, 
@@ -18,6 +16,7 @@ import {
   getMonthlyBookingChart,
   getBestPerformanceVehicles
 } from "../../services/adminReportApi";
+import Layout from "../../layouts/Layout";
 
 const AdminReport = () => {
   const [userStats, setUserStats] = useState({ totalUsers: 0, thisMonthUsers: 0, percentage: 0 });
@@ -157,8 +156,8 @@ ${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
   };
 
   return (
+    <Layout>
     <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
-      <Header />
       <div className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-6 md:p-8 lg:p-12 print:p-8 print:bg-white">
         <div className="max-w-full space-y-4 md:space-y-6 print:space-y-6">
         
@@ -268,8 +267,8 @@ ${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
         )}
       </div>
     </div>
-    <Footer />
     </div>
+    </Layout>
   );
 };
 
