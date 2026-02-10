@@ -41,6 +41,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    location:{
+        type: String,
+        default: null
+    },
+    bio: {
+        type: String,
+        default: null
+    },
     //email verification
     emailVerifyTokenHash: { 
         type: String 
