@@ -15,6 +15,7 @@ import vehicleRoutes from "./routes/vehicleRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminReportRoutes from "./routes/adminRoutes.js";
+import paymentRoutes from "./routes/paymentRoute.js";
 
 
 //configure environment
@@ -46,6 +47,7 @@ app.use("/api/v1/vehicle", vehicleRoutes);
 app.use("/api/v1/notification",notificationRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/adminReports",adminReportRoutes);
+app.use("/api/v1/payment", paymentRoutes);
 
 
 app.get("/", (req, res) => {
