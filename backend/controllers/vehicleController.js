@@ -42,13 +42,13 @@ export const createVehicleListing = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, km, pricePerKm, address, lat, lng } = req.body;
+    const { title, description, numberPlate, model, vehicleType, seats, year, fuelType, transmission, pricePerDay, km, pricePerKm, address, lat, lng } = req.body;
 
-    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || km === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
+    if (!title || !numberPlate || !model || !vehicleType || seats === undefined || !year || !fuelType || !transmission || pricePerDay === undefined || km === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
-        message: "Required: title, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, lat, lng",
+        message: "Required: title, numberPlate, model, vehicleType, seats, year, fuelType, transmission, pricePerDay, pricePerKm, lat, lng",
       });
     }
 
@@ -81,6 +81,15 @@ export const createVehicleListing = async (req, res) => {
       });
     }
 
+    const seatsNum = Number(seats);
+    if (Number.isNaN(seatsNum) || seatsNum < 1) {
+      if (tempDir) removeDirSafe(tempDir);
+      return res.status(400).json({
+        success: false,
+        message: "seats must be a valid number greater than 0.",
+      });
+    }
+
     // 1) Create vehicle first WITHOUT photos (so we can get _id)
     const vehicle = await Vehicle.create({
       ownerId,
@@ -89,6 +98,7 @@ export const createVehicleListing = async (req, res) => {
       numberPlate: numberPlate.trim(),
       model: model.trim(),
       vehicleType,
+      seats: seatsNum,
       year: Number(year),
       fuelType,
       transmission,
@@ -331,6 +341,7 @@ export const updateVehicleListing = async (req,res) => {
       numberPlate,
       model,
       vehicleType,
+      seats,
       year,
       fuelType,
       transmission,
@@ -386,6 +397,15 @@ export const updateVehicleListing = async (req,res) => {
         return res.status(400).json({ success: false, message: "pricePerKm must be a valid non-negative number." });
       }
       vehicle.pricePerKm = ppk;
+    }
+
+    if (seats !== undefined) {
+      const seatsNum = Number(seats);
+      if (Number.isNaN(seatsNum) || seatsNum < 1) {
+        if (tempDir) removeDirSafe(tempDir);
+        return res.status(400).json({ success: false, message: "seats must be a valid number greater than 0." });
+      }
+      vehicle.seats = seatsNum;
     }
 
     const latProvided = lat !== undefined && lat !== "";
@@ -517,7 +537,7 @@ export const updateVehicleStatus = async (req,res) => {
     try {
       await notifyVehicle({
         vehicleId: vehicle._id,
-        status: vehicle.status
+        type: status === "Approved" ? "approved" : "rejected",
       });
     } catch (err) {
       console.error("Vehicle status notification error:", err.message);
@@ -617,3 +637,6 @@ export const getApprovedVehicleCount = async (req, res) => {
     });
   }
 };
+
+
+

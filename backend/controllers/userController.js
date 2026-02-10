@@ -3,7 +3,9 @@ import { comparePassword, passwordHash} from "../helpers/authHelper.js";
 import JWT from 'jsonwebtoken';
 import crypto from "crypto";
 import { sendVerifyEmail, suspendOwner, sendOtpEmail } from "../helpers/mailer.js";
-import {isStrongPassword } from "../helpers/validator.js"
+import {isStrongPassword } from "../helpers/validator.js";
+import fs from "fs";
+import path from "path";
 
 //register as a normal user
 export const registerUser = async (req, res) => {
@@ -374,6 +376,36 @@ export const Updateuser = async(req, res) => {
     if(first_name !== undefined) updateUser.first_name = first_name;
     if(last_name !== undefined) updateUser.last_name = last_name;
     if(contactNumber !== undefined) updateUser.contactNumber = contactNumber;
+
+    // Profile picture update
+    if (req.file && req._uploadTempDir) {
+      const userId = String(req.user.userid);
+
+      const profileRoot = path.join(process.cwd(), "uploads", "profile");
+      const userProfileDir = path.join(profileRoot, userId);
+
+      fs.mkdirSync(userProfileDir, { recursive: true });
+
+      const tempFilePath = path.join(req._uploadTempDir, req.file.filename);
+
+      const finalFileName = `profile${path.extname(req.file.filename)}`;
+      const finalPath = path.join(userProfileDir, finalFileName);
+
+      // delete old profile picture if exists
+      if (user.profilePicture) {
+        const oldPath = path.join(process.cwd(), user.profilePicture);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+
+      // move file from temp → permanent
+      if (!fs.existsSync(tempFilePath)) {
+        console.error("Temp file not found:", tempFilePath);
+      } else {
+        fs.renameSync(tempFilePath, finalPath);
+      }
+
+      updateUser.profilePicture = `uploads/profile/${userId}/${finalFileName}`;
+    }
 
     const update = await User.findByIdAndUpdate(
       id, 
@@ -755,3 +787,6 @@ export const ResetPassword = async(req, res) => {
     })
   }
 }
+
+
+

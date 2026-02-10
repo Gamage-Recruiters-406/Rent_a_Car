@@ -687,7 +687,9 @@ export const getCustomerBookings = async (req, res) => {
             filter.endDate = { $gte: now };
         }
 
-        const bookings = await Booking.find(filter).sort({ startingDate: -1 });
+        const bookings = await Booking.find(filter)
+            .populate("ownerId", "first_name last_name contactNumber")
+            .sort({ startingDate: -1 });
 
         return res.status(200).json({
             success: true,
@@ -720,7 +722,7 @@ export const getOwnerBookings = async (req, res) => {
         if (status) filter.status = status;
 
         const bookings = await Booking.find(filter)
-            .populate("customerId", "first_name last_name email")
+            .populate("customerId", "first_name last_name email contactNumber")
             .populate("vehicleId")
             .sort({ startingDate: -1 });
 
@@ -786,3 +788,5 @@ export const getOwnerEarnings = async (req, res) => {
         });
     }
 };
+
+

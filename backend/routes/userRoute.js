@@ -1,4 +1,5 @@
 import express from 'express';
+import { uploadVehiclePhotos } from '../middlewares/uploadMiddleware.js';
 import {registerUser,
     SignIn,
     verifyEmail,
@@ -16,7 +17,7 @@ import {registerUser,
     AdminDeleteAccount,
     otp,
     verifyResetOtp,
-    ResetPassword
+    ResetPassword,
 } from "../controllers/userController.js"
 
 import { requiredSignIn, isOwner, isAdmin } from '../middlewares/authMiddleware.js';
@@ -46,11 +47,12 @@ router.patch("/ResetPassword",ResetPassword); //reset password
 router.get("/getAllUsers",requiredSignIn, isAdmin, getAllUsers);
 //get customers
 router.get("/getAllCustomers", requiredSignIn, isAdmin, getAllCustomers);
+router.get("/getAllCustomersCount", getAllCustomers);
 //get all vehicle owners
 router.get("/getAllOwners", requiredSignIn, isAdmin, getAllOwners);
 
 //update user details
-router.put("/Updateuser", requiredSignIn, Updateuser);
+router.put("/Updateuser", requiredSignIn, uploadVehiclePhotos.single("profilePicture"), Updateuser);
 //get signin user details
 router.get("/getUserDetails",requiredSignIn, getUserDetails);
 //get user details by id, only admin can get other user details
@@ -64,6 +66,9 @@ router.patch("/emailNotify",requiredSignIn, emailNotify)
 router.delete("/deleteAccount", requiredSignIn, deleteAccount);
 //admin remove owner or user
 router.delete("/adminRemoveAccount/:id", requiredSignIn, isAdmin, AdminDeleteAccount);
+
+
+
 
 
 export default router;
