@@ -23,7 +23,7 @@ const paymentSchema = new mongoose.Schema({
     },
     amount:{
         amount:{
-            trype: Number,
+            type: Number,
             min: 0,
             required: true
         },
@@ -42,7 +42,7 @@ const paymentSchema = new mongoose.Schema({
             required: true,
         }
     },
-    date: {
+    paymentDate: {
         type: Date,
         required: true
     },
@@ -54,6 +54,6 @@ const paymentSchema = new mongoose.Schema({
         default: "pending"
     }
 
-})
+},{timestamps: true});
 
 export default mongoose.model("Payment",paymentSchema);
