@@ -9,7 +9,8 @@ import { createVehicleListing,
         updateVehicleStatus, 
         getAllVehicleListings,
         getAllAvailableVehicles,
-        getApprovedVehicleCount
+        getApprovedVehicleCount,
+        getTopBookedVehicles
        } from '../controllers/vehicleController.js';
 
 const router = express.Router();
@@ -33,6 +34,11 @@ router.get("/admin/get-all", requiredSignIn, isAdmin, getAllVehicleListings);
 router.get("/get-all", requiredSignIn, getAllAvailableVehicles);
 // Get count of approved vehicles - CUSTOMER
 router.get("/vehicle-count", getApprovedVehicleCount);
+// Get top booked vehicles - CUSTOMER
+router.get("/top-booked", getTopBookedVehicles);
+
+
+
 
 
 

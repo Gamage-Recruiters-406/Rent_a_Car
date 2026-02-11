@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import Vehicle from "../models/Vehicle.js";
+import Booking from "../models/Booking.js";
 import { request } from "http";
 import {
   notifyAdminNewVehicle,
@@ -640,3 +641,55 @@ export const getApprovedVehicleCount = async (req, res) => {
 
 
 
+// GET 4 MOST BOOKED VEHICLES (Ascending Order)
+export const getTopBookedVehicles = async (req, res) => {
+  try {
+    const vehicles = await Booking.aggregate([
+      { $match: { status: "approved" } }, // Only count approved bookings
+
+      // Group by vehicleId and count bookings
+      {
+        $group: {
+          _id: "$vehicleId",
+          bookingCount: { $sum: 1 },
+        },
+      },
+
+      { $sort: { bookingCount: -1 } }, // Sort by bookingCount descending (most booked first)
+      { $limit: 4 }, // Take only first 4
+
+      // Join with Vehicle collection
+      {
+        $lookup: {
+          from: "vehicles",
+          localField: "_id",
+          foreignField: "_id",
+          as: "vehicle",
+        },
+      },
+
+      { $unwind: "$vehicle" }, // Flatten the vehicle array
+
+      { $match: { "vehicle.status": "Approved" } }, // Only return approved vehicles
+
+      {
+        $project: {
+          bookingCount: 1,
+          vehicle: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      count: vehicles.length,
+      vehicles,
+    });
+  } catch (error) {
+    console.log("GET TOP BOOKED VEHICLES ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
