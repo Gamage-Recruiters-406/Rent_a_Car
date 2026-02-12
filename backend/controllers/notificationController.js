@@ -16,6 +16,19 @@ const canSendEmail = async (userId) => {
   };
 };
 
+// Helper: send notification to all admins
+const notifyAdmins = async ({ title, description, type }) => {
+  const admins = await User.find({ role: 3 }); // role 3 = admin
+  const adminNotifications = admins.map(admin => ({
+    title,
+    description,
+    type,
+    userId: admin._id,
+    isRead: false
+  }));
+  await Notification.insertMany(adminNotifications);
+};
+
   //Create notification and send email for booking approval/rejection
 export const notifyBooking = async ({ type, bookingId }) => {
   const booking = await Booking.findById(bookingId)
@@ -36,6 +49,17 @@ export const notifyBooking = async ({ type, bookingId }) => {
     description,
     type: type === "approved" ? "confirmation" : "warning",
     userId: booking.customerId._id,
+  });
+
+  //admin notification
+  const adminDescription =
+    type === "approved"
+      ? `Booking #${booking._id} by ${booking.customerId.first_name} for "${booking.vehicleId.title}" has been approved.`
+      : `Booking #${booking._id} by ${booking.customerId.first_name} for "${booking.vehicleId.title}" has been rejected.`;
+  await notifyAdmins({
+    title: type === "approved" ? "Booking Approved" : "Booking Rejected",
+    description: adminDescription,
+    type: type === "approved" ? "confirmation" : "warning"
   });
 
   const { allowed } = await canSendEmail(booking.customerId._id);
@@ -72,6 +96,17 @@ export const notifyVehicle = async ({ type, vehicleId }) => {
     description,
     type: type === "approved" ? "confirmation" : "warning",
     userId: vehicle.ownerId._id
+  });
+
+  //  Admin-friendly notification
+  const adminDescription =
+    type === "approved"
+      ? `Vehicle "${vehicle.title}" submitted by ${vehicle.ownerId.first_name} has been approved.`
+      : `Vehicle "${vehicle.title}" submitted by ${vehicle.ownerId.first_name} has been rejected.`;
+  await notifyAdmins({
+    title: type === "approved" ? "Vehicle Approved" : "Vehicle Rejected",
+    description: adminDescription,
+    type: type === "approved" ? "confirmation" : "warning",
   });
 
   const { allowed } = await canSendEmail(vehicle.ownerId._id);
@@ -206,6 +241,14 @@ export const notifyNewBookingRequest = async (bookingId) => {
     isRead: false
   });
 
+  // Admin-friendly notification
+  const adminDescription = `New booking request #${booking._id} by ${booking.customerId.first_name} for vehicle "${booking.vehicleId.title}"`;
+  await notifyAdmins({
+    title: "New Booking Request",
+    description: adminDescription,
+    type: "alert"
+  });
+
   const { allowed } = await canSendEmail(booking.ownerId._id);
 
   // Send email
@@ -313,6 +356,14 @@ export const notifyBookingUpdated = async (bookingId) => {
     isRead: false
   });
 
+  // Admin-friendly notification
+  const adminDescription = `Booking #${booking._id} by ${booking.customerId.first_name} for vehicle "${booking.vehicleId.title}" has been updated.`;
+  await notifyAdmins({
+    title: "Booking Updated",
+    description: adminDescription,
+    type: "info"
+  });
+
   // Email (if owner allows)
   const { allowed } = await canSendEmail(booking.ownerId._id);
   if (allowed) {
@@ -342,6 +393,14 @@ export const notifyBookingCancelled = async (bookingId) => {
     type: "warning",
     userId: booking.ownerId._id,
     isRead: false
+  });
+
+  // Admin-friendly notification
+  const adminDescription = `Booking #${booking._id} by ${booking.customerId.first_name} for vehicle "${booking.vehicleId.title}" has been cancelled.`;
+  await notifyAdmins({
+    title: "Booking Cancelled",
+    description: adminDescription,
+    type: "warning"
   });
 
   // Email (if owner allows)
