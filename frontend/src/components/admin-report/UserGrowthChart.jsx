@@ -43,7 +43,7 @@ export const UserGrowthChart = ({ data = [] }) => {
         ];
 
   return (
-    <div className="rounded-xl bg-white p-4 sm:p-5 shadow-md">
+    <div className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-4 md:p-5 shadow-md">
       {/* 🔥 BORDER REMOVAL CSS */}
       <style>{`
         /* Remove all SVG background rects */
@@ -73,30 +73,30 @@ export const UserGrowthChart = ({ data = [] }) => {
       `}</style>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
             User Growth Trend
           </h3>
-          <p className="text-xs sm:text-sm text-gray-500">
+          <p className="text-[10px] sm:text-xs md:text-sm text-gray-500">
             Monthly active users and new registrations
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-xs sm:text-sm">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#0D3778]" />
+        <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs md:text-sm">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#0D3778]" />
             <span className="text-gray-500">Total Users</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-[#00C950]" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-[#00C950]" />
             <span className="text-gray-500">New Users</span>
           </div>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="h-[200px] sm:h-[250px]">
+      <div className="h-[160px] sm:h-[200px] md:h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={chartData}
