@@ -16,6 +16,7 @@ import notificationRoutes from "./routes/notificationRoutes.js"
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminReportRoutes from "./routes/adminRoutes.js";
 import paymentRoutes from "./routes/paymentRoute.js";
+import { stripeWebhook } from "./controllers/paymentController.js";
 
 
 //configure environment
@@ -25,6 +26,13 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+//import stripe webhook route
+app.post(
+  "/api/v1/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhook
+);
 
 app.use(cors({
     origin: "http://localhost:5173", // FRONTEND URL
