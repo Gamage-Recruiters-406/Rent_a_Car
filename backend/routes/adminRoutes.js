@@ -6,7 +6,11 @@ import { getMonthlyUserChart,
          getBookingReportStats,
          getVehicleAvailabilityReport,
          getMonthlyApprovedBookingChart,
-         getBestPerformanceVehicles} from "../controllers/adminReportController.js";
+         getBestPerformanceVehicles,
+         getAdminEarningsAnalytics,
+         getSystemMoneyAnalytics,
+         getMonthlyRevenueChart,
+         getPaymentReport} from "../controllers/adminReportController.js";
 
 const router = express.Router();
 
@@ -30,5 +34,17 @@ router.get("/admin/booking-performance",requiredSignIn, isAdmin,getMonthlyApprov
 
 //best performance vehicle list
 router.get("/admin/best-perform-vehicles",requiredSignIn, isAdmin,getBestPerformanceVehicles);
+
+//total revenue report (customer+platform)
+router.get("/admin/total-revenue",requiredSignIn, isAdmin,getSystemMoneyAnalytics);
+
+//total revenue platform only
+router.get("/admin/total-revenue-platform",requiredSignIn, isAdmin,getAdminEarningsAnalytics);
+
+//revenue line chart
+router.get("/admin/total-revenue-chart",requiredSignIn, isAdmin,getMonthlyRevenueChart);
+
+//get payment report table
+router.get("/admin/payment-table",requiredSignIn, isAdmin,getPaymentReport);
 
 export default router;
