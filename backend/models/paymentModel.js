@@ -52,6 +52,9 @@ const paymentSchema = new mongoose.Schema({
         lowercase: true,
         enum: ["paid", "pending"],
         default: "pending"
+    },
+    stripePaymentIntentId:{
+        type: String
     }
 
 },{timestamps: true});
