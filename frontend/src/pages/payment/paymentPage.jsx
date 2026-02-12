@@ -10,6 +10,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import toast from "react-hot-toast";
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLIC_KEY
@@ -53,6 +54,14 @@ const PaymentForm = ({ booking }) => {
       withCredentials: true,
     })
 
+    console.log("res", res.data);
+    if(!res.data.success){
+      toast.error(res.data.message);
+      setError(res.data.error);
+      setLoading(false);
+      return;
+    }
+
     const clientSecret = res.data.clientSecret;
 
     try {
@@ -67,13 +76,14 @@ const PaymentForm = ({ booking }) => {
       });
 
       if (result.error) {
+        toast.error("Payment failed: " + result.error.message);
         setError(result.error.message);
         setLoading(false);
         return;
       }
 
       if (result.paymentIntent.status === "succeeded") {
-        alert("Payment successful ✅");
+        toast.success(res.data.message || "Payment successful" );
         setLoading(false);
       }
     } catch (err) {
