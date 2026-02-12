@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "client",
-    "slug": "client",
+    "name": "rent_a_car",
+    "slug": "rent_a_car",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "client",
+    "scheme": "rentacar",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
