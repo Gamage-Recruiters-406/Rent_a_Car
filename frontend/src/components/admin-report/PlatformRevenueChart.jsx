@@ -19,7 +19,7 @@ const formatValue = (value) => {
   return value.toString();
 };
 
-// Format month from "YYYY-MM" to "Jan" or similar
+// Format month from "YYYY-MM" to "Jan 2025" or similar
 const formatMonth = (monthStr) => {
   if (!monthStr) return "";
   const [year, month] = monthStr.split("-");
@@ -28,20 +28,13 @@ const formatMonth = (monthStr) => {
   return `${monthNames[monthIndex]} '${year.slice(-2)}`;
 };
 
-export const RevenueTargetChart = ({ data = [] }) => {
-  // Transform API data for chart - calculate target as 15% growth over previous month
-  const chartData = data.map((item, index) => {
-    const actual = item.totalRevenue || 0;
-    // Target: 15% more than previous month's actual, or same as actual for first month
-    const previousActual = index > 0 ? (data[index - 1]?.totalRevenue || 0) : actual;
-    const target = Math.round(previousActual * 1.15);
-    
-    return {
-      month: formatMonth(item.month),
-      actual,
-      target: target > 0 ? target : actual,
-    };
-  });
+export const PlatformRevenueChart = ({ data = [] }) => {
+  // Transform API data for chart
+  const chartData = data.map(item => ({
+    month: formatMonth(item.month),
+    totalRevenue: item.totalRevenue || 0,
+    platformFee: item.platformFee || 0,
+  }));
 
   // Show placeholder if no data
   const hasData = chartData.length > 0;
@@ -49,17 +42,21 @@ export const RevenueTargetChart = ({ data = [] }) => {
   return (
     <div className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-4 md:p-5 shadow-sm border border-gray-200">
       <div className="mb-3 sm:mb-4">
-        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">Revenue vs Target</h3>
-        <p className="text-[10px] sm:text-xs md:text-sm text-gray-500">Actual revenue against growth targets</p>
+        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">Platform Revenue</h3>
+        <p className="text-[10px] sm:text-xs md:text-sm text-gray-500">Monthly total revenue & platform fees</p>
       </div>
       <div className="h-[160px] sm:h-[180px] md:h-[220px]">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%" minHeight={160}>
             <LineChart data={chartData}>
               <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="totalRevenueGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#0D3778" stopOpacity={0.2} />
                   <stop offset="95%" stopColor="#0D3778" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="platformFeeGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -84,29 +81,29 @@ export const RevenueTargetChart = ({ data = [] }) => {
                 }}
                 formatter={(value, name) => [
                   `Rs. ${value.toLocaleString()}`,
-                  name === "actual" ? "Actual Revenue" : "Target (15% Growth)"
+                  name === "totalRevenue" ? "Total Revenue" : "Platform Fee"
                 ]}
               />
               <Legend 
                 wrapperStyle={{ fontSize: "10px" }}
                 iconSize={8}
-                formatter={(value) => value === "actual" ? "Actual" : "Target"}
+                formatter={(value) => value === "totalRevenue" ? "Total Revenue" : "Platform Fee"}
               />
               <Line
                 type="monotone"
-                dataKey="target"
-                stroke="#9CA3AF"
-                strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="actual"
+                dataKey="totalRevenue"
                 stroke="#0D3778"
                 strokeWidth={2}
-                dot={{ fill: "#0D3778", r: 4 }}
-                activeDot={{ r: 6 }}
+                dot={{ fill: "#0D3778", r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="platformFee"
+                stroke="#10b981"
+                strokeWidth={2}
+                dot={{ fill: "#10b981", r: 3 }}
+                activeDot={{ r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
