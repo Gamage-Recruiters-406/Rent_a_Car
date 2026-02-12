@@ -153,3 +153,4 @@ vite.config.ts.timestamp-*
 *.sln
 *.sw?
 
+config.bat
