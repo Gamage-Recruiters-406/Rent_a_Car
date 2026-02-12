@@ -126,16 +126,16 @@ export const stripeWebhook = async (req, res) => {
     if (event.type === "payment_intent.succeeded") {
       const intent = event.data.object;
 
-      const payment = await Payment.findOne({
+      const Payment = await payment.findOne({
         stripePaymentIntentId: intent.id,
       });
 
-      if (payment) {
-        payment.status = "paid";
-        await payment.save();
+      if (Payment) {
+        Payment.status = "paid";
+        await Payment.save();
 
         // also update booking
-        await Booking.findByIdAndUpdate(payment.bookingId, {
+        await Booking.findByIdAndUpdate(Payment.bookingId, {
           status: "paid",
         });
       }
@@ -148,7 +148,7 @@ export const stripeWebhook = async (req, res) => {
     ) {
       const intent = event.data.object;
 
-      await Payment.findOneAndDelete({
+      await payment.findOneAndDelete({
         stripePaymentIntentId: intent.id,
       });
     }
