@@ -119,7 +119,7 @@ export default function ReviewsScreen() {
 
       await Promise.all([fetchReviewsByVehicleId(vehicleId), loadReviewSummary(vehicleId)]);
 
-      setShowSuccessModal(true);
+      //setShowSuccessModal(true);
 
     } catch (error) {
       console.error("Failed to submit review", error);
@@ -135,17 +135,17 @@ export default function ReviewsScreen() {
   };
 
   const checkCanReview = async () => {
-    // try {
-    //   setCheckingPermission(true);
-    //   const res = await axios.get(
-    //     `${API_BASE_URL}${API_VERSION}/reviews/can-review/${vehicleId}`,
-    //     { withCredentials: true }
-    //   );
-    //   setCanReview(res.data.canReview);
-    //   setReviewReason(res.data.reason || '');
-    // } finally {
-    //   setCheckingPermission(false);
-    // }
+    try {
+      setCheckingPermission(true);
+      const res = await axios.get(
+        `${API_BASE_URL}${API_VERSION}/reviews/can-review/${vehicleId}`,
+        { withCredentials: true }
+      );
+      setCanReview(res.data.canReview);
+      setReviewReason(res.data.reason || '');
+    } finally {
+      setCheckingPermission(false);
+    }
   };
 
   useEffect(() => {
