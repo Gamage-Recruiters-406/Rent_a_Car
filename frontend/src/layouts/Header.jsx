@@ -62,6 +62,19 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigate();
 
+	const getProfileRoute = () => {
+		switch (roleLabel) {
+			case "Admin":
+				return "/admin-profile";
+			case "Owner":
+				return "/owner-profile";
+			case "Customer":
+				return "/customer-profile";
+			default:
+				return "/customer-profile";
+		}
+	};
+
 	const AvatarDiv = () => (
 		<div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
 			{user?.avatar || user?.profile_image ? (
@@ -114,7 +127,7 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 			{open && (
 				<div className="absolute right-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1.5 shadow-lg">
 					<Link
-						to="/profile"
+						to={getProfileRoute()}
 						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -185,9 +198,10 @@ export default function Header({
 					{(normalizedRole === "customer" || !isAuthenticated) && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 md:flex">
-								<NavLink to="/cars">Browse Cars</NavLink>
+								<NavLink to="/vehicles">Browse Cars</NavLink>
 								<NavLink to="/how-it-works">How It Works</NavLink>
 								<NavLink to="/become-a-host">Become a Host</NavLink>
+								<NavLink to="/contact">Contact Us</NavLink>
 							</div>
 							{isAuthenticated ? (
 								<div className="hidden md:flex">
@@ -287,8 +301,11 @@ export default function Header({
 					<div className="mx-auto flex max-w-7xl flex-col gap-3 px-8 py-4">
 						{(normalizedRole === "customer" || !isAuthenticated) && (
 							<div className="flex flex-col gap-2">
-								<Link to="/cars" className="text-sm font-medium text-slate-700">
+								<Link to="/vehicles" className="text-sm font-medium text-slate-700">
 									Browse Cars
+								</Link>
+								<Link to="/contact" className="text-sm font-medium text-slate-700">
+									Contact Us
 								</Link>
 								<Link to="/how-it-works" className="text-sm font-medium text-slate-700">
 									How It Works
