@@ -136,7 +136,7 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 						<span>Profile</span>
 					</Link>
 					<Link
-						to="/settings"
+						to="/admin/settings"
 						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -263,7 +263,6 @@ export default function Header({
 								<NavLink to="/admin/vehicles" active={location.pathname === "/admin/vehicles"}>Vehicle</NavLink>
 								<NavLink to="/admin/booking" active={location.pathname === "/admin/booking"}>Booking</NavLink>
 								<NavLink to="/admin/report" active={location.pathname === "/admin/report"}>Reports</NavLink>
-								<NavLink to="/admin/settings" active={location.pathname === "/admin/settings"}>Settings</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
 								<NotificationBell count={notifications} />
