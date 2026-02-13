@@ -6,6 +6,7 @@ import { Hero } from '../../components/ui/Hero';
 import { Items } from '../../components/ui/Items';
 import { QuickStats } from '../../components/ui/Quickstats';
 import { Testimonials } from '../../components/ui/Testimornials';
+import { NewsLetter } from '../../components/ui/NewsLetter';
 
 
 
@@ -16,6 +17,7 @@ export default function HomeScreen() {
       <Stats/>
       <Items/>
       <QuickStats/>
+      <NewsLetter/>
       <Testimonials/>
     </ScrollView>
   );
