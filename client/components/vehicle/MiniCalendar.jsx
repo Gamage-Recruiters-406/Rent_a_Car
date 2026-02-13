@@ -2,12 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 import { Calendar } from "react-native-calendars";
 
-type Props = {
-  month: string; // "YYYY-MM"
-  blockedSet: Set<string>;
-};
-
-export default function MiniCalendar({ month, blockedSet }: Props) {
+export default function MiniCalendar({ month, blockedSet }) {
   return (
     <View
       style={{
@@ -20,13 +15,11 @@ export default function MiniCalendar({ month, blockedSet }: Props) {
       }}
     >
       <Calendar
-        key={month} // ✅ forces calendar to update when month changes
+        key={month} // forces update when month changes
         current={`${month}-01`}
         hideExtraDays
-        // ✅ remove calendar header + arrows (so only your top header shows)
-        renderHeader={() => null}
+        renderHeader={() => null} // hide default header
         hideArrows
-        // optional: prevent swipe changing month (because you control month)
         enableSwipeMonths={false}
         theme={{
           textDayHeaderFontWeight: "800",
@@ -62,7 +55,11 @@ export default function MiniCalendar({ month, blockedSet }: Props) {
               }}
             >
               <Text
-                style={{ fontSize: 12, fontWeight: "900", color: "#0f172a" }}
+                style={{
+                  fontSize: 12,
+                  fontWeight: "900",
+                  color: "#0f172a",
+                }}
               >
                 {date.day}
               </Text>

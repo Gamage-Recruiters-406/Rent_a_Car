@@ -1,6 +1,6 @@
 import { ENV } from "../../config/env";
 
-export async function getVehicleAvailability(vehicleId: string) {
+export async function getVehicleAvailability(vehicleId) {
   const url = `${ENV.API_BASE_URL}${ENV.API_VERSION}/bookings/availability/${vehicleId}`;
 
   const res = await fetch(url);

@@ -1,9 +1,7 @@
 import React from "react";
 import { View, Text } from "react-native";
 
-type RowProps = { label: string; value?: string | number | null };
-
-export function SimpleRow({ label, value }: RowProps) {
+export function SimpleRow({ label, value }) {
   return (
     <View
       style={{
@@ -13,6 +11,7 @@ export function SimpleRow({ label, value }: RowProps) {
       }}
     >
       <Text style={{ color: "#475569", fontSize: 13 }}>{label}</Text>
+
       <Text style={{ color: "#0f172a", fontSize: 13, fontWeight: "700" }}>
         {value ?? "—"}
       </Text>
@@ -20,7 +19,7 @@ export function SimpleRow({ label, value }: RowProps) {
   );
 }
 
-export function BulletRow({ label, value }: RowProps) {
+export function BulletRow({ label, value }) {
   return (
     <View
       style={{
@@ -39,8 +38,10 @@ export function BulletRow({ label, value }: RowProps) {
           backgroundColor: "#0d3778",
         }}
       />
+
       <View style={{ flex: 1 }}>
         <Text style={{ color: "#475569", fontSize: 12 }}>{label}</Text>
+
         <Text style={{ color: "#0f172a", fontSize: 13, fontWeight: "700" }}>
           {value ?? "—"}
         </Text>
@@ -49,9 +50,7 @@ export function BulletRow({ label, value }: RowProps) {
   );
 }
 
-type LegendProps = { bg: string; border: string; label: string };
-
-export function LegendItem({ bg, border, label }: LegendProps) {
+export function LegendItem({ bg, border, label }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
       <View
@@ -64,6 +63,7 @@ export function LegendItem({ bg, border, label }: LegendProps) {
           borderColor: border,
         }}
       />
+
       <Text style={{ fontSize: 12, color: "#334155" }}>{label}</Text>
     </View>
   );

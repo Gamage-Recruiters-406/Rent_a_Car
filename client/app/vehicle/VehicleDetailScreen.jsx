@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
+import { useWindowDimensions } from "react-native";
 
 import DropdownCard from "../../components/vehicle/DropdownCard";
 import MiniCalendar from "../../components/vehicle/MiniCalendar";
@@ -27,34 +28,9 @@ import {
   WorldIcon,
 } from "../../components/vehicle/Icons";
 
-import { useWindowDimensions } from "react-native";
-
 // ✅ keep for later backend (comment usage)
 import { getVehicleById } from "../../src/services/vehicleApi";
 import { getVehicleAvailability } from "../../src/services/bookingApi";
-
-type VehiclePhoto = { url: string };
-type VehicleLocation = { address?: string };
-
-export type Vehicle = {
-  title?: string;
-  model?: string;
-  year?: number;
-  vehicleType?: string;
-  transmission?: string;
-  fuelType?: string;
-  numberPlate?: string;
-  pricePerDay?: number;
-  pricePerKm?: number;
-  description?: string;
-  location?: VehicleLocation;
-  photos?: VehiclePhoto[];
-};
-
-type Booking = {
-  startingDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
-};
 
 // helpers
 function toYYYYMM(date = new Date()) {
@@ -62,12 +38,12 @@ function toYYYYMM(date = new Date()) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
 }
-function addMonths(yyyyMm: string, diff: number) {
+function addMonths(yyyyMm, diff) {
   const [y, m] = yyyyMm.split("-").map(Number);
   const d = new Date(y, m - 1 + diff, 1);
   return toYYYYMM(d);
 }
-function formatMonthLabel(yyyyMm: string) {
+function formatMonthLabel(yyyyMm) {
   const [y, m] = yyyyMm.split("-").map(Number);
   const d = new Date(y, m - 1, 1);
   return d.toLocaleString("en-US", { month: "long", year: "numeric" });
@@ -84,16 +60,16 @@ export default function VehicleDetailScreen() {
 
   console.log("WIDTH:", width, "isTablet:", isTablet);
 
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id } = useLocalSearchParams();
 
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [vehicle, setVehicle] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [month, setMonth] = useState(toYYYYMM(new Date()));
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState([]);
 
   const [open, setOpen] = useState({
     registration: true,
@@ -112,9 +88,8 @@ export default function VehicleDetailScreen() {
         setLoading(true);
         setError("");
 
-        // ✅ DUMMY DATA (UI testing now)
         // ✅ Keep dummy bookings for now (availability API not ready)
-        const dummyBookings: Booking[] = [
+        const dummyBookings = [
           { startingDate: "2026-02-05", endDate: "2026-02-06" },
           { startingDate: "2026-02-12", endDate: "2026-02-14" },
         ];
@@ -128,54 +103,37 @@ export default function VehicleDetailScreen() {
         setVehicle(data?.vehicle || null);
         setActiveImg(0);
 
-        // ✅ DUMMY: Availability (keep until backend ready)
+        // ✅ BACKEND (or dummy fallback): Availability
         try {
-          if (!id) throw new Error("Vehicle id missing");
-
           const avail = await getVehicleAvailability(String(id));
           if (!mounted) return;
 
           // ✅ common shapes supported:
           // 1) { success, data: [...] }
           // 2) { bookings: [...] }
-          // 3) { bookedDates: ["2026-02-05", ...] }  -> we can convert (below)
+          // 3) { bookedDates: ["2026-02-05", ...] } -> convert below
 
           if (Array.isArray(avail?.data)) {
             setBookings(avail.data);
           } else if (Array.isArray(avail?.bookings)) {
             setBookings(avail.bookings);
           } else if (Array.isArray(avail?.bookedDates)) {
-            // convert single dates into ranges (same day)
             setBookings(
-              avail.bookedDates.map((d: string) => ({
+              avail.bookedDates.map((d) => ({
                 startingDate: d,
                 endDate: d,
               })),
             );
           } else {
-            setBookings([]);
+            // if backend not ready, use dummy
+            setBookings(dummyBookings);
           }
-        } catch (err: any) {
+        } catch (err) {
           console.log("Availability skipped:", err?.message);
-          setBookings([]); // don’t break the page
+          // fallback to dummy so UI still works
+          setBookings(dummyBookings);
         }
-
-        // ✅ BACKEND CONNECT LATER (uncomment)
-        // if (!id) throw new Error("Vehicle id missing");
-        // const data = await getVehicleById(id);
-        // if (!mounted) return;
-        // setVehicle(data?.vehicle || null);
-        // setActiveImg(0);
-        //
-        // try {
-        //   const avail = await getVehicleAvailability(id);
-        //   if (!mounted) return;
-        //   setBookings(avail?.data || []);
-        // } catch (err) {
-        //   console.log("Availability skipped");
-        //   setBookings([]);
-        // }
-      } catch (e: any) {
+      } catch (e) {
         if (!mounted) return;
         setError(e?.message || "Failed to load vehicle.");
       } finally {
@@ -209,7 +167,7 @@ export default function VehicleDetailScreen() {
 
         return `${base}${u}`;
       })
-      .filter(Boolean) as string[];
+      .filter(Boolean);
   }, [vehicle]);
 
   const titleText =
@@ -224,7 +182,7 @@ export default function VehicleDetailScreen() {
   ];
 
   const blockedSet = useMemo(() => {
-    const s = new Set<string>();
+    const s = new Set();
 
     (bookings || []).forEach((b) => {
       const start = new Date(b.startingDate);
@@ -385,27 +343,6 @@ export default function VehicleDetailScreen() {
             );
           })}
         </ScrollView>
-      </View>
-
-      <View
-        style={{
-          flexDirection: isTablet ? "row" : "column",
-          gap: 16,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: isWide ? "row" : "column",
-            gap: 16,
-          }}
-        ></View>
-
-        <View
-          style={{
-            flexDirection: isWide ? "row" : "column",
-            gap: 16,
-          }}
-        ></View>
       </View>
 
       {/* Registration */}
