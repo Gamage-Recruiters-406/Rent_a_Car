@@ -52,7 +52,7 @@ export const OwnerProfileEdit = ({
             // Set cookie for backend compatibility (since backend checks req.cookies.access_token)
             document.cookie = `access_token=${token}; path=/; samesite=strict`;
 
-            const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserbyId/${userId}`, {
+            const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserDetails`, {
                 withCredentials: true
             });
             const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/earnings/${userId}`, {
