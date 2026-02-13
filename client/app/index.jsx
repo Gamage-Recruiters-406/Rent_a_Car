@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Link } from 'expo-router';
 
 export default function HomeScreen() {
   const router = useRouter();
