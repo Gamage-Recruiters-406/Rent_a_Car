@@ -11,13 +11,18 @@ export default function HomeScreen() {
       <Text className="text-lg text-green-600 mt-4">
         Tailwind is running
       </Text>
+      
+      <Link href="/login/SignInPage" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">Login</Text>
+        </TouchableOpacity>
+      </Link>
+      <Link href="/Reviews" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">Reviews</Text>
+        </TouchableOpacity>
+      </Link>
 
-      <TouchableOpacity
-        className="mt-6 bg-[#0D3778] px-6 py-3 rounded-xl"
-        onPress={() => router.push('/Reviews')}
-      >
-        <Text className="text-white font-semibold">Go to Reviews</Text>
-      </TouchableOpacity>
     </View>
   );
 }
