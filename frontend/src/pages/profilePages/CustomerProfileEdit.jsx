@@ -39,7 +39,7 @@ useEffect(() => {
 
           if (userId) {
             document.cookie = `access_token=${token}`;
-            const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserbyId/${userId}`, {
+            const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserDetails`, {
                 withCredentials: true
             });
 
