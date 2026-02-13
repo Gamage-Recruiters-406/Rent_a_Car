@@ -51,13 +51,13 @@ export default function ReviewsScreen() {
       
     
 
-  const API_BASE_URL = 
-    Platform.OS === "web"
-      ?'http://localhost:8090':
-      'http://10.163.10.16:8090';
+  const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+  const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
-    const API_VERSION = '/api/v1';
   const vehicleId = '696f19b58b0b00033e2af308';
+
+  console.log("API_BASE_URL:", API_BASE_URL);
+  console.log("API_VERSION:", API_VERSION);
 
   const loadReviewSummary = async () => {
     try {
