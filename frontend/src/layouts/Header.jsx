@@ -198,10 +198,10 @@ export default function Header({
 					{(normalizedRole === "customer" || !isAuthenticated) && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 md:flex">
-								<NavLink to="/vehicles">Browse Cars</NavLink>
-								<NavLink to="/how-it-works">How It Works</NavLink>
-								<NavLink to="/become-a-host">Become a Host</NavLink>
-								<NavLink to="/contact">Contact Us</NavLink>
+								<NavLink to="/vehicles" active={location.pathname === "/vehicles"}>Browse Cars</NavLink>
+								<NavLink to="/how-it-works" active={location.pathname === "/how-it-works"}>How It Works</NavLink>
+								<NavLink to="/become-a-host" active={location.pathname === "/become-a-host"}>Become a Host</NavLink>
+								<NavLink to="/contact" active={location.pathname === "/contact"}>Contact Us</NavLink>
 							</div>
 							{isAuthenticated ? (
 								<div className="hidden md:flex">
@@ -239,7 +239,7 @@ export default function Header({
 								<NavLink to="/owner/vehicles/new" active={location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle"}>Add Vehicle</NavLink>
 								<NavLink to="/booking-history" active={location.pathname === "/booking-history"}>Bookings</NavLink>
 								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
-								<NavLink to="/owner/reviews" active={location.pathname === "/owner/reviews"}>Reviews</NavLink>
+								<NavLink to="/my-reviews" active={location.pathname === "/my-reviews"}>Reviews</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
 								<NotificationBell count={notifications} />
