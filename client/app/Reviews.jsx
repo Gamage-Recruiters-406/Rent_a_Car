@@ -68,6 +68,10 @@ export default function ReviewsScreen() {
       );
       setAverageRating(res.data.rating || 0);
       setTotalReviews(res.data.totalReviews || 0);
+
+      console.log("Summary:", res.data);
+      console.log("Avg.Rating:", res.data.rating);
+      console.log("Total Reviews:", res.data.totalReviews);
     } finally {
       setLoadingSummary(false);
     }
@@ -80,6 +84,7 @@ export default function ReviewsScreen() {
         `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}`,
         { withCredentials: true }
       );
+      console.log("Reviews: ", res.data.reviews);
       setReviews(res.data.reviews || []);
     } finally {
       setLoadingReviews(false);
