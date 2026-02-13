@@ -1,4 +1,5 @@
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Link } from 'expo-router';
 
 export default function HomeScreen() {
   return (
@@ -9,6 +10,14 @@ export default function HomeScreen() {
       <Text className="text-lg text-green-600 mt-4">
         Tailwind is running
       </Text>
+      
+      <Link href="/login/SignInPage" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">Login</Text>
+        </TouchableOpacity>
+      </Link>
+
+
     </View>
   );
 }
