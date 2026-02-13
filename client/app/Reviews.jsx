@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
+// import { useRoute } from "@react-navigation/native";
 import {
   ScrollView,
   View,
@@ -8,6 +9,7 @@ import {
   TextInput,
   Image,
   ImageBackground,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
@@ -32,6 +34,9 @@ export default function ReviewsScreen() {
   const currentIndex = useRef(0);
   const autoScrollRef = useRef(null);
   const isUserInteracting = useRef(false);
+  // const route = useRoute();
+  // const { vehicleImage, vehicleName } = route.params;
+
 
   const loopedReviews =
     reviews.length > 0
@@ -46,8 +51,12 @@ export default function ReviewsScreen() {
       
     
 
-  const API_BASE_URL = 'http://10.163.10.16:8090';
-  const API_VERSION = '/api/v1';
+  const API_BASE_URL = 
+    Platform.OS === "web"
+      ?'http://localhost:8090':
+      'http://10.163.10.16:8090';
+
+    const API_VERSION = '/api/v1';
   const vehicleId = '696f19b58b0b00033e2af308';
 
   const loadReviewSummary = async () => {
@@ -223,27 +232,27 @@ export default function ReviewsScreen() {
             </Text>
 
             <View className="border-2 border-[#0D3778] rounded-2xl p-4 bg-white mb-5">
-            <Text className="text-center text-base text-gray-600 mb-3">
-                Toyota Prius (ABC-1234)
-            </Text>
+              <Text className="text-center text-base text-gray-600 mb-3">
+                  Toyota Prius (ABC-1234)
+              </Text>
 
-            <View className="flex-row py-4">
-                <View className="flex-1 items-center">
-                <Text className="text-3xl font-bold text-yellow-500">
-                    {loadingSummary ? '...' : averageRating.toFixed(1)}
-                </Text>
-                <Stars value={averageRating} size={22} />
-                </View>
+              <View className="flex-row py-4">
+                  <View className="flex-1 items-center">
+                    <Text className="text-3xl font-bold text-yellow-500">
+                        {loadingSummary ? '...' : averageRating.toFixed(1)}
+                    </Text>
+                    <Stars value={averageRating} size={22} />
+                  </View>
 
-                <View className="w-[2px] bg-gray-200 mx-3" />
+                  <View className="w-[2px] bg-gray-200 mx-3" />
 
-                <View className="flex-1 items-center">
-                <Text className="text-3xl font-bold text-[#0D3778]">
-                    {loadingSummary ? '...' : totalReviews}
-                </Text>
-                <Text className="text-base text-[#0D3778]">Reviews</Text>
-                </View>
-            </View>
+                  <View className="flex-1 items-center">
+                    <Text className="text-3xl font-bold text-[#0D3778]">
+                        {loadingSummary ? '...' : totalReviews}
+                    </Text>
+                  <Text className="text-base text-[#0D3778]">Reviews</Text>
+                  </View>
+              </View>
             </View>
 
             {checkingPermission ? (
@@ -285,7 +294,7 @@ export default function ReviewsScreen() {
 
                     <TouchableOpacity
                         className="bg-[#0D3778] rounded-xl px-6 py-2"
-                        onPress={null}
+                        onPress={handleSubmitReview}
                         disabled={submitting}
                     >
                         <Text className="text-white font-semibold">
