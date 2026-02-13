@@ -214,7 +214,10 @@ export const ReSendVerificationMail = async (req, res) => {
       })
     }
     //suspend end date
-    const suspendDate = user.suspendExpires.toISOString().split("T")[0];
+    const suspendDate = null;
+    if(user.status === "suspend" && user.suspendExpires){
+      suspendDate = user.suspendExpires.toISOString().split("T")[0];
+    }
 
     //todays date
     const date = new Date(Date.now());
