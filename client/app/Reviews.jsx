@@ -51,6 +51,10 @@ export default function ReviewsScreen() {
       
     
 
+  // const API_BASE_URL = 
+  //   Platform.OS = 'web'?
+  //     'http://localhost:8090':  
+  //     process.env.EXPO_PUBLIC_API_BASE_URL;
   const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
   const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
