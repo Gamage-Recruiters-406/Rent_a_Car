@@ -28,16 +28,18 @@ export default function HomeScreen() {
         >
           Your premium car rental experience
         </Text>
-        
+
         <Link href="/login/SignInPage" asChild>
           <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-            <Text className="text-white font-semibold text-lg text-center">Login</Text>
+            <Text className="text-white font-semibold text-lg text-center">
+              Login
+            </Text>
           </TouchableOpacity>
         </Link>
 
         <Link href="/owner/rental-history" asChild>
           <TouchableOpacity
-            className="bg-blue-600 rounded-lg shadow-lg mb-6 w-full"
+            className="bg-blue-600 rounded-lg shadow-lg mb-6 w-full mt-6"
             style={{
               maxWidth: Math.min(width - 32, 400),
               paddingVertical: isSmallScreen ? 12 : 16,

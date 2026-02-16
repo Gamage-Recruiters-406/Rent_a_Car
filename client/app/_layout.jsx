@@ -1,9 +1,13 @@
-import { Stack } from 'expo-router';
+import { Stack } from "expo-router";
 import "../global.css";
 
 export default function Layout() {
   return (
     <Stack>
+      <Stack.Screen
+        name="index"
+        options={{ title: "Home", headerShown: false }}
+      />
       <Stack.Screen
         name="owner/rental-history"
         options={{
@@ -31,7 +35,6 @@ export default function Layout() {
           },
         }}
       />
-      <Stack.Screen name="index" options={{ title: 'Home', headerShown: false }} />
     </Stack>
   );
 }
