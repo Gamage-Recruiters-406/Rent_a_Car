@@ -13,6 +13,7 @@ import {
     getCustomerBookings,
     getOwnerBookings,
     getOwnerEarnings,
+    onwerPersonalUseBooking,
 } from "../controllers/bookingController.js";
 import {
     requiredSignIn,
@@ -37,6 +38,7 @@ router.patch("/approve/:id", requiredSignIn, isOwner, approveBooking);
 router.patch("/reject/:id", requiredSignIn, isOwner, rejectBooking);
 router.patch("/cancel/:id", requiredSignIn, isCustomer, cancelBooking);
 router.delete("/delete/:id", requiredSignIn, deleteBooking);
+router.post("/owner/personal-use", requiredSignIn, isOwner, onwerPersonalUseBooking);
 
 
 

@@ -1,6 +1,10 @@
 import express from "express";
 import { requiredSignIn, isAdmin } from "../middlewares/authMiddleware.js";
 import { getMonthlyUserChart,
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
          getUserReportStats,
          getVehicleReportStats,
          getBookingReportStats,
@@ -10,7 +14,7 @@ import { getMonthlyUserChart,
          getAdminEarningsAnalytics,
          getSystemMoneyAnalytics,
          getMonthlyRevenueChart,
-         getPaymentReport} from "../controllers/adminReportController.js";
+         getPaymentReport from "../controllers/adminReportController.js";
 
 const router = express.Router();
 
