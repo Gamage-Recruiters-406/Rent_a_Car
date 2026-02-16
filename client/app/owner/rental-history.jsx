@@ -153,7 +153,7 @@ const RentalCard = ({ rental, onPress }) => {
       case "Canceled":
         return "bg-red-100 text-red-800";
       case "Ongoing":
-        return "bg-blue-100 text-blue-800";
+        return "bg-[#E3F2FD] text-[#0A2E5C]";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -179,7 +179,7 @@ const RentalCard = ({ rental, onPress }) => {
       case "Canceled":
         return "#EF4444";
       case "Ongoing":
-        return "#3B82F6";
+        return "#0A2E5C";
       default:
         return "#6B7280";
     }
@@ -195,7 +195,7 @@ const RentalCard = ({ rental, onPress }) => {
         width: cardWidth,
         marginHorizontal: numColumns > 1 ? 8 : 16,
         minHeight: isSmallScreen ? 140 : 160,
-        shadowColor: "#2563EB", // Blue shadow color (matching header)
+        shadowColor: "#0A2E5C", // Blue shadow color (matching header)
         shadowOffset: {
           width: 0,
           height: 4,
@@ -260,7 +260,7 @@ const RentalCard = ({ rental, onPress }) => {
             {/* Left - Price */}
             <View className="flex-1 mr-3">
               <Text
-                className={`font-bold text-blue-600 ${
+                className={`font-bold text-[#0A2E5C] ${
                   isSmallScreen
                     ? "text-base"
                     : isMediumScreen
@@ -471,7 +471,7 @@ export default function RentalHistoryScreen() {
       case "Canceled":
         return "bg-red-100 text-red-800";
       case "Ongoing":
-        return "bg-blue-100 text-blue-800";
+        return "bg-[#E3F2FD] text-[#0A2E5C]";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -542,7 +542,7 @@ export default function RentalHistoryScreen() {
             key={status}
             className={`rounded-full border ${
               selectedStatus === status
-                ? "bg-blue-600 border-blue-600"
+                ? "bg-[#0A2E5C] border-[#0A2E5C]"
                 : "bg-white border-gray-300"
             }`}
             style={{
@@ -566,13 +566,13 @@ export default function RentalHistoryScreen() {
 
       {/* Selected Date Range Display */}
       {(dateRange.start || dateRange.end) && (
-        <View className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <View className="mt-3 p-3 bg-[#E3F2FD] rounded-lg border border-[#B3D9FF]">
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
-              <Text className="text-xs font-medium text-blue-700 mb-1">
+              <Text className="text-xs font-medium text-[#0A2E5C] mb-1">
                 Filtered by Date Range:
               </Text>
-              <Text className="text-sm text-blue-900 font-medium">
+              <Text className="text-sm text-[#0A2E5C] font-medium">
                 {dateRange.start
                   ? dateRange.start.toLocaleDateString("en-US", {
                       month: "short",
@@ -597,7 +597,7 @@ export default function RentalHistoryScreen() {
               }}
               className="ml-3 p-2"
             >
-              <Ionicons name="close" size={16} color="#1D4ED8" />
+              <Ionicons name="close" size={16} color="#0A2E5C" />
             </TouchableOpacity>
           </View>
         </View>
@@ -703,9 +703,9 @@ export default function RentalHistoryScreen() {
                             !isCurrentMonth
                               ? "opacity-30"
                               : isSelected
-                                ? "bg-blue-500"
+                                ? "bg-[#0A2E5C]"
                                 : isInRange
-                                  ? "bg-blue-100"
+                                  ? "bg-[#E3F2FD]"
                                   : "bg-transparent"
                           }`}
                           onPress={() =>
@@ -717,7 +717,7 @@ export default function RentalHistoryScreen() {
                               isSelected
                                 ? "text-white font-semibold"
                                 : isInRange
-                                  ? "text-blue-700 font-medium"
+                                  ? "text-[#0A2E5C] font-medium"
                                   : !isCurrentMonth
                                     ? "text-gray-300"
                                     : "text-gray-900"
@@ -760,7 +760,7 @@ export default function RentalHistoryScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={applyDateRange}
-                  className="flex-1 py-3 bg-blue-500 rounded-lg items-center"
+                  className="flex-1 py-3 bg-[#0A2E5C] rounded-lg items-center"
                 >
                   <Text className="text-white font-medium">Apply</Text>
                 </TouchableOpacity>
@@ -933,7 +933,7 @@ export default function RentalHistoryScreen() {
                 {/* Action Buttons */}
                 <View className="bg-white border-t border-gray-200 p-4">
                   <TouchableOpacity
-                    className="bg-blue-600 py-3 rounded-lg mb-3 flex-row justify-center items-center"
+                    className="bg-[#0A2E5C] py-3 rounded-lg mb-3 flex-row justify-center items-center"
                     onPress={handleDownloadInvoice}
                     activeOpacity={0.8}
                   >
@@ -944,7 +944,7 @@ export default function RentalHistoryScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    className="bg-blue-600 py-3 rounded-lg flex-row justify-center items-center"
+                    className="bg-[#0A2E5C] py-3 rounded-lg flex-row justify-center items-center"
                     onPress={handleDownloadDocuments}
                     activeOpacity={0.8}
                   >
@@ -984,7 +984,7 @@ const PaymentRow = ({ label, amount, isTotal = false }) => (
     </Text>
     <Text
       className={`${
-        isTotal ? "text-sm font-bold text-blue-600" : "text-sm text-gray-800"
+        isTotal ? "text-sm font-bold text-[#0A2E5C]" : "text-sm text-gray-800"
       }`}
     >
       Rs. {amount.toLocaleString()}
