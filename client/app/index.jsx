@@ -39,7 +39,7 @@ export default function HomeScreen() {
 
         <Link href="/owner/rental-history" asChild>
           <TouchableOpacity
-            className="bg-blue-600 rounded-lg shadow-lg mb-6 w-full mt-6"
+            className="bg-[#0A2E5C] rounded-lg shadow-lg mb-6 w-full mt-6"
             style={{
               maxWidth: Math.min(width - 32, 400),
               paddingVertical: isSmallScreen ? 12 : 16,
