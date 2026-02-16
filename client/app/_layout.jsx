@@ -1,9 +1,42 @@
-import { Stack } from 'expo-router';
+import { Stack } from "expo-router";
 
 export default function Layout() {
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ title: 'Home' }} />
+      <Stack.Screen
+        name="index"
+        options={{
+          title: "Home",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="owner/rental-history"
+        options={{
+          title: "Rental History",
+          headerStyle: {
+            backgroundColor: "#1e40af",
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
+      />
+      <Stack.Screen
+        name="owner/rental-details"
+        options={{
+          presentation: "modal",
+          title: "Rental Details",
+          headerStyle: {
+            backgroundColor: "#1e40af",
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
+      />
     </Stack>
   );
 }
