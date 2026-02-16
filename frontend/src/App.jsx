@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
-// --- Page Imports ---
+// --- Page Imports (Common) ---
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import { SignInPage } from "./pages/login/SignInPage";
@@ -21,7 +21,7 @@ import { OwnerProfileEdit } from "./pages/profilePages/OwnerProfileEdit";
 import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
 import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
 
-// --- Admin & Owner Imports ---
+// --- Admin & Owner Imports (Team's Work) ---
 import CustomerReviews from "./pages/CustomerRating";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
@@ -34,24 +34,23 @@ import AdminReport from "./pages/admin/AdminReport";
 import VehicleManagement from "./pages/admin/VehicleManagement";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
 
-// --- YOUR WORK ---
+// --- YOUR WORK (User Management) ---
 import OwnerManagement from "./pages/OwnerManagement";
 import CustomerManagement from "./pages/CustomerManagement";
 
-// --- Header & Footer ---
-// 👇 IMPORTANT: After you save, check your src/components folder!
-// If the file is named "Header.jsx", change "Navbar" to "Header" below.
-import Navbar from "./components/Navbar"; 
-import Footer from "./components/Footer"; 
+// --- Header & Footer (Temporarily Commented Out) ---
+// import Navbar from "./components/Header"; 
+// import Footer from "./components/Footer"; 
 
 function App() {
   return (
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
       
-      <Navbar /> {/* Header */}
+      {/* <Navbar /> */} {/* Header commented out until file is found */}
 
       <Routes>
+        {/* --- Public Routes --- */}
         <Route path="/" element={<Homepage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage/>} />
@@ -60,9 +59,11 @@ function App() {
         <Route path="/rent-vehicle" element={<RentVehiclePage />} />
         <Route path="/customer-reviews" element={<CustomerReviews />} />
         
-        {/* Admin Routes */}
+        {/* --- YOUR ADMIN PAGES --- */}
         <Route path="/admin/owners" element={<OwnerManagement />} />
         <Route path="/admin/customers" element={<CustomerManagement />} />
+        
+        {/* --- Team's Admin Pages --- */}
         <Route path="/admin/booking" element={<AdminBooking />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/report" element={<AdminReport />} />
@@ -70,7 +71,7 @@ function App() {
         <Route path="/admin/settings" element={<AdminSettingsPage />} />
         <Route path="/admin-profile" element={<AdminProfileEdit/>} /> 
         
-        {/* Owner Routes */}
+        {/* --- Owner Pages --- */}
         <Route path="/rental-history" element={<RentalHistoryPage />} />
         <Route path="/owner/vehicles" element={<MyVehicleOwner />} />
         <Route path="/owner/vehicles/new" element={<AddVehicle />} />
@@ -79,20 +80,21 @@ function App() {
         <Route path="/my-reviews" element={<MyReviews />} />
         <Route path="/owner-profile" element={<OwnerProfileEdit/>} />
         
-        {/* Customer Routes */}
+        {/* --- Customer Pages --- */}
         <Route path="/customer-profile" element={<CustomerProfileEdit/>} />   
         <Route path="/booking" element={<BookingPage1 />} />
 
-        {/* Auth Routes */}
+        {/* --- Auth Routes --- */}
         <Route path="/login" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+
       </Routes>
 
-      <Footer /> {/* Footer */}
+      {/* <Footer /> */} {/* Footer commented out until file is found */}
 
     </Router>
   );
