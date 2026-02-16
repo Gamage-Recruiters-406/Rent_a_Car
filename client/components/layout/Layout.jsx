@@ -4,7 +4,7 @@
  * This file provides:
  * 1. Individual Header component
  * 2. Individual Footer component  
- * 3. Complete AppLayout component that combines both
+ * 3. Complete AppLayout component that combines both with sidebar
  * 4. Integration with user authentication
  */
 
@@ -13,6 +13,8 @@ import { View, SafeAreaView, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from './Header';
 import Footer from './Footer';
+import CustomerSidebar from './CustomerSidebar';
+import OwnerSidebar from './OwnerSidebar';
 
 /**
  * AppLayout Component
@@ -32,6 +34,7 @@ export function AppLayout({
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState('guest');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
   // Fetch user data from storage on component mount
   useEffect(() => {
@@ -76,10 +79,27 @@ export function AppLayout({
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* Header */}
       <Header
-        userRole={userRole}
-        user={user}
+        onMenuPress={() => setIsSidebarVisible(true)}
+        onSettingsPress={() => console.log('Settings')}
         {...headerProps}
       />
+
+      {/* Sidebar - Show based on user role */}
+      {userRole === 'customer' && (
+        <CustomerSidebar
+          isVisible={isSidebarVisible}
+          onClose={() => setIsSidebarVisible(false)}
+          user={user}
+        />
+      )}
+
+      {userRole === 'owner' && (
+        <OwnerSidebar
+          isVisible={isSidebarVisible}
+          onClose={() => setIsSidebarVisible(false)}
+          user={user}
+        />
+      )}
 
       {/* Main Content */}
       <View className="flex-1">
@@ -87,11 +107,7 @@ export function AppLayout({
       </View>
 
       {/* Footer */}
-      <Footer
-        userRole={userRole}
-        user={user}
-        {...footerProps}
-      />
+      <Footer {...footerProps} />
     </SafeAreaView>
   );
 }
