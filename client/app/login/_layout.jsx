@@ -5,6 +5,7 @@ export default function Layout() {
     <Stack>
       <Stack.Screen name="SignInPage" options={{ title: 'Login', headerShown: false }} />
       <Stack.Screen name="SignUpPage" options={{ title: 'Sign Up', headerShown: false }} />
+      <Stack.Screen name="fogotpassword" options={{ headerShown: false }} />
     </Stack>
   );
 }

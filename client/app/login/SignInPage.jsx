@@ -145,7 +145,7 @@ export default function SignInPage() {
                     <Text className="text-sm text-gray-600">Remember me for 30 days</Text>
                   </TouchableOpacity>
 
-                  <Link href="/forgot-password" asChild>
+                  <Link href="/login/fogotpassword/fogotindex" asChild>
                     <TouchableOpacity>
                       <Text className="text-sm font-medium text-[#0A2E5C]">Forgot password?</Text>
                     </TouchableOpacity>
