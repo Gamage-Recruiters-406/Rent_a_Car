@@ -194,7 +194,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative max-w-4xl w-full mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative max-w-4xl w-full mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Close button */}
         <button
           type="button"
@@ -205,7 +205,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
         </button>
 
         {/* Image */}
-        <div className="h-64 md:h-80 w-full bg-gray-100 overflow-hidden">
+        <div className="h-40 md:h-80 w-full bg-gray-100 overflow-hidden">
           {vehicle.images && vehicle.images.length > 0 ? (
             <img
               src={vehicle.images[0]}
@@ -226,10 +226,11 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
         </div>
 
         {/* Details */}
-        <div className="p-6 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="p-4 md:p-8">
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Vehicle Type
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -237,7 +238,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Vehicle Number
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -245,7 +246,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Owner
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -254,7 +255,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
             </div>
 
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Model &amp; Year
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -262,7 +263,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Fuel Type
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -270,7 +271,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Transmission
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -279,7 +280,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
             </div>
 
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Price Per Day
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -287,7 +288,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Price Per KM
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -295,7 +296,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Location
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -312,7 +313,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
               <div className="flex flex-wrap gap-2">
                 {vehicle.operationAreas.map((area, idx) => (
-                  <span key={idx} className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                  <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium">
                     {area}
                   </span>
                 ))}
@@ -328,7 +329,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
               <div className="flex flex-wrap gap-2">
                 {vehicle.documents.map((doc, idx) => (
-                  <span key={idx} className="px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                  <span key={idx} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs md:text-sm font-medium">
                     {doc}
                   </span>
                 ))}
@@ -347,29 +348,32 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
           )}
 
           {vehicle.status === 'rejected' && vehicle.rejectionReason && (
-            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg text-center font-medium flex items-center justify-center gap-2">
-              <XCircle className="w-5 h-5" />
-              Rejection Reason: {vehicle.rejectionReason}
+            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg font-medium flex items-start gap-2">
+              <XCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Rejection Reason</p>
+                <p className="text-sm mt-1">{vehicle.rejectionReason}</p>
+              </div>
             </div>
           )}
 
           {/* Actions - Only show for pending vehicles */}
           {vehicle.status === 'pending' && (
-            <div className="mt-6 flex flex-col md:flex-row gap-3 md:gap-4 justify-center items-center border-t border-gray-200 pt-4">
+            <div className="mt-6 flex flex-col sm:flex-row gap-2 md:gap-4 justify-center border-t border-gray-200 pt-4 md:pt-6">
               <button
                 type="button"
                 onClick={handleApprove}
-                className="w-full md:w-56 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg bg-blue-900 text-white text-sm md:text-base font-semibold hover:bg-blue-950 transition-colors"
               >
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
                 Approve
               </button>
               <button
                 type="button"
                 onClick={handleReject}
-                className="w-full md:w-56 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg bg-red-600 text-white text-sm md:text-base font-semibold hover:bg-red-700 transition-colors"
               >
-                <XCircle className="w-4 h-4" />
+                <XCircle className="w-4 h-4 md:w-5 md:h-5" />
                 Reject
               </button>
             </div>

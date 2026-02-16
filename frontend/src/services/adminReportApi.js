@@ -129,3 +129,54 @@ export const getBestPerformanceVehicles = async (limit = 5) => {
     throw error;
   }
 };
+
+// Get admin platform revenue stats (total, this month, last month, growth)
+export const getAdminPlatformRevenue = async () => {
+  setAuthCookie();
+  try {
+    const res = await api.get('/adminReports/admin/total-revenue-platform');
+    return res.data; // { success, totalEarnings, thisMonth, lastMonth, growth }
+  } catch (error) {
+    console.error('Error fetching platform revenue:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+    throw error;
+  }
+};
+
+// Get monthly revenue chart data
+export const getMonthlyRevenueChart = async () => {
+  setAuthCookie();
+  try {
+    const res = await api.get('/adminReports/admin/total-revenue-chart');
+    return res.data; // { success, data: [{ month, totalRevenue, platformFee }] }
+  } catch (error) {
+    console.error('Error fetching monthly revenue chart:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+    throw error;
+  }
+};
+
+// Get payment report table data
+export const getPaymentReport = async () => {
+  setAuthCookie();
+  try {
+    const res = await api.get('/adminReports/admin/payment-table');
+    return res.data; // { success, data: [{ customerName, vehicle, revenue, status }] }
+  } catch (error) {
+    console.error('Error fetching payment report:', error);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+    throw error;
+  }
+};

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X } from 'lucide-react';
+import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Footer from '../../layouts/Footer';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -10,7 +11,7 @@ const defaultProfile = {
   name: "",
   subtitle: "Owner",
   avatar: "https://avatar.iran.liara.run/public/boy?username=",
-  email: "",
+  //email: "",
   phone: "",
   contactNumber: "",
   location: "",
@@ -20,26 +21,22 @@ const defaultProfile = {
   bio: ""
 };
 
-const defaultStats = {
-  vehicals: 1,
-  bookings: 0,
-  ongoingBookings: 20,
-  totalRevenue: 0,
-  profit: 0
-};
 
 
 export const OwnerProfileEdit = ({
   'data-id': dataId,
   profile = defaultProfile,
-  stats = defaultStats,
+  stats,
   onSave,
   onProfileChange
 }) => {
   const [activeProfile, setActiveProfile] = useState(profile);
-  const [activeStats, setActiveStats] = useState(stats);
+  const [activeStats, setActiveStats] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [earningansRevenue, setEarningansRevenue] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [vehiclecount, setVehiclecount] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,15 +52,25 @@ export const OwnerProfileEdit = ({
             // Set cookie for backend compatibility (since backend checks req.cookies.access_token)
             document.cookie = `access_token=${token}; path=/; samesite=strict`;
 
-            const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserbyId/${userId}`, {
+            const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserDetails`, {
                 withCredentials: true
             });
+            const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/earnings/${userId}`, {
+                withCredentials: true
+            });
+            const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/${userId}`, {
+                withCredentials: true
+            });
+            const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/get-my-all`, {
+                withCredentials: true
+            });
+
     
             if (response.data) {
                 const userData = response.data.user || response.data; 
 
                 const mappedProfile = {
-                    ...defaultProfile,
+                    //...defaultProfile,
                     ...activeProfile,
                     ...userData,
                     phone: userData.contactNumber || activeProfile.phone || defaultProfile.phone,
@@ -74,11 +81,34 @@ export const OwnerProfileEdit = ({
 
                 setActiveProfile(mappedProfile);
                 setEditedProfile(mappedProfile);
+
+               // set earnings and revenue
+                if(response2.data){
+                    const earningsData = response2.data.data;
+                    setEarningansRevenue(earningsData);
+                    //console.log(earningsData);
+                }
+                
+                // set bookings count
+                if(response3.data){
+                    const bookingsData = response3.data.data.length;
+                    setBookings(bookingsData);
+                    
+                }
+                
+                // set vehicle count
+                if(response4.data){
+                    const vehicleData = response4.data;
+                    const pendingcount = vehicleData.vehicles.filter(v => v.status === "Pending").length;
+                    setVehiclecount(pendingcount);
+                    console.log(vehicleData);
+                    
+                }
                 
                 // If stats are part of the response, update them too
-                if (userData.stats) {
-                    setActiveStats({ ...defaultStats, ...userData.stats });
-                }
+                // if (userData.stats) {
+                //     setActiveStats({ ...defaultStats, ...userData.stats });
+                // }
             }
           }
         }
@@ -90,6 +120,23 @@ export const OwnerProfileEdit = ({
     fetchUserData();
   }, []);
 
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+
+    useEffect(() => {
+        if (activeProfile.profilePicture) {
+            setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
+        }
+    }, [activeProfile.profilePicture]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
   const initials = activeProfile.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || '';
 
   const handleEdit = () => {
@@ -98,15 +145,34 @@ export const OwnerProfileEdit = ({
   };
   const handleSave = async () => {
     try {
-        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, editedProfile, {
-            withCredentials: true
+        const formData = new FormData();
+        Object.keys(editedProfile).forEach(key => {
+            formData.append(key, editedProfile[key]);
+        });
+        
+        if (imageFile) {
+            formData.append("profilePicture", imageFile);
+        }
+
+        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, formData, {
+            withCredentials: true,
+            headers: { "Content-Type": "multipart/form-data" },
         });
 
         if (response.data && response.data.success) {
             toast.success(response.data.message || "Profile updated successfully");
-            setActiveProfile(editedProfile);
-            onSave?.(editedProfile);
+            
+            // Refresh profile data to get new image URL
+             const updatedProfile = { ...editedProfile };
+             if(response.data.user && response.data.user.profilePicture){
+                 updatedProfile.profilePicture = response.data.user.profilePicture;
+                 setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
+             }
+
+            setActiveProfile(updatedProfile);
+            onSave?.(updatedProfile);
             setIsEditing(false);
+            setImageFile(null);
         } else {
             toast.error(response.data?.message || "Failed to update profile");
         }
@@ -118,6 +184,8 @@ export const OwnerProfileEdit = ({
   const handleCancel = () => {
     setEditedProfile(activeProfile);
     setIsEditing(false);
+    setImageFile(null);
+    setImagePreview(activeProfile.profilePicture ? `${baseUrl}/${activeProfile.profilePicture}` : null);
   };
   const handleFieldChange = (field, value) => {
     setEditedProfile((prev) => ({
@@ -146,22 +214,43 @@ export const OwnerProfileEdit = ({
 
   const currentProfile = isEditing ? editedProfile : activeProfile;
 
-
+ 
 
   return (
+ 
     <div data-id={dataId} className="min-h-screen bg-gray-50 w-full">
       {/* Header */}
       <div className="bg-[#0A2E5C] px-6 py-8">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl">
-              {activeProfile.avatar ?
-              <img
-                src={activeProfile.avatar}
-                alt={activeProfile.name}
-                className="w-full h-full rounded-full object-cover" /> :
-              initials
-              }
+            <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
+                {imagePreview ? (
+                     <img
+                     src={imagePreview}
+                     alt={activeProfile.name}
+                     className="w-full h-full object-cover" />
+                ) : (
+                    activeProfile.avatar ?
+                    <img
+                        src={activeProfile.avatar}
+                        alt={activeProfile.name}
+                        className="w-full h-full object-cover" /> :
+                    initials
+                )}
+                </div>
+                {isEditing && (
+                    <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
+                        <Camera className="w-4 h-4 text-[#0A2E5C]" />
+                        <input 
+                            type="file" 
+                            id="profile-upload" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleImageChange}
+                        />
+                    </label>
+                )}
             </div>
             <div>
               <h1 className="text-white text-2xl font-semibold">
@@ -188,7 +277,6 @@ export const OwnerProfileEdit = ({
                   Save Changes
                 </button>
               </> :
-
             <button
               onClick={handleEdit}
               className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
@@ -259,10 +347,8 @@ export const OwnerProfileEdit = ({
                     <input
                       type="email"
                       value={currentProfile.email || ''}
-                      onChange={(e) =>
-                      handleFieldChange('email', e.target.value)
-                      }
-                      disabled={!isEditing}
+                      readOnly
+                      disabled={isEditing}
                       className={`w-full text-[#0A2E5C]] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
                   </div>
                 </div>
@@ -345,43 +431,43 @@ export const OwnerProfileEdit = ({
                     Vehicals
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.vehicals}
+                    {vehiclecount.count}
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-xs mb-1">
-                    Bookings
+                    Total Bookings
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.bookings.toLocaleString()}
+                    {bookings}
                   </div>
                 </div>
                 <div>
                   <div className="text-[#999fa8] text-xs mb-1">
-                    Ongoing Bookings
+                    totalEarnings
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.ongoingBookings}
+                    {"RS."+earningansRevenue.totalEarnings}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[#999fa8] text-xs mb-1">
-                    Total Revenue
+                   <div className="text-[#999fa8] text-xs mb-1">
+                    Total pendingcount
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.totalRevenue.toLocaleString()}
+                    {vehiclecount}
                   </div>
                 </div>
-                <div>
+               {/* <div>
                   <div className="text-[#999fa8] text-xs mb-1">
                     Profit
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {activeStats.profit}
+                    {0}
                   </div>
-                </div>
+                </div> */}
           {/* status */}
-                    <div className="mt-8 border-t pt-6">
+               <div className="mt-8 border-t pt-6">
                       <h3 className="text-[#0A2E5C] font-semibold text-base mb-3">
                         Account Status
                       </h3>
@@ -406,12 +492,14 @@ export const OwnerProfileEdit = ({
                           </button>
                         </div>
                       )}
-                    </div>
+               </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>);
-
+      
+      <Footer />
+    </div>
+  );
 };

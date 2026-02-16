@@ -57,7 +57,7 @@ export const Stats = () => {
     const fetchVehicleCount = async () => {
       try {
         setIsLoading(true);
-        const url = `${baseUrl}${apiVersion}/vehicle/vehicle-count`;
+        const url = `http://localhost:8090/api/v1/vehicle/vehicle-count`;
         const response = await fetch(url, {
           method: "GET",
           headers: {
@@ -93,7 +93,7 @@ export const Stats = () => {
   useEffect(() => {
     const fetchUserCount = async () => {
       try {
-        const url = `${baseUrl}${apiVersion}/authUser/getAllCustomersCount`;
+        const url = `http://localhost:8090/api/v1/authUser/getAllCustomersCount`;
         const response = await fetch(url, {
           method: "GET",
           headers: {

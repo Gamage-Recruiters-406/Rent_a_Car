@@ -30,6 +30,8 @@ import { Homepage } from "./pages/Homepage";
 import AdminReport from "./pages/admin/AdminReport";
 import VehicleManagement from "./pages/admin/VehicleManagement";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
+import AdminNotifications from "./pages/admin/AdminNotifications";
+import OwnerBookingRequests from "./pages/owner/OwnerBookingRequest.jsx";
 
 
 function App() {
@@ -43,6 +45,7 @@ function App() {
         <Route path="/rental-history" element={<RentalHistoryPage />} />
         <Route path="/owner/vehicles" element={<MyVehicleOwner />} />
         <Route path="/owner/vehicles/new" element={<AddVehicle />} />
+        <Route path="/owner/booking-requests" element={<OwnerBookingRequests />} />
 
         {/* public */}
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
@@ -63,6 +66,7 @@ function App() {
         <Route path="/my-reviews" element={<MyReviews />} />
         <Route path="/admin/vehicles" element={<VehicleManagement />} />
         <Route path="/admin/settings" element={<AdminSettingsPage />} />
+        <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/booking" element={<BookingPage1 />} />
 
 
