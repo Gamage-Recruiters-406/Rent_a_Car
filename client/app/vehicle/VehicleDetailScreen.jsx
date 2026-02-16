@@ -285,18 +285,6 @@ export default function VehicleDetailScreen() {
         </ScrollView>
       </View>
 
-      {/* Registration */}
-      <DropdownCard
-        title="Registration"
-        icon={<VehicleIcon />}
-        open={open.registration}
-        onToggle={() =>
-          setOpen((p) => ({ ...p, registration: !p.registration }))
-        }
-      >
-        <SimpleRow label="Number Plate" value={vehicle.numberPlate || "—"} />
-      </DropdownCard>
-
       {/* Availability */}
       <DropdownCard
         title="Availability"
@@ -343,6 +331,35 @@ export default function VehicleDetailScreen() {
         </View>
       </DropdownCard>
 
+      {/* Specs */}
+      <DropdownCard
+        title="Vehicle Specification"
+        icon={<SettingsIcon />}
+        open={open.specs}
+        onToggle={() => setOpen((p) => ({ ...p, specs: !p.specs }))}
+      >
+        {/* gap workaround */}
+        <View>
+          {specItems.map((it, i) => (
+            <View key={it.label} className={i === 0 ? "" : "mt-2"}>
+              <BulletRow label={it.label} value={it.value} />
+            </View>
+          ))}
+        </View>
+      </DropdownCard>
+
+      {/* Registration */}
+      <DropdownCard
+        title="Registration"
+        icon={<VehicleIcon />}
+        open={open.registration}
+        onToggle={() =>
+          setOpen((p) => ({ ...p, registration: !p.registration }))
+        }
+      >
+        <SimpleRow label="Number Plate" value={vehicle.numberPlate || "—"} />
+      </DropdownCard>
+
       {/* Rental */}
       <DropdownCard
         title="Rental"
@@ -365,23 +382,6 @@ export default function VehicleDetailScreen() {
           label="Available in"
           value={vehicle.location?.address || "—"}
         />
-      </DropdownCard>
-
-      {/* Specs */}
-      <DropdownCard
-        title="Vehicle Specification"
-        icon={<SettingsIcon />}
-        open={open.specs}
-        onToggle={() => setOpen((p) => ({ ...p, specs: !p.specs }))}
-      >
-        {/* gap workaround */}
-        <View>
-          {specItems.map((it, i) => (
-            <View key={it.label} className={i === 0 ? "" : "mt-2"}>
-              <BulletRow label={it.label} value={it.value} />
-            </View>
-          ))}
-        </View>
       </DropdownCard>
 
       {/* Description */}
