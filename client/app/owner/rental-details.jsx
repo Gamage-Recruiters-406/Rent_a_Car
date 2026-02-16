@@ -429,7 +429,7 @@ export default function RentalDetailsScreen() {
         }}
       >
         <TouchableOpacity
-          className="bg-blue-600 rounded-lg mb-3 flex-row justify-center items-center"
+          className="bg-[#0A2E5C] rounded-lg mb-3 flex-row justify-center items-center"
           style={{
             paddingVertical: isSmallScreen ? 12 : 16,
             minHeight: Platform.OS === "ios" ? 44 : 48, // Platform-specific minimum touch target
@@ -452,7 +452,7 @@ export default function RentalDetailsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="bg-blue-600 rounded-lg flex-row justify-center items-center"
+          className="bg-[#0A2E5C] rounded-lg flex-row justify-center items-center"
           style={{
             paddingVertical: isSmallScreen ? 12 : 16,
             minHeight: Platform.OS === "ios" ? 44 : 48, // Platform-specific minimum touch target

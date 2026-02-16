@@ -13,7 +13,7 @@ export default function Layout() {
         options={{
           title: "Rental History",
           headerStyle: {
-            backgroundColor: "#1e40af",
+            backgroundColor: "#0A2E5C",
           },
           headerTintColor: "#fff",
           headerTitleStyle: {
@@ -27,7 +27,7 @@ export default function Layout() {
           presentation: "modal",
           title: "Rental Details",
           headerStyle: {
-            backgroundColor: "#1e40af",
+            backgroundColor: "#0A2E5C",
           },
           headerTintColor: "#fff",
           headerTitleStyle: {
