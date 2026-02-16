@@ -4,21 +4,12 @@ import { Calendar } from "react-native-calendars";
 
 export default function MiniCalendar({ month, blockedSet }) {
   return (
-    <View
-      style={{
-        borderRadius: 14,
-        overflow: "hidden",
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-        paddingTop: 6,
-        paddingBottom: 6,
-      }}
-    >
+    <View className="rounded-2xl overflow-hidden border border-slate-200 py-1.5">
       <Calendar
-        key={month} // forces update when month changes
+        key={month}
         current={`${month}-01`}
         hideExtraDays
-        renderHeader={() => null} // hide default header
+        renderHeader={() => null}
         hideArrows
         enableSwipeMonths={false}
         theme={{
@@ -55,11 +46,7 @@ export default function MiniCalendar({ month, blockedSet }) {
               }}
             >
               <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: "900",
-                  color: "#0f172a",
-                }}
+                style={{ fontSize: 12, fontWeight: "900", color: "#0f172a" }}
               >
                 {date.day}
               </Text>

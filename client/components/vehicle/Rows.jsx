@@ -3,16 +3,10 @@ import { View, Text } from "react-native";
 
 export function SimpleRow({ label, value }) {
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingVertical: 6,
-      }}
-    >
-      <Text style={{ color: "#475569", fontSize: 13 }}>{label}</Text>
+    <View className="flex-row justify-between py-1.5">
+      <Text className="text-slate-600 text-[13px]">{label}</Text>
 
-      <Text style={{ color: "#0f172a", fontSize: 13, fontWeight: "700" }}>
+      <Text className="text-slate-900 text-[13px] font-bold">
         {value ?? "—"}
       </Text>
     </View>
@@ -21,28 +15,11 @@ export function SimpleRow({ label, value }) {
 
 export function BulletRow({ label, value }) {
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: 10,
-        paddingVertical: 6,
-        alignItems: "flex-start",
-      }}
-    >
-      <View
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 99,
-          marginTop: 6,
-          backgroundColor: "#0d3778",
-        }}
-      />
-
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: "#475569", fontSize: 12 }}>{label}</Text>
-
-        <Text style={{ color: "#0f172a", fontSize: 13, fontWeight: "700" }}>
+    <View className="flex-row items-start py-1.5">
+      <View className="w-2 h-2 rounded-full mt-1.5 bg-[#0d3778]" />
+      <View className="flex-1 ml-2.5">
+        <Text className="text-slate-600 text-[12px]">{label}</Text>
+        <Text className="text-slate-900 text-[13px] font-bold">
           {value ?? "—"}
         </Text>
       </View>
@@ -52,19 +29,17 @@ export function BulletRow({ label, value }) {
 
 export function LegendItem({ bg, border, label }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+    <View className="flex-row items-center">
       <View
+        className="w-3.5 h-3.5 rounded bg-white border"
         style={{
-          width: 14,
-          height: 14,
-          borderRadius: 4,
           backgroundColor: bg,
-          borderWidth: 1,
           borderColor: border,
+          borderWidth: 1,
+          borderRadius: 4,
         }}
       />
-
-      <Text style={{ fontSize: 12, color: "#334155" }}>{label}</Text>
+      <Text className="ml-1.5 text-[12px] text-slate-700">{label}</Text>
     </View>
   );
 }

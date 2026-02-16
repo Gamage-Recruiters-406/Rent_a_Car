@@ -9,37 +9,25 @@ export default function DropdownCard({
   children,
 }) {
   return (
-    <View
-      style={{
-        borderWidth: 2,
-        borderColor: "#0d3778",
-        borderRadius: 16,
-        backgroundColor: "white",
-        padding: 12,
-      }}
-    >
+    <View className="border-2 border-[#0d3778] rounded-2xl bg-white p-3">
       <Pressable
         onPress={onToggle}
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
+        className="flex-row items-center justify-between"
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          {icon}
-          <Text style={{ fontSize: 14, fontWeight: "900", color: "#0d3778" }}>
-            {title}
-          </Text>
+        <View className="flex-row items-center">
+          {/* gap replacement */}
+          <View className="mr-2.5">{icon}</View>
+
+          <Text className="text-[14px] font-black text-[#0d3778]">{title}</Text>
         </View>
 
         {/* Arrow */}
-        <Text style={{ fontSize: 20, fontWeight: "bold", color: "#0d3778" }}>
+        <Text className="text-[20px] font-bold text-[#0d3778]">
           {open ? "▾" : "▸"}
         </Text>
       </Pressable>
 
-      {open && <View style={{ marginTop: 10 }}>{children}</View>}
+      {open && <View className="mt-2.5">{children}</View>}
     </View>
   );
 }
