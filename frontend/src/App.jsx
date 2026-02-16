@@ -6,46 +6,52 @@ import { Toaster } from "react-hot-toast";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import { SignInPage } from "./pages/login/SignInPage";
-import { SignUpPage } from "./pages/login/SignupPage";
+import { SignUpPage } from "./pages/login/SignUpPage"; 
+import { BookingPage1 } from "./pages/BookingPage1";       
 import { CustomerVehicleListPage } from "./pages/CustomerVehicleListPage";
 import { RentVehiclePage } from "./pages/RentVehiclePage";
 import ContactPage from "./pages/ContactPage";
+import { Homepage } from "./pages/Homepage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
 
+// --- Profile Pages ---
 import { OwnerProfileEdit } from "./pages/profilePages/OwnerProfileEdit";
 import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
 import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
 
+// --- Admin & Owner Imports ---
 import CustomerReviews from "./pages/CustomerRating";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
 import AddVehicle from "./pages/AddVehicle.jsx";
 import MyVehicleOwner from "./pages/MyVehicleOwner.jsx";
-
 import BookingHistory from "./pages/BookingHistory.jsx";
 import MyReviews from "./pages/MyReviews";
 import RentalHistoryPage from "./pages/RentalHistoryPage";
-import { BookingPage1 } from "./pages/BookingPage1";
-import { Homepage } from "./pages/Homepage";
 import AdminReport from "./pages/admin/AdminReport";
 import VehicleManagement from "./pages/admin/VehicleManagement";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
 
-// --- Owner Management Import ---
-import OwnerManagement from './pages/OwnerManagement'; 
+// --- YOUR WORK ---
+import OwnerManagement from "./pages/OwnerManagement";
+import CustomerManagement from "./pages/CustomerManagement";
+
+// --- Header & Footer ---
+// 👇 IMPORTANT: After you save, check your src/components folder!
+// If the file is named "Header.jsx", change "Navbar" to "Header" below.
+import Navbar from "./components/Navbar"; 
+import Footer from "./components/Footer"; 
 
 function App() {
   return (
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
-      <Routes>
-        
-        {/* --- 1. NEW ADMIN OWNER MANAGEMENT ROUTE --- */}
-        <Route path="/admin/owners" element={<OwnerManagement />} />
+      
+      <Navbar /> {/* Header */}
 
-        {/* Public Routes */}
+      <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage/>} />
@@ -53,6 +59,16 @@ function App() {
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/rent-vehicle" element={<RentVehiclePage />} />
         <Route path="/customer-reviews" element={<CustomerReviews />} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/owners" element={<OwnerManagement />} />
+        <Route path="/admin/customers" element={<CustomerManagement />} />
+        <Route path="/admin/booking" element={<AdminBooking />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/report" element={<AdminReport />} />
+        <Route path="/admin/vehicles" element={<VehicleManagement />} />
+        <Route path="/admin/settings" element={<AdminSettingsPage />} />
+        <Route path="/admin-profile" element={<AdminProfileEdit/>} /> 
         
         {/* Owner Routes */}
         <Route path="/rental-history" element={<RentalHistoryPage />} />
@@ -62,15 +78,11 @@ function App() {
         <Route path="/booking-history" element={<BookingHistory />} />
         <Route path="/my-reviews" element={<MyReviews />} />
         <Route path="/owner-profile" element={<OwnerProfileEdit/>} />
-
-        {/* Admin Routes */}
-        <Route path="/admin/booking" element={<AdminBooking />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/report" element={<AdminReport />} />
-        <Route path="/admin/vehicles" element={<VehicleManagement />} />
-        <Route path="/admin/settings" element={<AdminSettingsPage />} />
-        <Route path="/admin-profile" element={<AdminProfileEdit/>} /> 
         
+        {/* Customer Routes */}
+        <Route path="/customer-profile" element={<CustomerProfileEdit/>} />   
+        <Route path="/booking" element={<BookingPage1 />} />
+
         {/* Auth Routes */}
         <Route path="/login" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
@@ -78,12 +90,10 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        
-        {/* Customer Routes */}
-        <Route path="/customer-profile" element={<CustomerProfileEdit/>} />   
-        <Route path="/booking" element={<BookingPage1 />} />
-
       </Routes>
+
+      <Footer /> {/* Footer */}
+
     </Router>
   );
 }
