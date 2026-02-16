@@ -166,7 +166,7 @@ export default function SignInPage() {
 
                 <View className="flex-row justify-center gap-1">
                   <Text className="text-sm text-gray-500">Don't have an account?</Text>
-                  <Link href="/signup" asChild>
+                  <Link href="/login/SignUpPage"asChild>
                     <TouchableOpacity>
                       <Text className="font-medium text-[#0A2E5C]">Sign up</Text>
                     </TouchableOpacity>
