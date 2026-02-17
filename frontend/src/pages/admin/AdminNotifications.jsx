@@ -207,20 +207,22 @@ const AdminNotifications = () => {
     try {
       const response = await notificationApi.markAllAsRead();
       if (response.success) {
+        // Update local state immediately for better UX
         const allReadNotifications = notifications.map(n => ({ ...n, isRead: true }));
         setNotifications(allReadNotifications);
         updateCounts(allReadNotifications);
         toast.success('All notifications marked as read');
+        
+        // Refetch to verify backend persistence after a short delay
+        setTimeout(() => {
+          fetchNotifications();
+        }, 500);
       } else {
-        toast.error('Failed to mark all as read');
+        toast.error(response.message || 'Failed to mark all as read');
       }
     } catch (error) {
       console.error('Error marking all as read:', error);
-      // Fallback: update local state if API fails
-      const allReadNotifications = notifications.map(n => ({ ...n, isRead: true }));
-      setNotifications(allReadNotifications);
-      updateCounts(allReadNotifications);
-      toast.success('All notifications marked as read');
+      toast.error('Failed to mark all as read');
     }
   };
 
