@@ -53,9 +53,15 @@ const ContactPage = () => {
                             </Link>
                             <span className="mx-2">/</span>
 
+<<<<<<< Updated upstream
                             <a href="#" className="hover:text-white no-underline">
                                 Page
                             </a>
+=======
+                <a href="/vehicles" className="hover:text-white no-underline">
+                  Browse Cars
+                </a>
+>>>>>>> Stashed changes
 
                             <span className="mx-2">/</span>
 
