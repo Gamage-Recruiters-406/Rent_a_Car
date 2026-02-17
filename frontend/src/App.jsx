@@ -30,7 +30,9 @@ import { Homepage } from "./pages/Homepage";
 import AdminReport from "./pages/admin/AdminReport";
 import VehicleManagement from "./pages/admin/VehicleManagement";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
+import AdminNotifications from "./pages/admin/AdminNotifications";
 import OwnerBookingRequests from "./pages/owner/OwnerBookingRequest.jsx";
+import AdminNotifications from "./pages/admin/AdminNotifications.jsx";
 
 
 function App() {
@@ -65,7 +67,9 @@ function App() {
         <Route path="/my-reviews" element={<MyReviews />} />
         <Route path="/admin/vehicles" element={<VehicleManagement />} />
         <Route path="/admin/settings" element={<AdminSettingsPage />} />
+        <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/booking" element={<BookingPage1 />} />
+        <Route path="/notifications" element={<AdminNotifications />} />
 
 
         {/* login */}
