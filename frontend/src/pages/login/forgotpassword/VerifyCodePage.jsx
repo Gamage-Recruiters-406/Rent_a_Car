@@ -37,7 +37,7 @@ export function VerifyCodePage() {
     }
     setIsLoading(true);
     try {
-      const response = await axios.get(`${baseUrl}${apiVersion}/authUser/verifyOTP`,
+      const response = await axios.post(`${baseUrl}${apiVersion}/authUser/verifyOTP`,
          { email, otp: code });
       if(response.status === 200){
         toast.success('Verification code verified successfully');

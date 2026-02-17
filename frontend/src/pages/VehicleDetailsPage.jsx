@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getVehicleById } from "../services/vehicleApi";
 
 import DropdownCard from "../components/vehicle/DropdownCard";
@@ -15,8 +15,8 @@ import {
   WorldIcon,
 } from "../components/vehicle/Icons";
 
-import Header from "../layouts/Header";
-import Footer from "../layouts/Footer";
+import Layout from "../layouts/Layout";
+
 import { getVehicleAvailability } from "../services/bookingApi";
 
 // helpers
@@ -38,6 +38,7 @@ function formatMonthLabel(yyyyMm) {
 
 export default function VehicleDetailsPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [vehicle, setVehicle] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
@@ -183,8 +184,7 @@ export default function VehicleDetailsPage() {
   }
 
   return (
-    <>
-      <Header />
+    <Layout>
       <div className="w-full px-3 sm:px-6 lg:px-10 py-6 font-nunito bg-white">
         {/* Title */}
         <h1 className="text-[24px] font-bold text-[#0d3778] mb-4">
@@ -222,7 +222,7 @@ export default function VehicleDetailsPage() {
               </div>
 
               {/* thumbs */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {photoUrls.slice(0, 4).map((img, idx) => (
                   <button
                     key={idx}
@@ -386,7 +386,9 @@ export default function VehicleDetailsPage() {
             <div className="flex justify-stretch">
               <button
                 className="w-full h-[48px] rounded-xl bg-[#0d3778] text-white font-semibold text-[14px] hover:opacity-95"
-                onClick={() => alert("Book Now ")}
+                onClick={() =>
+                  navigate("/booking", { state: { vehicleId: id } })
+                }
               >
                 Book Now
               </button>
@@ -394,7 +396,6 @@ export default function VehicleDetailsPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </>
+    </Layout>
   );
 }

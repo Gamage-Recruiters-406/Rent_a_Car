@@ -22,13 +22,15 @@ const borderColors = {
 };
 
 const Cards = ({ label, val, icon, color }) => (
-  <div className="bg-white p-6 rounded-lg shadow-sm border-2 flex items-center gap-4" style={{ borderColor: borderColors[color] }}>
-    <div className={`${iconBgColors[color]} ${iconColors[color]} p-3 rounded-full`}>
-      {icon}
+  <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border-2 flex items-center gap-3 sm:gap-4" style={{ borderColor: borderColors[color] }}>
+    <div className={`${iconBgColors[color]} ${iconColors[color]} p-2 sm:p-3 rounded-full flex-shrink-0`}>
+      <div className="w-6 h-6 sm:w-10 sm:h-10 flex items-center justify-center">
+        {React.cloneElement(icon, { size: typeof window !== 'undefined' && window.innerWidth < 640 ? 24 : 40 })}
+      </div>
     </div>
-    <div>
-      <h3 className="text-3xl font-bold text-brand-dark leading-none mb-1">{val}</h3>
-      <p className="text-sm text-gray-600">{label}</p>
+    <div className="min-w-0 flex-1">
+      <h3 className="text-2xl sm:text-3xl font-bold text-brand-dark leading-none mb-1">{val}</h3>
+      <p className="text-xs sm:text-sm text-gray-600 truncate">{label}</p>
     </div>
   </div>
 );

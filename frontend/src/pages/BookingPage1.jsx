@@ -9,10 +9,13 @@ import {
   ChevronRight
 } from
   'lucide-react';
-import { Header } from './HomePageHeader';
+import { Header } from './BookingPageHeader';
+import Layout from '../layouts/Layout';
+import { searchVehicles, createBooking } from '../services/bookingApi';
 // import { RentYourCarPage } from './RentYourCarPage';
 // import { ContactPage } from './ContactPage';
 // import { PaymentModal } from './PaymentModal';
+import { getAllReviews } from '../services/reviewApi';
 
 // Analog Clock Time Picker Component
 function AnalogTimePicker({
@@ -330,68 +333,7 @@ function DatePicker({
     </div>);
 
 }
-// Testimonials data
-const allReviews = [
-  {
-    id: 1,
-    name: 'Person Name',
-    profession: 'Profession',
-    rating: 4,
-    image:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentmyCar for my future rentals."
-  },
-  {
-    id: 2,
-    name: 'Person Name',
-    profession: 'Profession',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'Loved the easy booking and transparent process. Customer support was very helpful, and the vehicle exceeded my expectations!'
-  },
-  {
-    id: 3,
-    name: 'John Smith',
-    profession: 'Business Owner',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      "Best car rental experience I've ever had. The process was seamless and the car was in perfect condition."
-  },
-  {
-    id: 4,
-    name: 'Sarah Johnson',
-    profession: 'Travel Blogger',
-    rating: 4,
-    image:
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'Great selection of vehicles and competitive prices. Will definitely recommend to my followers!'
-  },
-  {
-    id: 5,
-    name: 'Michael Chen',
-    profession: 'Software Engineer',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'The app made everything so easy. Picked up the car in minutes and the return was just as smooth.'
-  },
-  {
-    id: 6,
-    name: 'Emily Davis',
-    profession: 'Marketing Manager',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'Exceptional service from start to finish. The team went above and beyond to accommodate my needs.'
-  }];
+// Testimonials data - Removed dummy data, now fetched from backend
 
 export function LandingPage({ onBookNow }) {
   // Date & Time State
@@ -399,22 +341,72 @@ export function LandingPage({ onBookNow }) {
   const [pickupTime, setPickupTime] = useState(null);
   const [dropoffDate, setDropoffDate] = useState(null);
   const [dropoffTime, setDropoffTime] = useState(null);
+  // Vehicles State
+  const [vehicles, setVehicles] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const res = await searchVehicles({});
+        if (res.success && res.data) {
+           setVehicles(res.data);
+           if (res.data.length > 0) setSelectedVehicleId(res.data[0]._id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch vehicles", error);
+      }
+    };
+    fetchVehicles();
+  }, []);
+  
   // Popup State
   const [showPickupCalendar, setShowPickupCalendar] = useState(false);
   const [showPickupTime, setShowPickupTime] = useState(false);
   const [showDropoffCalendar, setShowDropoffCalendar] = useState(false);
   const [showDropoffTime, setShowDropoffTime] = useState(false);
   // Reviews carousel state
+  const [reviews, setReviews] = useState([]);
   const [reviewIndex, setReviewIndex] = useState(0);
   const reviewsPerPage = 2;
-  const maxIndex = Math.ceil(allReviews.length / reviewsPerPage) - 1;
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await getAllReviews();
+        console.log("Fetched All Reviews:", response); // Debug log
+
+        // Robust check for array in common response patterns
+        let fetchedReviews = [];
+        if (Array.isArray(response)) {
+          fetchedReviews = response;
+        } else if (response) {
+          fetchedReviews = response.reviews || response.allReviews || response.data || [];
+        }
+
+        if (Array.isArray(fetchedReviews)) {
+            setReviews(fetchedReviews);
+        } else {
+            console.warn("Reviews data format not recognized:", response);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+      }
+    };
+    fetchReviews();
+  }, []);
+
+  const maxIndex = Math.ceil(reviews.length / reviewsPerPage) - 1;
   const nextReviews = () => {
+    if (reviews.length === 0) return;
     setReviewIndex((prev) => prev < maxIndex ? prev + 1 : 0);
   };
   const prevReviews = () => {
+    if (reviews.length === 0) return;
     setReviewIndex((prev) => prev > 0 ? prev - 1 : maxIndex);
   };
-  const visibleReviews = allReviews.slice(
+  const visibleReviews = reviews.slice(
     reviewIndex * reviewsPerPage,
     reviewIndex * reviewsPerPage + reviewsPerPage
   );
@@ -426,6 +418,62 @@ export function LandingPage({ onBookNow }) {
     time) => {
     if (!time) return '12:00 AM';
     return `${time.hour}:${time.minute.toString().padStart(2, '0')} ${time.period}`;
+  };
+
+  const combineDateTime = (date, time) => {
+    if (!date) return null;
+    const t = time || { hour: 12, minute: 0, period: 'AM' };
+    const d = new Date(date);
+    let hours = t.hour;
+    if (t.period === 'PM' && hours < 12) hours += 12;
+    if (t.period === 'AM' && hours === 12) hours = 0;
+    d.setHours(hours, t.minute, 0, 0);
+    return d;
+  };
+
+  const getEstimatedTotal = () => {
+    const vehicle = vehicles.find(v => v._id === selectedVehicleId);
+    if (!vehicle || !pickupDate || !dropoffDate) return "0.00";
+    const start = combineDateTime(pickupDate, pickupTime);
+    const end = combineDateTime(dropoffDate, dropoffTime);
+    if (!start || !end || end <= start) return "0.00";
+    
+    const diffMs = end.getTime() - start.getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const days = Math.max(1, Math.ceil(diffMs / dayMs));
+    const rate = vehicle.amount || vehicle.pricePerDay || 0;
+    return (days * rate).toFixed(2);
+  };
+
+  const handleBookingCreate = async () => {
+    if (!selectedVehicleId) return alert("Please select a vehicle.");
+    const start = combineDateTime(pickupDate, pickupTime);
+    const end = combineDateTime(dropoffDate, dropoffTime);
+    
+    if (!start || !end) return alert("Please select pickup and dropoff dates.");
+    if (end <= start) return alert("End date must be after pickup date.");
+
+    setIsLoading(true);
+    try {
+      // Create FormData as backend expects multipart/form-data
+      const formData = new FormData();
+      formData.append('vehicleId', selectedVehicleId);
+      formData.append('startingDate', start.toISOString());
+      formData.append('endDate', end.toISOString());
+      // documents are currently empty for initial booking from landing page
+    
+      const res = await createBooking(formData);
+      
+      if (res.success) {
+        alert("Booking request sent successfully!");
+        if (onBookNow) onBookNow();
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to create booking. Please ensure you are logged in.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div className="w-full">
@@ -452,10 +500,19 @@ export function LandingPage({ onBookNow }) {
               {/* Car Selection */}
               <div className="space-y-1">
                 <div className="relative">
-                  <select className="w-full pl-3 pr-10 py-3 bg-white text-gray-900 rounded-md text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none appearance-none">
-                    <option>Toyota Prius [ABC-1234]</option>
-                    <option>Honda Vezel [XYZ-5678]</option>
-                    <option>Suzuki WagonR [PQR-9012]</option>
+                  <select
+                    value={selectedVehicleId}
+                    onChange={(e) => setSelectedVehicleId(e.target.value)}
+                    className="w-full pl-3 pr-10 py-3 bg-white text-gray-900 rounded-md text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none appearance-none">
+                    {vehicles.length > 0 ? (
+                      vehicles.map((v) => (
+                        <option key={v._id} value={v._id}>
+                           {v.title || `${v.make || 'Car'} ${v.model || ''}`} [{v.licensePlate || v.registrationNumber || 'NA'}]
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No vehicles available</option>
+                    )}
                   </select>
                   <Car className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
                 </div>
@@ -562,15 +619,15 @@ export function LandingPage({ onBookNow }) {
               {/* Total */}
               <div className="bg-white rounded px-4 py-3 flex justify-between items-center text-sm font-bold text-gray-900">
                 <span>Trip total:</span>
-                <span>$3,617.67</span>
+                <span>LKR {getEstimatedTotal()}</span>
               </div>
 
               {/* Book Button */}
               <button
-                onClick={onBookNow}
-                className="w-full py-3 bg-[#162c46] hover:bg-[#0f1f33] text-white font-bold rounded shadow-lg transition-all transform active:scale-[0.98] border border-white/10">
-
-                Book Now
+                onClick={handleBookingCreate}
+                disabled={isLoading}
+                className={`w-full py-3 bg-[#162c46] hover:bg-[#0f1f33] text-white font-bold rounded shadow-lg transition-all transform active:scale-[0.98] border border-white/10 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                {isLoading ? 'Processing...' : 'Book Now'}
               </button>
             </div>
           </div>
@@ -681,23 +738,24 @@ export function LandingPage({ onBookNow }) {
             </button>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 md:px-0">
-              {visibleReviews.map((review) =>
+              {visibleReviews.length > 0 ? (
+                visibleReviews.map((review) => (
                 <div
-                  key={review.id}
+                  key={review.id || review._id}
                   className="bg-gray-100 rounded-lg p-8 relative transition-all duration-300">
 
                   <div className="flex items-center space-x-4 mb-4">
                     <img
-                      src={review.image}
-                      alt={review.name}
+                      src={review.image || review.User?.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                      alt={review.name || review.User?.name || "Customer"}
                       className="w-12 h-12 rounded-full object-cover border-2 border-[#1e3a5f]" />
 
                     <div>
                       <h4 className="font-bold text-[#1e3a5f]">
-                        {review.name}
+                        {review.name || review.User?.name || "Customer"}
                       </h4>
                       <p className="text-xs text-gray-500">
-                        {review.profession}
+                        {review.profession || review.User?.role || "Verified Cluster"}
                       </p>
                       <div className="flex text-red-700 text-xs mt-1">
                         {Array.from({
@@ -712,11 +770,16 @@ export function LandingPage({ onBookNow }) {
                     </div>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    "{review.quote}"
+                    "{review.quote || review.feedback}"
                   </p>
                   <div className="absolute -top-3 right-8 bg-[#1a1a2e] text-white p-1 rounded-full">
                     <Quote className="h-4 w-4" />
                   </div>
+                </div>
+              ))
+              ) : (
+                <div className="col-span-2 text-center text-gray-400 py-10">
+                   No reviews available yet.
                 </div>
               )}
             </div>
@@ -739,7 +802,7 @@ export function LandingPage({ onBookNow }) {
 
 }
 
-export function HomePage() {
+export function BookingPage1() {
   const [activeTab, setActiveTab] = useState('home');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -757,20 +820,16 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900">
-      <Header activeTab={activeTab} onNavigate={setActiveTab} />
+    <Layout>
+      <div className="min-h-screen bg-white font-sans text-gray-900">
+        <Header activeTab={activeTab} onNavigate={setActiveTab} />
 
-      <main>{renderContent()}</main>
+        <main>{renderContent()}</main>
 
-      {/* <PaymentModal
+        {/* <PaymentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)} /> */}
-
-
-      {/* Simple Footer for completeness */}
-      <footer className="bg-[#162c46] text-white py-8 text-center text-sm">
-        <p>&copy; 2026 RentmyCar.lk. All rights reserved.</p>
-      </footer>
-    </div>
+      </div>
+    </Layout>
   );
 }

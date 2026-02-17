@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Star, ChevronRight } from "lucide-react";
+import { Star, StarHalf, ChevronRight, X, Eye } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast';
 import axios from "axios";
+import Layout from "../layouts/Layout";
 
 
 
@@ -18,39 +20,80 @@ export default function CustomerReviews() {
   const [totalReviews, setTotalReviews] = useState(0);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedRating, setSubmittedRating] = useState(0);
+  const [canReview, setCanReview] = useState(false);
+  const [checkingPermission, setCheckingPermission] = useState(true);
+  const [reviewReason, setReviewReason] = useState("");
+
+
 
 
 
   const location = useLocation();
   const navigate = useNavigate();
 
-  const {vehicleName, vehicleImage } = location.state || {};
+  const {vehicleId, vehicleName, vehicleImage } = location.state || {};
 
-  const vehicleId = "696e0bc53791596682689be1";
+  console.log("VehicleId:", vehicleId);
+  console.log("VehicleName:", vehicleName);
+  console.log("VehicleImage:", vehicleImage);
+
+  //const vehicleId = "696f19b58b0b00033e2af308"; // needs to set the Id recieve dynamicaly
   const AUTO_SLIDE_DELAY = 4000; // 4 seconds
   const sliderRef = useRef(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const API_VERSION = import.meta.env.VITE_API_VERSION;
 
-  console.log("Vehicle ID: ",vehicleId);
+  // console.log("Vehicle ID: ",vehicleId);
+
+  const fetchReviewsByVehicleId = async () =>{
+    try {
+      setLoadingReviews(true);
+      const response = await axios.get(
+        `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}`,
+        {withCredentials:true}
+      );
+      setReviews(response.data.reviews);
+      console.log("Responses: ",response)
+    } catch (error) {
+      console.error("Failed to fetch review", error);
+      if (error.request && !error.response) {
+        toast.error("Network error. Please try again later.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to fetch review");
+      }
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  const loadReviewSummary = async ()=>{
+    try {
+      setLoadingSummary(true);
+      const res = await axios.get(
+        `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}/rating`,
+        {withCredentials:true}
+      );
+      setAverageRating(res.data.rating || 0);
+      setTotalReviews(res.data.totalReviews || 0);
+      console.log("Summary: ", res);
+      console.log("Avg.Rating: ",res.data.rating);
+      console.log("TotalRating: ",res.data.totalReviews);
+    } catch (error) {
+      console.error("Failed to load review summary", error);
+      if (error.request && !error.response) {
+        toast.error("Network error. Please try again later.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to load review summary");
+      }
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
 
   useEffect(()=> {
-    const fetchReviewsByVehicleId = async () =>{
-      try {
-        setLoadingReviews(true);
-        const response = await axios.get(
-          `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}`,
-          {withCredentials:true}
-        );
-        setReviews(response.data.reviews);
-        console.log("Responses: ",response)
-      } catch (error) {
-        console.error("Failed to fetch review", error);
-      } finally {
-        setLoadingReviews(false);
-      }
-    };
 
     if (vehicleId) {
       fetchReviewsByVehicleId();
@@ -58,119 +101,18 @@ export default function CustomerReviews() {
   }, [vehicleId]);
 
   useEffect(()=>{
-    const loadReviewSummary = async ()=>{
-      try {
-        setLoadingSummary(true);
-        const res = await axios.get(
-          `${API_BASE_URL}${API_VERSION}/reviews/vehicle/${vehicleId}/rating`,
-          {withCredentials:true}
-        );
-        console.log("Summary: ", res);
-        setAverageRating(res.data.rating);
-        console.log("Avg.Rating: ",averageRating);
-        setTotalReviews(res.data.totalReviews || 0);
-        console.log("TotalRating: ",totalReviews);
-      } catch (error) {
-        console.error("Failed to load review summary", error);
-      } finally {
-        setLoadingSummary(false);
-      }
-    };
 
     if (vehicleId) {
       loadReviewSummary();
     }
   }, [vehicleId]);
 
-  // useEffect(() => {
-  //   if (!vehicleId) {
-  //     navigate("/customer-reviews");
-  //   }
-  // }, [vehicleId, navigate]);
+  useEffect(() => {
+    if (!vehicleId) {
+      navigate("/booking-history");
+    }
+  }, [vehicleId, navigate]);
 
-  // Dummy data - Needs to replace with APIs
-  // const reviews = [
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=32",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 3,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=30",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=15",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=20",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=12",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=32",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 3,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=30",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 4,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=15",
-  //   },
-  //   {
-  //     name: "Person Name",
-  //     role: "Profession",
-  //     rating: 5,
-  //     comment:
-  //       "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentMyCar for my future rentals.",
-  //     img: "https://i.pravatar.cc/100?img=20",
-  //   },
-  // ];
   
   const totalPages = Math.ceil(reviews.length / reviewsPerPage);
   const isSubmitDisabled = rating === 0 || feedback.trim() ==="";
@@ -217,12 +159,21 @@ export default function CustomerReviews() {
     }
   };
 
-  const getInitial = (name)=>{
+  const getInitial = (name = "")=>{
     if(!name) return "?";
-    return name.charAt(0).toUpperCase();
-  }
 
-  console.log("Token: ",localStorage.getItem("token"));
+    const words = name.trim().split(" ");
+
+    if(words.length === 1){
+      return words[0].substring(0, 2).toUpperCase();
+    }
+
+    return (
+      words[0][0] + words[1][0]
+    ).toUpperCase();
+  };
+
+  // console.log("Token: ",localStorage.getItem("token"));
 
   const handleSubmitReview = async () => {
     if(!rating || !feedback.trim()) return;
@@ -238,29 +189,67 @@ export default function CustomerReviews() {
           feedback: feedback,
         },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          withCredentials:true,
         }
       );
+
+      setSubmittedRating(rating);
+
+      //reset form
       setRating(0);
       setFeedback("");
 
       await Promise.all([
         fetchReviewsByVehicleId(vehicleId),
         loadReviewSummary(vehicleId)
-      ])
+      ]);
+
+      // Open Success Modal
+      setShowSuccessModal(true);
+
     } catch (error) {
       console.error("Failed to submit review", error);
-      alert("Failed to submit review. Please try again.");
+      if (error.request && !error.response) {
+        toast.error("Network error. Please try again later.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to submit review");
+      }
     } finally{
       setSubmitting(false);
     }
   }
+
+  const checkCanReview = async () => {
+    try {
+      setCheckingPermission(true);
+  
+      const res = await axios.get(
+        `${API_BASE_URL}${API_VERSION}/reviews/can-review/${vehicleId}`,
+        { withCredentials: true }
+      );
+      console.log("Can Review:",res);
+      setCanReview(res.data.canReview);
+      setReviewReason(res.data.reason || "");
+  
+    } catch (error) {
+      console.error("Failed to check review permission", error);
+      setCanReview(false);
+    } finally {
+      setCheckingPermission(false);
+    }
+  };
+
+  useEffect(()=>{
+    if (vehicleId) {
+      checkCanReview();
+    }
+  }, [vehicleId]);
+   
   
   
 
   return (
+    <Layout>
     <div className="w-full min-h-screen bg-white px-4 md:px-6 py-8 md:py-10">
       {/* Page Title */}
       <div className="text-center mb-10">
@@ -272,29 +261,37 @@ export default function CustomerReviews() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         {/* Car Image */}
         <img
-          src={vehicleImage || "https://images.unsplash.com/photo-1503376780353-7e6692767b70"}
+          src={`${API_BASE_URL}${vehicleImage}`}
           alt={vehicleName || "Vehicle"}
           className="rounded-lg shadow"
         />
 
         {/* Rating Box */}
         <div className="border-2 border-[#0D3778] rounded-3xl p-5 md:p-6 text-center shadow-sm max-w-sm md:max-w-lg mx-auto">
-          <h2 className="text-md md:text-lg lg:text-xl font-medium mb-4">{vehicleName || "Toyota Prius (ABC-1234)"}</h2>
+          <h2 className="text-md md:text-lg lg:text-xl font-medium mb-4">{vehicleName || "vehicleName"}</h2>
           <div className="flex items-center justify-center gap-6">
             <div>
               <p className="text-3xl md:text-4xl lg:text-5xl font-semibold text-yellow-500">{loadingSummary ? "—" : averageRating.toFixed(1)}</p>
               <div className="flex justify-center mt-2">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} 
-                  className={
-                    i< Math.round(averageRating)
-                      ? "text-yellow-400 fill-yellow-400 "
-                      : "text-yellow-400"
-                      }>
-                    <Star className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10" />
+              {[...Array(5)].map((_, i) => {
+                const starIndex = i + 1;
 
-                  </span>
-                ))}
+                if (loadingSummary) {
+                  // Show gray stars while loading
+                  return <Star key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-gray-300" />;
+                }
+
+                if (starIndex <= Math.floor(averageRating)) {
+                  // Full star
+                  return <Star key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-400 fill-yellow-400" />;
+                } else if (starIndex - averageRating <= 0.5) {
+                  // Half star
+                  return <StarHalf key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-400 fill-yellow-400" />;
+                } else {
+                  // Empty star
+                  return <Star key={i} className="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-400" />;
+                }
+              })}
               </div>
             </div>
             <div className="h-16 w-1 bg-gray-300"></div>
@@ -307,65 +304,85 @@ export default function CustomerReviews() {
       </div>
 
       {/* User Rating */}
-      <div className="max-w-3xl mx-auto mt-14">
-        <h3 className="text-center text-lg font-medium mb-4">Your Rating</h3>
-        <div className="flex justify-center gap-2 mb-6">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              className="p-1"
-              key={star}
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHover(star)}
-              onMouseLeave={() => setHover(0)}
+      {checkingPermission ? (
+        <p className="text-center text-gray-500">Checking review permission...</p>
+      ) : canReview ? (
+        <>
+          <div className="max-w-3xl mx-auto mt-14">
+            <h3 className="text-center text-lg font-medium mb-4">Your Rating</h3>
+            <div className="flex justify-center gap-2 mb-6">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  className="p-1"
+                  key={star}
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHover(star)}
+                  onMouseLeave={() => setHover(0)}
+                  
+                >
+                  <Star
               
-            >
-              <Star
-          
-                className={`w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 ${
-                  star <= (hover || rating)
-                    ? "text-yellow-400 fill-yellow-400"
-                    : "text-yellow-400"
-                }`}
-              />
+                    className={`w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 ${
+                      star <= (hover || rating)
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-yellow-400"
+                    }`}
+                  />
 
-            </button>
-          ))}
-        </div>
+                </button>
+              ))}
+            </div>
 
-        {/* Feedback */}
-        <label className="block mb-2 font-medium">Write Feedback</label>
-        <textarea
-          placeholder="Share your experience..."
-          value={feedback}
-          onChange={(e)=> setFeedback(e.target.value)}
-          className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#0D3778]"
-          rows="4"
-        />
+            {/* Feedback */}
+            <label className="block mb-2 font-medium">Write Feedback</label>
+            <textarea
+              placeholder="Share your experience..."
+              value={feedback}
+              onChange={(e)=> setFeedback(e.target.value)}
+              className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-[#0D3778]"
+              rows="4"
+            />
 
-        <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
-          <button 
-            onClick={()=>{
-              setRating(0);
-              setHover(0);
-              setFeedback("");
-            }}
-            className="px-6 py-2 bg-white border-2 border-[#0D3778] rounded-lg text-[#0D3778] hover:bg-[#0D3778] hover:text-white">
-            Cancel
+            <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
+              <button 
+                onClick={()=>{
+                  setRating(0);
+                  setHover(0);
+                  setFeedback("");
+                }}
+                className="px-6 py-2 bg-white border-2 border-[#0D3778] rounded-lg text-[#0D3778] hover:bg-[#0D3778] hover:text-white">
+                Cancel
+              </button>
+              <button 
+                onClick={handleSubmitReview}
+                disabled={isSubmitDisabled}
+                className={`px-6 py-2 rounded-lg transition
+                  ${
+                    isSubmitDisabled
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#0D3778] text-white  hover:bg-blue-950"
+                  }
+                  `}>
+                {submitting ? "Submitting..." : "Submit Review"}
+              </button>
+            </div>
+          </div>        
+        </>
+      ) : (
+        <div className="max-w-2xl mx-auto mt-10 bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-lg shadow-sm text-center space-y-2">
+          <p className="text-center text-yellow-800 font-medium text-lg">
+            {reviewReason || "You've already reviewed this vehicle."}
+          </p>
+          <button
+            onClick={() => navigate("/my-reviews")}
+            className="inline-flex items-center gap-1 text-[#0D3778] font-semibold hover:underline hover:text-blue-900 transition"
+          >
+           <Eye className="w-4 h-4 opacity-70" />
+            View your review
           </button>
-          <button 
-            onClick={handleSubmitReview}
-            disabled={isSubmitDisabled}
-            className={`px-6 py-2 rounded-lg transition
-              ${
-                isSubmitDisabled
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#0D3778] text-white  hover:bg-blue-950"
-              }
-              `}>
-            {submitting ? "Submitting..." : "Submit Review"}
-          </button>
         </div>
-      </div>
+      )}
+      
 
       {/* Clients Reviews */}
       <div className="mt-20 py-14 relative bg-cover bg-center"
@@ -415,18 +432,18 @@ export default function CustomerReviews() {
                         {review.img ? (
                           <img
                               src={review.img}
-                              alt={review.name}
+                              alt={review.customer_id?.first_name || ""}
                               className="w-14 h-14 rounded-full object-cover"
                           />
                         ):(
                           <div className="w-14 h-14 rounded-full bg-[#0D3778] flex items-center justify-center text-white font-semibold text-xl shadow-sm ring-2 ring-white">
-                            {getInitial(review.name)}
+                            {getInitial(`${review.customer_id?.first_name || ""} ${review.customer_id?.last_name || ""}`)}
                           </div>
                        )}
                         
                         <div className="overflow-hidden">
                           <h4 className="font-semibold text-[#0D3778]">
-                            {review.name}
+                          {review.customer_id?.first_name} {review.customer_id?.last_name}
                           </h4>
                           <div className="flex mt-1">
                             {[...Array(5)].map((_, i) => (
@@ -434,7 +451,7 @@ export default function CustomerReviews() {
                                 key={i}
                                 size={20}
                                 className={
-                                  i < review.rating
+                                  i < review.rate
                                     ? "fill-yellow-400 text-yellow-400"
                                     : "text-yellow-400"
                                 }
@@ -445,7 +462,7 @@ export default function CustomerReviews() {
                       </div>
 
                       <p className="text-gray-600 text-sm p-6 line-clamp-4 md:line-clamp-none">
-                        "{review.comment}"
+                        "{review.feedback}"
                       </p>
                     </div>
                   </div>
@@ -466,5 +483,56 @@ export default function CustomerReviews() {
       </div>
 
     </div>
+
+    {showSuccessModal && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full relative border-b-4 border-[#0D3778]">
+
+          {/* Header */}
+          <div className="relative bg-green-500 text-white px-4 py-3 rounded-t-2xl border-b-3 border-gray-400">
+            <button 
+              onClick={async () => {
+                setShowSuccessModal(false);
+                await checkCanReview();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition"
+              >
+                <X className="w-5 h-5 text-white" />
+            </button>
+            <p className=" text-center font-semibold">Review Submitted Successfully</p>
+            
+          </div>
+
+          {/* Body */}
+          <div className="p-6 text-center space-y-4">
+            <h2 className="text-md md:text-lg lg:text-xl font-semibold">Thank you for your feedback!</h2>
+
+            <div className="flex justify-center gap-1">
+              <span className="lg:font-semibold">Your Rating: </span>
+              {[1,2,3,4,5].map((star) => (
+                <Star
+                  key={star}
+                  className={
+                    star <= submittedRating
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-yellow-400"
+                  }
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={() => navigate("/")}
+              className="mt-4 px-6 py-2 border-2 border-[#0D3778] rounded-lg text-[#0D3778] hover:bg-[#0D3778] hover:text-white"
+            >
+              Back To Home
+            </button>
+          </div>
+
+        </div>
+      </div>
+    )}
+
+    </Layout>
   );
 }
