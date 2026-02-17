@@ -12,26 +12,26 @@ import { Testimonials } from '../components/ui/Testimornials';
 export default function HomeScreen() {
   return (
 
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={{ padding: 10, alignItems: 'center' }}>
-        <Link href="/vehicle_booking" asChild>
-          <TouchableOpacity style={{ backgroundColor: 'red', padding: 10, borderRadius: 5 }}>
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Go to Vehicle Booking</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
-      <Hero />
-      <Stats />
-      <Items />
-      <QuickStats />
-      <NewsLetter />
-      <Testimonials />
-    </ScrollView>
-  );
+    <ScrollView>
 
+      {/*The temporary buttons shown in the mobile view cannot navigate to actual URLs. These buttons are only added for testing 
+          and demonstration purposes of navigation flow.*/}
+
+      <Link href="/login/SignInPage" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">Login</Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/vehicle_booking" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">Vehicle Booking</Text>
+        </TouchableOpacity>
+      </Link>
+
+    </ScrollView>
+
+  )
 }
 const styles = StyleSheet.create({
   container: {
