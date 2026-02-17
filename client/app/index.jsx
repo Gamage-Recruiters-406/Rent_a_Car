@@ -18,7 +18,8 @@ export default function HomeScreen() {
            >  
              
           {/*The temporary buttons shown in the mobile view cannot navigate to actual URLs. These buttons are only added for testing 
-          and demonstration purposes of navigation flow.*/}
+          and demonstration purposes of navigation flow.
+          pleas donot delet this buttons. after connect every part then delet this buttons*/}
 
             <Link href="/login/SignInPage" asChild>
               <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
