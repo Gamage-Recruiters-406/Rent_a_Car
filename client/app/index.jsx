@@ -1,14 +1,34 @@
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Link } from 'expo-router';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Hero } from '../components/ui/Hero';
+import { Stats } from '../components/ui/Stats';
+import { Items } from '../components/ui/Items';
+import { QuickStats } from '../components/ui/Quickstats';
+import { NewsLetter } from '../components/ui/NewsLetter';
+import { Testimonials } from '../components/ui/Testimornials';
+
 
 export default function HomeScreen() {
   return (
-    <View className="flex-1 justify-center items-center bg-white">
-      <Text className="text-2xl font-bold text-center text-blue-500">
-        Welcome to Rent a Car Mobile
-      </Text>
-      <Text className="text-lg text-green-600 mt-4">
-        Tailwind is running
-      </Text>
-    </View>
+   
+          <ScrollView
+            style={styles.container}
+            showsVerticalScrollIndicator={false}
+          >
+            <Hero />
+            <Stats />
+          <Items />
+            <QuickStats/>
+            <NewsLetter />
+          <Testimonials/>
+          </ScrollView>
   );
+ 
 }
+ const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+});
