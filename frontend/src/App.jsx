@@ -67,7 +67,6 @@ function App() {
         <Route path="/my-reviews" element={<MyReviews />} />
         <Route path="/admin/vehicles" element={<VehicleManagement />} />
         <Route path="/admin/settings" element={<AdminSettingsPage />} />
-        <Route path="/admin/notifications" element={<AdminNotifications />} />
         <Route path="/booking" element={<BookingPage1 />} />
         <Route path="/notifications" element={<AdminNotifications />} />
 
