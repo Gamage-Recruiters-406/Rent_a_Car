@@ -32,7 +32,7 @@ import VehicleManagement from "./pages/admin/VehicleManagement";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import OwnerBookingRequests from "./pages/owner/OwnerBookingRequest.jsx";
-import AdminNotifications from "./pages/admin/AdminNotifications.jsx";
+
 
 
 function App() {
