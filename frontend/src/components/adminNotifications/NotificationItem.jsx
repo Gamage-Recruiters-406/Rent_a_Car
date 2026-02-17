@@ -60,7 +60,7 @@ const NotificationItem = ({
   return (
     <div
       className={`p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer flex items-start justify-between ${
-        !isRead ? 'bg-blue-50' : ''
+        !isRead ? 'bg-blue-50 bg-opacity-60' : 'bg-white'
       }`}
       onClick={() => {
         onSelect();
@@ -72,8 +72,8 @@ const NotificationItem = ({
           {getIconByType(type)}
         </div>
         <div className="flex-1">
-          <h4 className="font-medium text-gray-900 text-sm">{title}</h4>
-          <p className="text-xs text-gray-600 mt-1">{description}</p>
+          <h4 className={`font-medium text-sm ${!isRead ? 'text-gray-900 font-semibold' : 'text-gray-800'}`}>{title}</h4>
+          <p className={`text-xs mt-1 ${!isRead ? 'text-gray-600' : 'text-gray-500'}`}>{description}</p>
           <div className="flex items-center gap-4 mt-2">
             <span className="text-xs text-gray-500">
               {timestamp}
@@ -83,8 +83,13 @@ const NotificationItem = ({
       </div>
       <div className="ml-4 flex flex-col items-center gap-2 flex-shrink-0">
         {!isRead && (
-          <span className="inline-block px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full font-semibold">
+          <span className="inline-block px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full font-semibold animate-pulse">
             New
+          </span>
+        )}
+        {isRead && (
+          <span className="inline-block px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full font-medium">
+            Read
           </span>
         )}
         <button

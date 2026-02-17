@@ -109,6 +109,24 @@ export const markAsRead = async (notificationId) => {
   }
 };
 
+/* Mark multiple notifications as read */
+export const markMultipleAsRead = async (notificationIds) => {
+  try {
+    const response = await api.put("/notification/mark-multiple-read", {
+      notificationIds
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error marking multiple notifications as read:', error);
+    // Fallback: mark each individually
+    const results = await Promise.allSettled(
+      notificationIds.map(id => markAsRead(id))
+    );
+    const allSucceeded = results.every(r => r.status === 'fulfilled' && r.value?.success !== false);
+    return { success: allSucceeded, message: 'Notifications marked as read' };
+  }
+};
+
 /* Mark all notifications as read */
 export const markAllAsRead = async () => {
   try {
@@ -119,21 +137,21 @@ export const markAllAsRead = async () => {
       // Fallback: get unread and mark each
       try {
         const unreadResponse = await getUnreadNotifications();
-        const notifications = unreadResponse.notifications || [];
+        const notifications = unreadResponse.notifications || unreadResponse.data || [];
         
         if (notifications.length === 0) {
           return { success: true, message: 'No unread notifications' };
         }
         
         const unreadIds = notifications.map(n => n._id || n.id);
-        await markMultipleAsRead(unreadIds);
-        return { success: true, message: 'All notifications marked as read' };
+        return await markMultipleAsRead(unreadIds);
       } catch (fallbackError) {
         console.error('Error marking all notifications as read:', fallbackError);
-        throw fallbackError;
+        return { success: false, message: 'Failed to mark all notifications as read', error: fallbackError };
       }
     }
-    throw error.response?.data || error.message;
+    console.error('Error marking all as read:', error);
+    return { success: false, message: 'Failed to mark all notifications as read', error: error.message };
   }
 };
 
