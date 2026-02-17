@@ -270,4 +270,150 @@ export async function sendAdminVehicleNotificationEmail({ vehicle, owner, adminE
   });
 }
 
+/**
+ * PAYMENT EMAIL
+ * type = initiated | owner_initiated | received | success | failed | refunded
+ */
+export async function sendPaymentEmail({ type, payment, customer, owner, vehicle, booking }) {
+  // Defensive checks
+  if (!payment || !payment.amount) {
+    console.error("sendPaymentEmail: Invalid payment object");
+    return;
+  }
+
+  // Use currency from payment (LKR or USD)
+  const currencySymbol = payment.amount.currency === 'LKR' ? 'Rs.' : '$';
+  
+  let title = "Payment Update - Rent My Car";
+  let message = "";
+  let statusText = "";
+  let toEmail = "";
+
+  switch (type) {
+    case "initiated":
+      if (!customer || !vehicle) {
+        console.error("sendPaymentEmail: Missing customer or vehicle for initiated payment");
+        return;
+      }
+      title = "Payment Processing - Rent My Car";
+      message = `Dear ${customer.first_name}, your payment of ${currencySymbol}${payment.amount.amount} for ${vehicle.title} is being processed.`;
+      statusText = "Processing";
+      toEmail = customer.email;
+      break;
+      
+    case "owner_initiated":
+      if (!owner || !customer || !vehicle) {
+        console.error("sendPaymentEmail: Missing owner, customer or vehicle for owner_initiated");
+        return;
+      }
+      title = "Payment Initiated by Customer - Rent My Car";
+      message = `Dear ${owner.first_name}, ${customer.first_name} has initiated a payment of ${currencySymbol}${payment.amount.amount} for your vehicle ${vehicle.title}.`;
+      statusText = "Payment Initiated";
+      toEmail = owner.email;
+      break;
+
+    case "received":
+      if (!owner || !customer) {
+        console.error("sendPaymentEmail: Missing owner or customer for received payment");
+        return;
+      }
+      title = "Payment Received - Rent My Car";
+      message = `Dear ${owner.first_name}, you have received a payment of ${currencySymbol}${payment.amount.amount} for your vehicle.`;
+      statusText = "Payment Received";
+      toEmail = owner.email;
+      break;
+
+    case "success":
+      if (!customer) {
+        console.error("sendPaymentEmail: Missing customer for success payment");
+        return;
+      }
+      title = "Payment Successful - Rent My Car";
+      message = `Dear ${customer.first_name}, your payment of ${currencySymbol}${payment.amount.amount} was successful. Your booking is confirmed.`;
+      statusText = "Paid";
+      toEmail = customer.email;
+      break;
+
+    case "failed":
+      if (!customer) {
+        console.error("sendPaymentEmail: Missing customer for failed payment");
+        return;
+      }
+      title = "Payment Failed - Rent My Car";
+      message = `Dear ${customer.first_name}, your payment of ${currencySymbol}${payment.amount.amount} failed. Please try again with a different payment method.`;
+      statusText = "Payment Failed";
+      toEmail = customer.email;
+      break;
+
+    case "refunded":
+      if (!owner || !customer) {
+        console.error("sendPaymentEmail: Missing owner or customer for refunded payment");
+        return;
+      }
+      title = "Payment Refunded - Rent My Car";
+      message = `Dear ${owner.first_name}, a payment of ${currencySymbol}${payment.amount.amount} from ${customer.first_name} has been refunded.`;
+      statusText = "Refunded";
+      toEmail = owner.email;
+      break;
+      
+    default:
+      console.error(`sendPaymentEmail: Unknown payment type: ${type}`);
+      return;
+  }
+
+  // Build email details
+  let details = `
+    <h3>Payment Details</h3>
+    <p><strong>Amount:</strong> ${currencySymbol}${payment.amount.amount}</p>
+    <p><strong>Platform Fee:</strong> ${currencySymbol}${payment.amount.platformFee}</p>
+    <p><strong>Currency:</strong> ${payment.amount.currency}</p>
+    <p><strong>Payment Method:</strong> ${payment.amount.paymentMethod}</p>
+    <p><strong>Status:</strong> ${statusText}</p>
+    <p><strong>Payment Date:</strong> ${new Date(payment.paymentDate).toDateString()}</p>
+  `;
+
+  // Add vehicle details if available
+  if (vehicle) {
+    details += `
+      <h3>Vehicle Details</h3>
+      <p><strong>Vehicle:</strong> ${vehicle.title || 'N/A'}</p>
+      <p><strong>Number Plate:</strong> ${vehicle.numberPlate || 'N/A'}</p>
+    `;
+  }
+
+  // Add booking details if available
+  if (booking) {
+    details += `
+      <h3>Booking Details</h3>
+      <p><strong>Booking Dates:</strong> ${new Date(booking.startingDate).toDateString()} to ${new Date(booking.endDate).toDateString()}</p>
+    `;
+  }
+
+  // Add customer information for owner notifications
+  if (type === "received" || type === "refunded" || type === "owner_initiated") {
+    const customerName = customer.last_name 
+      ? `${customer.first_name} ${customer.last_name}`
+      : customer.first_name;
+      
+    details += `
+      <h3>Customer Information</h3>
+      <p><strong>Name:</strong> ${customerName}</p>
+      <p><strong>Email:</strong> ${customer.email}</p>
+    `;
+  }
+
+  // Send email using transporter and template
+  try {
+    await transporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to: toEmail,
+      subject: title,
+      html: generateEmailTemplate({ title, message, details }),
+    });
+    console.log(`✅ Payment email sent: ${type} to ${toEmail}`);
+  } catch (error) {
+    console.error(`❌ Failed to send payment email: ${error.message}`);
+  }
+}
+
 
