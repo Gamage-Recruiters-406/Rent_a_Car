@@ -16,6 +16,13 @@ export default function HomeScreen() {
             style={styles.container}
             showsVerticalScrollIndicator={false}
           >
+            <View style={styles.buttonWrapper}>
+              <Link href="/CustomerVehicleList" asChild>
+                <TouchableOpacity style={styles.button}>
+                  <Text style={styles.buttonText}>Go to Vehicle List</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
             <Hero />
             <Stats />
           <Items />
@@ -31,4 +38,18 @@ export default function HomeScreen() {
     flex: 1,
     backgroundColor: '#fff',
   },
+    buttonWrapper: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    button: {
+      backgroundColor: '#0D3778',
+      paddingVertical: 12,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: '#fff',
+      fontWeight: '600',
+    },
 });
