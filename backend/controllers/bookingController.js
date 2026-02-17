@@ -790,3 +790,81 @@ export const getOwnerEarnings = async (req, res) => {
 };
 
 
+
+// Owner personal use 
+export const onwerPersonalUseBooking = async (req, res) => {
+    try {
+        const { vehicleId, startingDate, endDate } = req.body;
+        const ownerId = req.user?.userid;
+
+        if (!vehicleId || !startingDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: "vehicleId, startingDate, and endDate are required",
+            });
+        }
+
+        const start = new Date(startingDate);
+        const end = new Date(endDate);
+
+        if (end <= start) {
+            return res.status(400).json({
+                success: false,
+                message: "End date must be after starting date",
+            });
+        }
+
+        const vehicle = await Vehicle.findById(vehicleId);
+
+        if (!vehicle) {
+            return res.status(404).json({
+                success: false,
+                message: "Vehicle not found",
+            });
+        }
+
+        if (String(vehicle.ownerId) !== String(ownerId)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied",
+            });
+        }
+
+        const overlap = await Booking.findOne({
+            vehicleId,
+            status: { $nin: ["rejected", "cancelled"] },
+            startingDate: { $lte: end },
+            endDate: { $gte: start },
+        });
+
+        if (overlap) {
+            return res.status(409).json({
+                success: false,
+                message: "Vehicle is already booked for the selected dates",
+            });
+        }
+
+        const booking = await Booking.create({
+            vehicleId,
+            ownerId,
+            customerId: ownerId,
+            startingDate: start,
+            endDate: end,
+            dailyRate: 0,
+            totalAmount: 0,
+            status: "approved",
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Vehicle blocked for personal use successfully",
+            data: booking,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error creating personal use booking",
+            error: error.message,
+        });
+    }
+}
