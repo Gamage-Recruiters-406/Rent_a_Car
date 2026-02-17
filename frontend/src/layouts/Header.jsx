@@ -15,8 +15,13 @@ const Avatar = ({ name }) => (
 	</div>
 );
 
-const NotificationBell = ({ count = 0 }) => (
-	<div className="relative">
+const NotificationBell = ({ count = 0, onClick }) => (
+	<button
+		type="button"
+		onClick={onClick}
+		className="relative hover:opacity-75 transition bg-transparent border-none cursor-pointer"
+		aria-label="View notifications"
+	>
 		<svg
 			viewBox="0 0 24 24"
 			className="h-5 w-5 text-slate-600"
@@ -42,7 +47,7 @@ const NotificationBell = ({ count = 0 }) => (
 				{count}
 			</span>
 		)}
-	</div>
+	</button>
 );
 
 const NavLink = ({ to, children, active }) => (
@@ -170,6 +175,7 @@ export default function Header({
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const location = useLocation();
+	const navigate = useNavigate();
 
 	const normalizedRole = useMemo(() => {
 		if (typeof role === "string") return role.toLowerCase();
@@ -204,7 +210,8 @@ export default function Header({
 								<NavLink to="/contact" active={location.pathname === "/contact"}>Contact Us</NavLink>
 							</div>
 							{isAuthenticated ? (
-								<div className="hidden md:flex">
+								<div className="hidden items-center gap-4 md:flex">
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -241,7 +248,7 @@ export default function Header({
 								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} />
+								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -264,7 +271,7 @@ export default function Header({
 								<NavLink to="/admin/report" active={location.pathname === "/admin/report"}>Reports</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} />
+								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -312,12 +319,15 @@ export default function Header({
 									Become a Host
 								</Link>
 								{isAuthenticated ? (
+								<div className="flex items-center gap-3 pt-2">
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
 										onLogout={onLogout}
 										avatarAfterName={true}
 									/>
+								</div>
 								) : (
 									<div className="flex flex-col gap-2 pt-2">
 										<Link
@@ -358,7 +368,7 @@ export default function Header({
 									Reviews
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} />
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -390,7 +400,7 @@ export default function Header({
 									Settings
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} />
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
