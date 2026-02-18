@@ -2,6 +2,15 @@ import payment from '../models/paymentModel.js';
 import vehicle from '../models/Vehicle.js';
 import Booking from '../models/Booking.js';
 import Stripe from 'stripe';
+import {
+  notifyPaymentInitiated,
+  notifyOwnerPaymentInitiated,
+  notifyOwnerPaymentReceived,
+  notifyCustomerPaymentSuccess,
+  notifyCustomerPaymentFailed,
+  notifyOwnerPaymentRefunded
+} from '../controllers/notificationController.js';
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -88,6 +97,16 @@ export const createPayment = async (req, res) => {
         stripePaymentIntentId: paymentIntent.id,
       });
 
+      // NOTIFY PAYMENT INITIATED
+      try {
+        await notifyPaymentInitiated(newPayment._id);
+        await notifyOwnerPaymentInitiated(newPayment._id);
+        console.log(`Payment initiation notifications sent for: ${newPayment._id}`);
+      } catch (notifyError) {
+        console.error("Failed to send payment initiation notifications:", notifyError);
+        // Don't fail the payment creation if notifications fail
+      }
+
       res.status(201).json({
         success: true,
         message: "Payment created successfully.",
@@ -136,13 +155,23 @@ export const stripeWebhook = async (req, res) => {
 
         // also update booking
         await Booking.findByIdAndUpdate(Payment.bookingId, {
-          status: "paid",
+          status: "approved",
         });
+
+        //  NOTIFY PAYMENT SUCCESS
+        try {
+          await notifyOwnerPaymentReceived(Payment._id);
+          await notifyCustomerPaymentSuccess(Payment._id);
+          console.log(` Payment success notifications sent for: ${Payment._id}`);
+        } catch (notifyError) {
+          console.error(" Failed to send payment success notifications:", notifyError);
+          // Don't fail the webhook if notifications fail
+        }
       }
     }
 
     // ❌ PAYMENT FAILED or CANCELED
-    if (
+    /**if (
       event.type === "payment_intent.payment_failed" ||
       event.type === "payment_intent.canceled"
     ) {
@@ -151,6 +180,54 @@ export const stripeWebhook = async (req, res) => {
       await payment.findOneAndDelete({
         stripePaymentIntentId: intent.id,
       });
+    }*/
+
+      //payment failed
+    if (event.type === "payment_intent.payment_failed") {
+      const intent = event.data.object;
+
+      const Payment = await payment.findOne({
+        stripePaymentIntentId: intent.id,
+      });
+
+      if (Payment) {
+        // NOTIFY PAYMENT FAILED (before deletion)
+        try {
+          await notifyCustomerPaymentFailed(intent.id);
+          console.log(`Payment failure notification sent for intent: ${intent.id}`);
+        } catch (notifyError) {
+          console.error(" Failed to send payment failure notification:", notifyError);
+        }
+        
+        // Delete payment record
+        await payment.findOneAndDelete({
+          stripePaymentIntentId: intent.id,
+        });
+      }
+    }
+    
+    // ❌ PAYMENT CANCELED
+    if (event.type === "payment_intent.canceled") {
+      const intent = event.data.object;
+
+      const Payment = await payment.findOne({
+        stripePaymentIntentId: intent.id,
+      });
+
+      if (Payment) {
+        // NOTIFY PAYMENT REFUNDED/CANCELED
+        try {
+          await notifyOwnerPaymentRefunded(Payment._id);
+          console.log(`Payment refund notification sent for: ${Payment._id}`);
+        } catch (notifyError) {
+          console.error("Failed to send payment refund notification:", notifyError);
+        }
+        
+        // Delete payment record
+        await payment.findOneAndDelete({
+          stripePaymentIntentId: intent.id,
+        });
+      }
     }
 
     res.json({ received: true });
