@@ -1,21 +1,62 @@
 import { useEffect, useState } from 'react';
-import { Users, Car, HandCoins, FileText, Hourglass, XCircle } from 'lucide-react';
+import { Users, Car, HandCoins, FileText, Hourglass } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Layout from '../../layouts/Layout';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
 
-const StatCard = ({ icon: Icon, title, value, subtitle, bgColor }) => (
-  <div className="bg-white rounded-xl p-6 shadow-md border-l-[6px] border-l-[#0D3778] hover:shadow-xl transition-all">
-    <div className="flex items-center gap-5">
-      <Icon className="w-16 h-16 text-[#0D3778] flex-shrink-0" strokeWidth={2.5} />
+// Custom Canceled Bookings Icon - Clipboard with Red X
+const ClipboardX = ({ className, strokeWidth }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Clipboard outline */}
+    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+    <rect x="9" y="3" width="6" height="4" rx="1" />
+    {/* Red X inside */}
+    <line x1="10" y1="12" x2="14" y2="16" stroke="#EF4444" strokeWidth={strokeWidth * 1.2} />
+    <line x1="14" y1="12" x2="10" y2="16" stroke="#EF4444" strokeWidth={strokeWidth * 1.2} />
+  </svg>
+);
+
+const StatCard = ({ icon: Icon, title, value, subtitle, showTrend }) => (
+  <div className="bg-white rounded-xl p-6 shadow-md border-l-[6px] border-l-[#0D3778] hover:shadow-xl transition-all relative">
+    <div className="flex gap-5">
+      <div className="flex h-24 w-24 items-center justify-center text-[#0D3778] mt-1 shrink-0">
+        <Icon className="h-20 w-20" strokeWidth={1.6} />
+      </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-slate-600 mb-1">{title}</p>
-        <h3 className="text-4xl font-bold text-[#0D3778]">{value}</h3>
-        {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+        <p className="text-4xl font-bold text-[#0D3778] leading-tight">{value}</p>
+        {subtitle ? (
+          <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+        ) : (
+          <p className="text-xs text-slate-500 mt-1 invisible">placeholder</p>
+        )}
       </div>
     </div>
+    {/* Trend indicator in bottom right corner */}
+    {showTrend && (
+      <div className="absolute bottom-2 right-4">
+        <svg width="56" height="32" viewBox="0 0 56 32" fill="none">
+          <polyline
+            points="2,18 10,10 18,16 26,8 34,14 42,6 50,12 54,4"
+            stroke="#EF4444"
+            strokeWidth="2.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+    )}
   </div>
 );
 
@@ -238,19 +279,28 @@ const BookingOverviewChart = ({ data = [] }) => {
 const MostRentedCars = ({ vehicles = [] }) => (
   <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
     <h3 className="text-lg font-semibold text-[#0D3778] mb-6">Most Rented Cars</h3>
-    <div className="space-y-4">
+    <div className="space-y-5">
       {vehicles.map((vehicle, index) => (
-        <div key={index} className="flex items-center gap-4 pb-4 border-b border-slate-100 last:border-b-0">
-          <img
-            src={vehicle.image || 'https://via.placeholder.com/60'}
-            alt={vehicle.title}
-            className="w-16 h-16 rounded object-cover flex-shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <h4 className="text-base font-semibold text-slate-900">{vehicle.title}</h4>
-            <p className="text-sm text-slate-500">{vehicle.numberPlate}</p>
+        <div key={index} className="flex items-center justify-between pb-5 last:pb-0">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full flex-shrink-0 overflow-hidden bg-gray-100 border border-slate-200">
+                <img
+                  src={vehicle.image || 'https://via.placeholder.com/80'}
+                  alt={vehicle.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute -top-1 -left-1 bg-[#0D3778] text-white text-xs font-bold px-1.5 py-0.5 rounded">
+                #{index + 1}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-slate-900">{vehicle.title}</h4>
+              <p className="text-xs text-slate-500 mt-0.5">{vehicle.numberPlate}</p>
+            </div>
           </div>
-          <span className="text-base font-semibold text-[#0D3778] whitespace-nowrap">{vehicle.rentCount} Rents</span>
+          <span className="text-base font-bold text-[#0D3778] ml-4 whitespace-nowrap">{vehicle.rentCount} Rents</span>
         </div>
       ))}
     </div>
@@ -385,11 +435,13 @@ export default function AdminDashboard() {
       .slice(0, 4)
       .map(([vehicleId, count]) => {
         const vehicle = vehicles.find(v => v._id === vehicleId);
+        const photoUrl = vehicle?.photos?.[0]?.url;
+        const fullImageUrl = photoUrl ? `${baseUrl}${photoUrl}` : null;
         return {
           title: vehicle?.title || vehicle?.model || 'Unknown',
           numberPlate: vehicle?.numberPlate || 'N/A',
           rentCount: count,
-          image: vehicle?.photos?.[0]?.url || null,
+          image: fullImageUrl,
         };
       });
 
@@ -413,7 +465,6 @@ export default function AdminDashboard() {
     <Layout showFooter={true}>
       <div className="min-h-screen bg-slate-50 p-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-[#0D3778] mb-8">Admin Dashboard</h1>
 
           {/* Top Section - Stats Cards Left + Rent Status Right */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
@@ -454,10 +505,11 @@ export default function AdminDashboard() {
                   bgColor="bg-amber-500"
                 />
                 <StatCard
-                  icon={XCircle}
+                  icon={ClipboardX}
                   title="Canceled Bookings"
                   value={stats.cancelledBookings}
                   bgColor="bg-red-500"
+                  showTrend={true}
                 />
               </div>
             </div>

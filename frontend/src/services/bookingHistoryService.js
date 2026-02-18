@@ -1,4 +1,3 @@
-// src/services/bookingHistoryService.js
 import axios from 'axios';
 
 // Helper function to extract owner info consistently
@@ -180,16 +179,17 @@ export const fetchVehicleDetails = async (vehicleId, API_BASE_URL, API_VERSION) 
   }
 };
 
-// Enrich booking data for BookingHistory component (simplified version)
+// Enrich booking data for BookingHistory component 
 export const enrichBookingForHistory = async (booking, API_BASE_URL, API_VERSION) => {
   try {
-    const ownerInfo = extractOwnerInfo(booking.ownerId, true); // Include email for history
+    const ownerInfo = extractOwnerInfo(booking.ownerId, true);
 
     // Vehicle details
     let vehicleDetails = {
       title: 'Unknown Vehicle',
-      images: [],
+      photos: [],
       rating: 0,
+      reviewCount: 0,
     };
 
     if (booking.vehicleId) {
@@ -197,19 +197,33 @@ export const enrichBookingForHistory = async (booking, API_BASE_URL, API_VERSION
       if (typeof booking.vehicleId === 'object') {
         vehicleDetails = {
           title: booking.vehicleId.title || 'Unknown Vehicle',
-          images: booking.vehicleId.photos || booking.vehicleId.images || [],
+          photos: booking.vehicleId.photos || [],
           rating: booking.vehicleId.averageRating || 0,
+          reviewCount: booking.vehicleId.reviewCount || 0,
+          model: booking.vehicleId.model,
+          year: booking.vehicleId.year,
+          numberPlate: booking.vehicleId.numberPlate,
+          fuelType: booking.vehicleId.fuelType,
+          amount: booking.vehicleId.amount,
+          pricePerDay: booking.vehicleId.pricePerDay,
         };
       } else {
-        // If it's just an ID, fetch the vehicle details including rating
+        // If it's just an ID, fetch the vehicle details
         try {
           const vehicleRes = await fetchVehicleDetails(booking.vehicleId, API_BASE_URL, API_VERSION);
           
           if (vehicleRes.success && vehicleRes.data) {
             vehicleDetails = {
               title: vehicleRes.data.title || 'Unknown Vehicle',
-              images: vehicleRes.data.photos || vehicleRes.data.images || [],
+              photos: vehicleRes.data.photos || [],
               rating: vehicleRes.data.averageRating || 0,
+              reviewCount: vehicleRes.data.reviewCount || 0,
+              model: vehicleRes.data.model,
+              year: vehicleRes.data.year,
+              numberPlate: vehicleRes.data.numberPlate,
+              fuelType: vehicleRes.data.fuelType,
+              amount: vehicleRes.data.amount,
+              pricePerDay: vehicleRes.data.pricePerDay,
             };
           }
         } catch (vehicleError) {
@@ -241,15 +255,16 @@ export const enrichBookingForHistory = async (booking, API_BASE_URL, API_VERSION
       ownerContact: 'N/A',
       vehicleDetails: {
         title: 'Unknown Vehicle',
-        images: [],
+        photos: [],
         rating: 0,
+        reviewCount: 0,
       },
       days: 1,
     };
   }
 };
 
-// Enrich booking data with vehicle and owner details (detailed version for modal)
+// Enrich booking data with vehicle and owner details 
 export const enrichBookingData = async (bookingData, API_BASE_URL, API_VERSION) => {
   try {
     const ownerInfo = extractOwnerInfo(bookingData.ownerId);
@@ -306,7 +321,7 @@ export const enrichBookingData = async (bookingData, API_BASE_URL, API_VERSION) 
             pricePerDay: vehicleData.pricePerDay || 0,
             km: vehicleData.km || 0,
             pricePerKm: vehicleData.pricePerKm || 0,
-            photos: vehicleData.photos || vehicleData.images || [],
+            photos: vehicleData.photos || [],
             description: vehicleData.description || '',
             rating: vehicleRating,
             reviewCount: reviewCount,
@@ -321,6 +336,7 @@ export const enrichBookingData = async (bookingData, API_BASE_URL, API_VERSION) 
           vehicleDetails.pricePerDay = bookingData.vehicleId.pricePerDay || 0;
           vehicleDetails.rating = bookingData.vehicleId.averageRating || 0;
           vehicleDetails.reviewCount = bookingData.vehicleId.reviewCount || 0;
+          vehicleDetails.photos = bookingData.vehicleId.photos || [];
         }
       }
     }
@@ -399,8 +415,9 @@ export const fetchAndEnrichCustomerBookings = async (userId, API_BASE_URL, API_V
             ownerContact: 'N/A',
             vehicleDetails: {
               title: 'Unknown Vehicle',
-              images: [],
+              photos: [],
               rating: 0,
+              reviewCount: 0,
             },
             days: 1,
           };
@@ -472,15 +489,34 @@ export const formatCurrency = (amount, currency = 'LKR') => {
   return `Rs${Math.round(amount || 0)}`;
 };
 
-// Get vehicle image URL
+// Get vehicle image URL 
 export const getVehicleImageUrl = (vehicle, index = 0, API_BASE_URL = '') => {
-  if (!vehicle?.images?.[index] && !vehicle?.photos?.[index]) return null;
+  if (!vehicle) return null;
   
-  const imageArray = vehicle.images || vehicle.photos || [];
-  if (index >= imageArray.length) return null;
+  // Get photos array from vehicle object
+  const photosArray = vehicle?.photos || vehicle?.images || [];
   
-  const firstImage = imageArray[index];
-  const imageUrl = typeof firstImage === 'object' ? firstImage.url : firstImage;
+  if (!photosArray || photosArray.length === 0) return null;
   
-  return API_BASE_URL ? `${API_BASE_URL}${imageUrl}` : imageUrl;
+  const photo = photosArray[index] || photosArray[0];
+  if (!photo) return null;
+  
+  // Get the URL from the photo object
+  const imageUrl = typeof photo === 'object' ? photo.url : photo;
+  
+  if (!imageUrl) return null;
+  
+  // If URL already has http or is a full URL, return as is
+  if (imageUrl.startsWith('http')) return imageUrl;
+  
+  // If URL starts with /, prepend API_BASE_URL
+  if (API_BASE_URL && imageUrl.startsWith('/')) {
+    // Remove duplicate API_BASE_URL if already present
+    if (imageUrl.startsWith(API_BASE_URL)) {
+      return imageUrl;
+    }
+    return `${API_BASE_URL}${imageUrl}`;
+  }
+  
+  return imageUrl;
 };

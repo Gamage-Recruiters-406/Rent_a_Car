@@ -17,8 +17,16 @@ export const Hero = () => {
     };
   }, []);
 
+  // Background image style - applied directly to section for proper zoom behavior
+  const backgroundImageStyle = imageLoaded 
+    ? { backgroundImage: `url(https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1600&h=900&fit=crop)` }
+    : {};
+
   return (
-    <section className="relative h-[500px] sm:h-[600px] lg:h-[700px] bg-gradient-to-br from-[#0d3778]/95 to-[#1a4d99]/90 flex items-center justify-center overflow-hidden w-full">
+    <section 
+      className="relative h-screen w-full overflow-hidden bg-cover bg-center"
+      style={backgroundImageStyle}
+    >
       {/* Loading Overlay */}
       {isLoading && (
         <div className="absolute inset-0 z-50 bg-gradient-to-br from-[#0d3778] to-[#1a4d99] flex items-center justify-center transition-opacity duration-1000">
@@ -56,34 +64,29 @@ export const Hero = () => {
         </div>
       )}
 
-      {/* Background Image */}
-      <div className={`absolute inset-0 transition-opacity duration-1000 ${imageLoaded ? 'opacity-30' : 'opacity-0'}`}>
-        <img 
-          src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1600&h=900&fit=crop" 
-          alt="Background" 
-          className="w-full h-full object-cover"
-          loading="eager"
-        />
-      </div>
+      {/* Blue Overlay - lighter to show background image more clearly */}
+      <div className={`absolute inset-0 bg-blue-900/45 transition-opacity duration-1000 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}></div>
       
       {/* Floating Animation */}
-      <div className="absolute -top-1/2 -right-20 w-[600px] h-[600px] bg-white/10 rounded-full animate-float blur-3xl"></div>
+      <div className="absolute -top-1/2 -right-20 w-[600px] h-[600px] bg-white/5 rounded-full animate-float blur-3xl"></div>
 
       {/* Content with Staggered Animation */}
-      <div className={`relative z-10 w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 text-center ${
+      <div className={`relative z-10 flex h-full items-center justify-center px-4 text-center ${
         isLoading ? 'opacity-0' : 'opacity-100'
       }`}>
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight drop-shadow-lg flex flex-wrap items-center justify-center gap-3">
-          <span className={`transition-all duration-700 delay-300 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Your</span>
-          <span className={`transition-all duration-700 delay-500 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Perfect</span>
-          <span className={`transition-all duration-700 delay-700 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Ride</span>
-          <span className={`transition-all duration-700 delay-900 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Awaits</span>
-        </h1>
-        <p className={`text-lg sm:text-xl lg:text-2xl text-white/95 mb-8 sm:mb-12 max-w-3xl mx-auto transition-all duration-1000 delay-1100 ${
-          isLoading ? 'opacity-0 translate-y-12' : 'opacity-100 translate-y-0'
-        }`}>
-          Discover amazing vehicles from trusted owners in your area. Rent by the day or week at unbeatable prices.
-        </p>
+        <div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-wide text-white mb-4 leading-tight">
+            <span className={`inline-block transition-all duration-700 delay-300 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Your </span>
+            <span className={`inline-block transition-all duration-700 delay-500 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Perfect </span>
+            <span className={`inline-block transition-all duration-700 delay-700 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Ride </span>
+            <span className={`inline-block transition-all duration-700 delay-900 ${isLoading ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'}`}>Awaits</span>
+          </h1>
+          <p className={`mt-4 text-lg text-white/80 md:text-xl max-w-3xl mx-auto transition-all duration-1000 delay-1100 ${
+            isLoading ? 'opacity-0 translate-y-12' : 'opacity-100 translate-y-0'
+          }`}>
+            Discover amazing vehicles from trusted owners in your area. Rent by the day or week at unbeatable prices.
+          </p>
+        </div>
       </div>
 
       <style jsx>{`

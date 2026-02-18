@@ -26,6 +26,17 @@ const RentalDetailsModal = ({
     });
   };
 
+  // Calculate number of rental days
+  const calculateRentalDays = () => {
+    const start = new Date(rental.startDate);
+    const end = new Date(rental.endDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const rentalDays = calculateRentalDays();
+
   return (
     <div className="fixed inset-0 backdrop-blur-md bg-white/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -169,15 +180,9 @@ const RentalDetailsModal = ({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Insurance:</span>
+                <span className="text-gray-500">Number of Days:</span>
                 <span className="font-medium">
-                  Rs. {rental.insurance || "0"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Service Charge (10%):</span>
-                <span className="font-medium">
-                  Rs. {rental.serviceCharge || "0"}
+                  {rentalDays} {rentalDays === 1 ? "Day" : "Days"}
                 </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-gray-300">
@@ -210,27 +215,6 @@ const RentalDetailsModal = ({
               </span>
             </div>
           )}
-
-          {/* Additional Information */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-blue-900 mb-3">
-              ADDITIONAL INFORMATION
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Booking ID:</span>
-                <p className="font-medium">{rental.bookingId || rental.id}</p>
-              </div>
-              <div>
-                <span className="text-gray-500">Pickup Location:</span>
-                <p className="font-medium">{rental.pickupLocation || "N/A"}</p>
-              </div>
-              <div>
-                <span className="text-gray-500">Return Location:</span>
-                <p className="font-medium">{rental.returnLocation || "N/A"}</p>
-              </div>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">

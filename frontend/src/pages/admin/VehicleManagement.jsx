@@ -90,8 +90,92 @@ function VehicleList({ vehicles, loading, searchQuery, activeTab, onApprove, onR
           onReject={onReject}
           onDelete={onDelete}
           onView={onView}
+          status={activeTab}
         />
       ))}
+    </div>
+  );
+}
+
+// Rejection Reason Modal
+function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
+  const [reason, setReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!reason.trim()) {
+      toast.error('Please provide a rejection reason');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      await onConfirm?.(vehicle.id, reason.trim());
+    } finally {
+      setIsSubmitting(false);
+      setReason('');
+      onClose();
+    }
+  };
+
+  if (!isOpen || !vehicle) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="relative max-w-md w-full mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 shadow hover:bg-white"
+        >
+          <XCircle className="w-5 h-5 text-gray-700" />
+        </button>
+
+        {/* Content */}
+        <div className="p-6 md:p-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Reject Vehicle
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {vehicle.name}
+          </p>
+
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              Rejection Reason
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Enter the reason for rejecting this vehicle..."
+              rows="4"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 justify-end border-t border-gray-200 pt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !reason.trim()}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+            >
+              <XCircle className="w-4 h-4" />
+              {isSubmitting ? 'Rejecting...' : 'Reject Vehicle'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -110,7 +194,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative max-w-4xl w-full mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative max-w-4xl w-full mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Close button */}
         <button
           type="button"
@@ -121,7 +205,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
         </button>
 
         {/* Image */}
-        <div className="h-64 md:h-80 w-full bg-gray-100 overflow-hidden">
+        <div className="h-40 md:h-80 w-full bg-gray-100 overflow-hidden">
           {vehicle.images && vehicle.images.length > 0 ? (
             <img
               src={vehicle.images[0]}
@@ -142,10 +226,11 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
         </div>
 
         {/* Details */}
-        <div className="p-6 md:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="p-4 md:p-8">
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Vehicle Type
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -153,7 +238,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Vehicle Number
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -161,7 +246,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Owner
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -170,7 +255,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
             </div>
 
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Model &amp; Year
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -178,7 +263,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Fuel Type
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -186,7 +271,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Transmission
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -195,7 +280,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
             </div>
 
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Price Per Day
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -203,7 +288,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Price Per KM
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -211,7 +296,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1 md:mb-2">
                 Location
               </p>
               <p className="text-sm md:text-base font-semibold text-gray-900">
@@ -220,25 +305,79 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="mt-6 flex flex-col md:flex-row gap-3 md:gap-4 justify-center items-center border-t border-gray-200 pt-4">
-            <button
-              type="button"
-              onClick={handleApprove}
-              className="w-full md:w-56 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 transition-colors"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Approve
-            </button>
-            <button
-              type="button"
-              onClick={handleReject}
-              className="w-full md:w-56 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
-            >
-              <XCircle className="w-4 h-4" />
-              Reject
-            </button>
-          </div>
+          {/* Operation Areas */}
+          {vehicle.operationAreas && vehicle.operationAreas.length > 0 && (
+            <div className="mb-6">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                Operation Areas
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {vehicle.operationAreas.map((area, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium">
+                    {area}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Document Submitted */}
+          {vehicle.documents && vehicle.documents.length > 0 && (
+            <div className="mb-6">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                Document Submitted
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {vehicle.documents.map((doc, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs md:text-sm font-medium">
+                    {doc}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <hr className="border-gray-200 my-6" />
+
+          {/* Status Badge */}
+          {vehicle.status === 'approved' && vehicle.approvalDate && (
+            <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg text-center font-medium flex items-center justify-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Approved on {vehicle.approvalDate}
+            </div>
+          )}
+
+          {vehicle.status === 'rejected' && vehicle.rejectionReason && (
+            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg font-medium flex items-start gap-2">
+              <XCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Rejection Reason</p>
+                <p className="text-sm mt-1">{vehicle.rejectionReason}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Actions - Only show for pending vehicles */}
+          {vehicle.status === 'pending' && (
+            <div className="mt-6 flex flex-col sm:flex-row gap-2 md:gap-4 justify-center border-t border-gray-200 pt-4 md:pt-6">
+              <button
+                type="button"
+                onClick={handleApprove}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg bg-blue-900 text-white text-sm md:text-base font-semibold hover:bg-blue-950 transition-colors"
+              >
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
+                Approve
+              </button>
+              <button
+                type="button"
+                onClick={handleReject}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg bg-red-600 text-white text-sm md:text-base font-semibold hover:bg-red-700 transition-colors"
+              >
+                <XCircle className="w-4 h-4 md:w-5 md:h-5" />
+                Reject
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -252,6 +391,8 @@ export function VehicleManagement() {
   const [activeTab, setActiveTab] = useState(VEHICLE_STATUS.PENDING);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [rejectionVehicle, setRejectionVehicle] = useState(null);
+  const [isRejectionopen, setIsRejectionOpen] = useState(false);
 
   // Get user from localStorage
   const getUser = () => {
@@ -334,6 +475,18 @@ export function VehicleManagement() {
       };
       const transformedVehicles = vehiclesData.map((vehicle, index) => {
         const imageUrls = getPhotoUrls(vehicle);
+        
+        // Helper function to format date
+        const formatDate = (dateString) => {
+          if (!dateString) return null;
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          });
+        };
+        
         return {
           id: vehicle._id || vehicle.id || `vehicle-${index}`,
           name: `${vehicle.brand || ''} ${vehicle.model || ''}`.trim() || (vehicle.title || 'Unknown Vehicle'),
@@ -346,13 +499,15 @@ export function VehicleManagement() {
           pricePerDay: vehicle.pricePerDay || vehicle.dailyRate || vehicle.rentPerDay || 5000,
           pricePerKm: vehicle.pricePerKm || vehicle.kmRate || vehicle.perKmRate || 50,
           status: String(vehicle.status || VEHICLE_STATUS.PENDING).toLowerCase(),
-          submittedDate: vehicle.createdAt
-            ? new Date(vehicle.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-              })
-            : new Date().toLocaleDateString(),
+          rejectionReason: vehicle.rejectionReason || vehicle.rejectReason || null,
+          submittedDate: formatDate(vehicle.createdAt) || new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          }),
+          approvalDate: formatDate(vehicle.approvedAt) || formatDate(vehicle.updatedAt) || null,
+          operationAreas: Array.isArray(vehicle.operationAreas) ? vehicle.operationAreas : [],
+          documents: Array.isArray(vehicle.documents) ? vehicle.documents.map(d => typeof d === 'string' ? d : d.name || d.type || 'Document') : [],
           image: imageUrls[0] || null,
           images: imageUrls,
         };
