@@ -20,12 +20,12 @@ import {
     X
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Header } from './BookingPageHeader';
+import { Header } from '../../components/vehicle_booking/BookingPageHeader';
 import { searchVehicles, createBooking } from '../../services/bookingApi';
 import { getAllReviews } from '../../services/reviewApi';
-import { AnalogTimePicker } from './components/AnalogTimePicker';
-import { DatePicker } from './components/DatePicker';
-import { ProcessStep } from './components/ProcessStep';
+import { AnalogTimePicker } from '../../components/vehicle_booking/AnalogTimePicker';
+import { DatePicker } from '../../components/vehicle_booking/DatePicker';
+import { ProcessStep } from '../../components/vehicle_booking/ProcessStep';
 
 // --- Main Page Component ---
 export default function VehicleBookingPage() {
@@ -149,11 +149,12 @@ export default function VehicleBookingPage() {
 
             {/* Hero Section */}
             <View className="h-[600px] relative bg-gray-900">
-                <ImageBackground
-                    source={{ uri: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3&auto=format&fit=crop&w=2021&q=80" }}
-                    className="flex-1 justify-center"
-                    imageStyle={{ opacity: 0.6 }}
-                >
+                <View className="flex-1 justify-center relative">
+                    <Image
+                        source={{ uri: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3&auto=format&fit=crop&w=2021&q=80" }}
+                        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', opacity: 0.6 }}
+                        resizeMode="cover"
+                    />
                     <View className="absolute inset-0 bg-black/40" /> {/* Grading overlay if needed */}
 
                     <View className="px-4 py-8 items-center">
@@ -236,7 +237,8 @@ export default function VehicleBookingPage() {
                             </TouchableOpacity>
                         </View>
                     </View>
-                </ImageBackground>
+                    {/* Closing View for content container */}
+                </View>
             </View>
 
             {/* Process Section */}
