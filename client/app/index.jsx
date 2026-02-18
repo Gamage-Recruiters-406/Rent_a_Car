@@ -8,7 +8,6 @@ import { Items } from '../components/ui/Items';
 import { QuickStats } from '../components/ui/Quickstats';
 import { NewsLetter } from '../components/ui/NewsLetter';
 import { Testimonials } from '../components/ui/Testimornials';
-import AppLayout from '../components/layout/Layout';
 
 
 export default function HomeScreen() {
