@@ -51,11 +51,11 @@ export default function ReviewsScreen() {
       
     
 
-  const API_BASE_URL = 
-    Platform.OS = 'web'?
-      'http://localhost:8090':  
-      process.env.EXPO_PUBLIC_API_BASE_URL;
-  // const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+  // const API_BASE_URL = 
+  //   Platform.OS = 'web'?
+  //     'http://localhost:8090':  
+  //     process.env.EXPO_PUBLIC_API_BASE_URL;
+  const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
   const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
   const vehicleId = '696f19b58b0b00033e2af308';
@@ -117,7 +117,7 @@ export default function ReviewsScreen() {
       setRating(0);
       setFeedback("");
 
-      await Promise.all([fetchReviewsByVehicleId(vehicleId), loadReviewSummary(vehicleId)]);
+      await Promise.all([fetchReviewsByVehicleId(vehicleId), loadReviewSummary(vehicleId), checkCanReview()]);
 
       //setShowSuccessModal(true);
 
@@ -143,6 +143,14 @@ export default function ReviewsScreen() {
       );
       setCanReview(res.data.canReview);
       setReviewReason(res.data.reason || '');
+    } catch {
+      console.error("Failed to Check Permission", error);
+
+      if (error.request && !error.response) {
+        alert("Network error. Please try again later.");
+      } else {
+        alert(error.response?.data?.message || "Failed to Check Permission");
+      }
     } finally {
       setCheckingPermission(false);
     }
@@ -394,8 +402,8 @@ export default function ReviewsScreen() {
                             <Text className="p-4 text-sm text-gray-600 leading-5">
                                 "{expandedReviews.includes(review._id)
                                     ? review.feedback
-                                    : review.feedback.length > 150
-                                    ? review.feedback.slice(0, 150) + '...'
+                                    : review.feedback?.length > 150
+                                    ? review.feedback?.slice(0, 150) + '...'
                                     : review.feedback
                                 }"
 

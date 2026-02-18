@@ -32,12 +32,12 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </Link>
 
-            <Hero />
+            {/* <Hero />
             <Stats />
           <Items />
             <QuickStats/>
             <NewsLetter />
-          <Testimonials/>
+          <Testimonials/> */}
           </ScrollView>
   );
  
