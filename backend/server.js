@@ -16,7 +16,6 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminReportRoutes from "./routes/adminRoutes.js";
 import paymentRoutes from "./routes/paymentRoute.js";
-import { stripeWebhook } from "./controllers/paymentController.js";
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import { stripeWebhook } from "./controllers/paymentController.js";
 
