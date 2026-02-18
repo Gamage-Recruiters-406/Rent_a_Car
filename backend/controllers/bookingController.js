@@ -2,6 +2,7 @@ import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 import path from "path";
 import fs from "fs";
+import { notifyBooking,notifyNewBookingRequest,notifyBookingUpdated,notifyBookingCancelled } from "../controllers/notificationController.js";
 
 const normalizeDate = (value) => {
     const date = new Date(value);
@@ -50,7 +51,7 @@ export const createBooking = async (req, res) => {
     let destDir = null;
 
     try {
-        const { bookingId, startingDate, endDate, documents, vehicleId } = req.body;
+        const { startingDate, endDate, documents, vehicleId } = req.body;
         const customerId = req.user?.userid;
 
         if (!startingDate || !endDate || !vehicleId) {
@@ -112,7 +113,6 @@ export const createBooking = async (req, res) => {
         }
 
         booking = new Booking({
-            bookingId,
             startingDate,
             endDate,
             documents: [],
@@ -157,6 +157,14 @@ export const createBooking = async (req, res) => {
         booking.documents = uploadedDocuments.length ? uploadedDocuments : bodyDocuments;
         await booking.save();
 
+        // Notify owner (notification + email)
+        try {
+        await notifyNewBookingRequest(booking._id);
+        } catch (err) {
+        console.error("Booking notification error:", err.message);
+        }
+
+
         if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
 
         return res.status(201).json({
@@ -177,7 +185,11 @@ export const createBooking = async (req, res) => {
 
 export const getBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find().sort({ createdAt: -1 });
+        const bookings = await Booking.find()
+            .populate("customerId", "first_name last_name email")
+            .populate("ownerId", "first_name last_name email")
+            .populate("vehicleId", "title model numberPlate")
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({
             success: true,
@@ -275,9 +287,58 @@ export const updateBooking = async (req, res) => {
             });
         }
 
+        const uploadedDocuments = [];
+        if (req.files?.length) {
+            const uploadRoot = path.join(process.cwd(), "uploads");
+            const destDir = path.join(uploadRoot, "bookings", booking._id.toString());
+
+            if (fs.existsSync(destDir)) {
+                fs.rmSync(destDir, { recursive: true, force: true });
+            }
+
+            fs.mkdirSync(destDir, { recursive: true });
+
+            const nameCounts = new Map();
+
+            for (const file of req.files) {
+                const safeName = getSafeFileName(file.originalname);
+                const ext = path.extname(safeName);
+                const base = path.basename(safeName, ext);
+
+                const count = nameCounts.get(safeName) ?? 0;
+                nameCounts.set(safeName, count + 1);
+
+                const finalName = count === 0 ? safeName : `${base}-${count}${ext}`;
+
+                fs.renameSync(file.path, path.join(destDir, finalName));
+                uploadedDocuments.push(finalName);
+            }
+        }
+
+        let parsedDocuments = documents;
+        if (typeof documents === "string") {
+            try {
+                parsedDocuments = JSON.parse(documents);
+            } catch (_) {
+                parsedDocuments = documents;
+            }
+        }
+
+        const bodyDocuments = Array.isArray(parsedDocuments)
+            ? parsedDocuments
+            : parsedDocuments
+            ? [parsedDocuments]
+            : undefined;
+
         if (startingDate !== undefined) booking.startingDate = startingDate;
         if (endDate !== undefined) booking.endDate = endDate;
-        if (documents !== undefined) booking.documents = documents;
+
+        if (bodyDocuments !== undefined || uploadedDocuments.length) {
+            booking.documents = uploadedDocuments.length
+                ? uploadedDocuments
+                : bodyDocuments ?? [];
+        }
+
         if (status !== undefined) booking.status = status;
 
         if (startingDate !== undefined || endDate !== undefined) {
@@ -290,12 +351,32 @@ export const updateBooking = async (req, res) => {
 
         await booking.save();
 
+        // --- Notification & Email (Customer updated booking) ---
+        try {
+            if (
+                startingDate !== undefined ||
+                endDate !== undefined ||
+                uploadedDocuments.length
+            ) {
+                await notifyBookingUpdated(booking._id);
+            }
+        } catch (err) {
+            console.error("Booking update notification error:", err.message);
+        }
+
+
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
+
+        const bookingData = booking.toObject();
+        bookingData.documentUrls = buildBookingDocumentUrls(booking);
+
         return res.status(200).json({
             success: true,
             message: "Booking updated successfully",
-            data: booking,
+            data: bookingData,
         });
     } catch (error) {
+        if (req._uploadTempDir) removeDirSafe(req._uploadTempDir);
         return res.status(500).json({
             success: false,
             message: "Error updating booking",
@@ -324,6 +405,14 @@ export const deleteBooking = async (req, res) => {
         }
 
         await booking.deleteOne();
+
+        // --- Notification & Email ---
+        try {
+        await notifyBookingCancelled(booking._id);
+        } catch (err) {
+        console.error("Booking deletion notification error:", err.message);
+        }
+
 
         return res.status(200).json({
             success: true,
@@ -354,6 +443,13 @@ export const approveBooking = async (req, res) => {
                 success: false,
                 message: "Pending booking not found for this owner",
             });
+        }
+
+        // --- Notification & Email ---
+        try {
+            await notifyBooking({ type: "approved", bookingId: booking._id });
+        } catch (err) {
+            console.error("Error sending booking notification/email:", err.message);
         }
 
         return res.status(200).json({
@@ -387,6 +483,14 @@ export const rejectBooking = async (req, res) => {
                 message: "Pending booking not found for this owner",
             });
         }
+
+        // --- Notification & Email ---
+        try {
+            await notifyBooking({ type: "rejected", bookingId: booking._id });
+        } catch (err) {
+            console.error("Error sending booking notification/email:", err.message);
+        }
+
 
         return res.status(200).json({
             success: true,
@@ -583,7 +687,9 @@ export const getCustomerBookings = async (req, res) => {
             filter.endDate = { $gte: now };
         }
 
-        const bookings = await Booking.find(filter).sort({ startingDate: -1 });
+        const bookings = await Booking.find(filter)
+            .populate("ownerId", "first_name last_name contactNumber")
+            .sort({ startingDate: -1 });
 
         return res.status(200).json({
             success: true,
@@ -615,7 +721,10 @@ export const getOwnerBookings = async (req, res) => {
         const filter = { ownerId };
         if (status) filter.status = status;
 
-        const bookings = await Booking.find(filter).sort({ startingDate: -1 });
+        const bookings = await Booking.find(filter)
+            .populate("customerId", "first_name last_name email contactNumber")
+            .populate("vehicleId")
+            .sort({ startingDate: -1 });
 
         return res.status(200).json({
             success: true,
@@ -679,3 +788,83 @@ export const getOwnerEarnings = async (req, res) => {
         });
     }
 };
+
+
+
+// Owner personal use 
+export const onwerPersonalUseBooking = async (req, res) => {
+    try {
+        const { vehicleId, startingDate, endDate } = req.body;
+        const ownerId = req.user?.userid;
+
+        if (!vehicleId || !startingDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: "vehicleId, startingDate, and endDate are required",
+            });
+        }
+
+        const start = new Date(startingDate);
+        const end = new Date(endDate);
+
+        if (end <= start) {
+            return res.status(400).json({
+                success: false,
+                message: "End date must be after starting date",
+            });
+        }
+
+        const vehicle = await Vehicle.findById(vehicleId);
+
+        if (!vehicle) {
+            return res.status(404).json({
+                success: false,
+                message: "Vehicle not found",
+            });
+        }
+
+        if (String(vehicle.ownerId) !== String(ownerId)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied",
+            });
+        }
+
+        const overlap = await Booking.findOne({
+            vehicleId,
+            status: { $nin: ["rejected", "cancelled"] },
+            startingDate: { $lte: end },
+            endDate: { $gte: start },
+        });
+
+        if (overlap) {
+            return res.status(409).json({
+                success: false,
+                message: "Vehicle is already booked for the selected dates",
+            });
+        }
+
+        const booking = await Booking.create({
+            vehicleId,
+            ownerId,
+            customerId: ownerId,
+            startingDate: start,
+            endDate: end,
+            dailyRate: 0,
+            totalAmount: 0,
+            status: "approved",
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Vehicle blocked for personal use successfully",
+            data: booking,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error creating personal use booking",
+            error: error.message,
+        });
+    }
+}

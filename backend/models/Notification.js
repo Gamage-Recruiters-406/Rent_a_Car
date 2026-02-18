@@ -14,22 +14,22 @@ const notificationSchema = new mongoose.Schema(
       trim: true
     },
 
-    owner_id: {
+    type: {
+      type: String,
+      enum: ["alert", "info", "warning", "confirmation"],
+      required: true
+    },
+
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null
     },
 
-    customer_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null
-    },
-
-    booking_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking",
-      default: null
+//admin role=3
+    role:{
+      type:Number,
+      default: null 
     },
 
     isRead: {

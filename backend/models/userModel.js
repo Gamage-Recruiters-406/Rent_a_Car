@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
         trim: true,
         match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "Please provide a valid email"]
     },
+    contactNumber: {
+        type: Number,
+        required: true
+    },
     role: {
         type: Number,
         enum: {
@@ -30,7 +34,20 @@ const userSchema = new mongoose.Schema({
     },
     status: {
         type: String,
+        lowercase: true,
         enum: ["verified" , "suspend" , "pending"]
+    },
+    profilePicture: {
+        type: String,
+        default: null
+    },
+    location:{
+        type: String,
+        default: null
+    },
+    bio: {
+        type: String,
+        default: null
     },
     //email verification
     emailVerifyTokenHash: { 
@@ -40,6 +57,17 @@ const userSchema = new mongoose.Schema({
         type: Date 
     },
     suspendExpires: {
+        type: Date
+    },
+    emailNotify: {
+        type: String,
+        enum: ["on", "off"],
+        default: "off"
+    },
+    resetOtpHash: {
+        type: String
+    },
+    resetOtpExpires:{
         type: Date
     }
 

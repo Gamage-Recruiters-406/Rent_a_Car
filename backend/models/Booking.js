@@ -2,11 +2,6 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
     {
-        bookingId: {
-            type: String,
-            unique: true,
-            trim: true,
-        },
         startingDate: {
             type: Date,
             required: true,

@@ -12,10 +12,12 @@ import path from "path";
 import userRoutes from "./routes/userRoute.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
-import notificationRoutes from "./routes/notificationRoutes.js"
+import notificationRoutes from "./routes/notificationRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminReportRoutes from "./routes/adminRoutes.js";
 import paymentRoutes from "./routes/paymentRoute.js";
+import { stripeWebhook } from "./controllers/paymentController.js";
+import subscriptionRoutes from "./routes/subscriptionRoutes.js";
 import { stripeWebhook } from "./controllers/paymentController.js";
 
 
@@ -35,13 +37,13 @@ app.post(
 );
 
 app.use(cors({
-    origin: "http://localhost:5173", // FRONTEND URL
+    origin: ["http://localhost:5173","http://localhost:8081","http://0.0.0.0:8081"], // FRONTEND URL
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }))
 
-app.use(helmet());
+app.use(helmet({crossOriginResourcePolicy: { policy: "cross-origin" }}));
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
@@ -56,6 +58,7 @@ app.use("/api/v1/notification",notificationRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/adminReports",adminReportRoutes);
 app.use("/api/v1/payment", paymentRoutes);
+app.use("/api/v1/subscription", subscriptionRoutes);
 
 
 app.get("/", (req, res) => {
