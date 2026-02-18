@@ -3,12 +3,13 @@ import Notification from "../models/Notification.js";
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 import User from "../models/userModel.js";
-import { sendBookingEmail, sendVehicleEmail,sendNewBookingRequestEmail,sendAdminVehicleNotificationEmail } from "../helpers/mailer.js";
+import paymentModel from "../models/paymentModel.js";
+import { sendBookingEmail, sendVehicleEmail,sendNewBookingRequestEmail,sendAdminVehicleNotificationEmail,sendPaymentEmail } from "../helpers/mailer.js";
 
 // Check if user allows email notifications
 const canSendEmail = async (userId) => {
   const user = await User.findById(userId).select("emailNotify email first_name");
-  if (!user) return { allowed: false };
+  if (!user) return { allowed: false ,user: null };
 
   return {
     allowed: user.emailNotify === "on",
@@ -483,6 +484,417 @@ export const notifyAdminVehicleDeleted = async (vehicleId) => {
   );
 };
 
+// Notify customer that payment is initiated/processing
+export const notifyPaymentInitiated = async (paymentId) => {
+  const payment = await paymentModel.findById(paymentId)
+    .populate("customerId", "first_name email")
+    .populate("vehicleId", "title numberPlate")
+    .populate("bookingId", "startingDate endDate");
+
+  if (!payment) throw new Error("Payment not found");
+
+  const currencySymbol = payment.amount.currency === "LKR" ? "Rs." : "$";
+
+  const description = `Your payment of ${currencySymbol}${payment.amount.amount} for ${payment.vehicleId.title} (${payment.vehicleId.numberPlate}) is being processed. We'll notify you once the payment is successfully completed.`;
+
+  // Create notification for customer
+  await Notification.create({
+    title: "Payment Processing",
+    description,
+    type: "info", 
+    userId: payment.customerId._id,
+    isRead: false
+  });
+
+  // Admin notification
+  const adminDescription = `Payment of ${currencySymbol}${payment.amount.amount} initiated by ${payment.customerId.first_name} for vehicle "${payment.vehicleId.title}"`;
+
+  await notifyAdmins({
+    title: "Payment Initiated",
+    description: adminDescription,
+    type: "info"
+  });
+
+  // Send email to customer if they allow notifications
+  const { allowed, user } = await canSendEmail(payment.customerId._id);
+  if (allowed && user) {
+    await sendPaymentEmail({//sendPaymentEmail
+      type: "initiated",
+      payment,
+      customer: payment.customerId,
+      vehicle: payment.vehicleId,
+      booking: payment.bookingId
+    });
+  }
+};
+
+// Notify owner that customer has initiated payment
+export const notifyOwnerPaymentInitiated = async (paymentId) => {
+  const payment = await paymentModel.findById(paymentId)
+    .populate("customerId", "first_name email")
+    .populate("OwnerId", "first_name email _id")
+    .populate("vehicleId", "title numberPlate")
+    .populate("bookingId", "startingDate endDate");
+
+  if (!payment) throw new Error("Payment not found");
+
+  const currencySymbol = payment.amount.currency === "LKR" ? "Rs." : "$";
+
+  const description = `${payment.customerId.first_name} has initiated a payment of ${currencySymbol}${payment.amount.amount} for your vehicle ${payment.vehicleId.title} (${payment.vehicleId.numberPlate}). Payment is being processed.`;
+
+  // Create notification for owner
+  await Notification.create({
+    title: "Payment Initiated by Customer",
+    description,
+    type: "info",
+    userId: payment.OwnerId._id,
+    isRead: false
+  });
+
+  // Send email to owner if they allow notifications
+  const { allowed, user } = await canSendEmail(payment.OwnerId._id);
+  if (allowed && user) {
+    await sendPaymentEmail({
+      type: "owner_initiated",
+      payment,
+      customer: payment.customerId,
+      owner: payment.OwnerId,
+      vehicle: payment.vehicleId,
+      booking: payment.bookingId
+    });
+  }
+};
+
+// Notify owner when payment is received for their vehicle booking
+export const notifyOwnerPaymentReceived = async (paymentId) => {
+  const payment = await paymentModel.findById(paymentId)
+    .populate("customerId", "first_name email")
+    .populate("OwnerId", "first_name email _id") 
+    .populate("vehicleId", "title numberPlate")
+    .populate("bookingId", "startingDate endDate");
+
+  if (!payment) throw new Error("Payment not found");
+
+  const currencySymbol = payment.amount.currency === "LKR" ? "Rs." : "$";
+
+  const description = `${payment.customerId.first_name} has successfully paid ${currencySymbol}${payment.amount.amount} for booking ${payment.vehicleId.title} (${payment.vehicleId.numberPlate}). Platform fee: ${currencySymbol}${payment.amount.platformFee}`;
+  
+  // Create notification for owner
+  await Notification.create({
+    title: "Payment Received",
+    description,
+    type: "confirmation", // matches notification schema enum
+    userId: payment.OwnerId._id, // Capital O as in payment schema
+    isRead: false
+  });
+
+  // Admin-friendly notification
+  const adminDescription = `Payment of ${currencySymbol}${payment.amount.amount} received from ${payment.customerId.first_name} for vehicle "${payment.vehicleId.title}" (Owner: ${payment.OwnerId.first_name})`;
+
+  await notifyAdmins({
+    title: "Payment Completed",
+    description: adminDescription,
+    type: "confirmation"
+  });
+
+  // Send email to owner if they allow notifications
+  const { allowed, user } = await canSendEmail(payment.OwnerId._id);
+  if (allowed && user) {
+    await sendPaymentEmail({
+      type: "received",
+      payment,
+      customer: payment.customerId,
+      owner: payment.OwnerId,
+      vehicle: payment.vehicleId,
+      booking: payment.bookingId
+    });
+  }
+};
+
+// Notify customer when their payment is successful
+export const notifyCustomerPaymentSuccess = async (paymentId) => {
+  const payment = await paymentModel.findById(paymentId)
+    .populate("customerId", "first_name email")
+    .populate("vehicleId", "title numberPlate")
+    .populate("bookingId", "startingDate endDate");
+
+  if (!payment) throw new Error("Payment not found");
+
+  const currencySymbol = payment.amount.currency === "LKR" ? "Rs." : "$";
+
+  const description = `Your payment of ${currencySymbol}${payment.amount.amount} for ${payment.vehicleId.title} (${payment.vehicleId.numberPlate}) was successful. Your booking is now confirmed.`;
+
+  // Create notification for customer
+  await Notification.create({
+    title: "Payment Successful",
+    description,
+    type: "confirmation",
+    userId: payment.customerId._id,
+    isRead: false
+  });
+
+  // Send email to customer if they allow notifications
+  const { allowed, user } = await canSendEmail(payment.customerId._id);
+  if (allowed) {
+    await sendPaymentEmail({
+      type: "success",
+      payment,
+      customer: payment.customerId,
+      vehicle: payment.vehicleId,
+      booking: payment.bookingId
+    });
+  }
+};
+
+// Notify customer when payment fails
+export const notifyCustomerPaymentFailed = async (paymentIntentId) => {
+  const payment = await paymentModel.findOne({ stripePaymentIntentId: paymentIntentId })
+    .populate("customerId", "first_name email")
+    .populate("vehicleId", "title numberPlate");
+
+  if (!payment) return; // Payment record might not exist yet
+
+  //FIXED: Add dynamic currency symbol
+  const currencySymbol = payment.amount.currency === "LKR" ? "Rs." : "$";
+
+  //FIXED: Use currencySymbol instead of hardcoded $
+  const description = `Your payment of ${currencySymbol}${payment.amount.amount} for ${payment.vehicleId.title} (${payment.vehicleId.numberPlate}) failed. Please try again with a different payment method.`;
+
+  // Create notification for customer
+  await Notification.create({
+    title: "Payment Failed",
+    description,
+    type: "warning", // matches notification schema enum
+    userId: payment.customerId._id,
+    isRead: false
+  });
+
+  // Use currencySymbol in admin notification
+  const adminDescription = `Payment failed for ${payment.customerId.first_name} - ${currencySymbol}${payment.amount.amount} for ${payment.vehicleId.title}`;
+
+  await notifyAdmins({
+    title: "Payment Failed",
+    description: adminDescription,
+    type: "warning"
+  });
+
+  // Send email to customer if they allow notifications
+  const { allowed, user } = await canSendEmail(payment.customerId._id);
+  if (allowed && user) {
+    await sendPaymentEmail({
+      type: "failed",
+      payment,
+      customer: payment.customerId,
+      vehicle: payment.vehicleId
+    });
+  }
+};
+
+// Notify owner when a booking payment is refunded/cancelled
+export const notifyOwnerPaymentRefunded = async (paymentId) => {
+  const payment = await paymentModel.findById(paymentId)
+    .populate("customerId", "first_name email")
+    .populate("OwnerId", "first_name email _id") // Capital O as in payment schema
+    .populate("vehicleId", "title numberPlate");
+
+  if (!payment) throw new Error("Payment not found");
+
+  // FIXED 1: Add dynamic currency symbol
+  const currencySymbol = payment.amount.currency === "LKR" ? "Rs." : "$";
+
+  // FIXED 2: Use currencySymbol instead of hardcoded $
+  const description = `Payment of ${currencySymbol}${payment.amount.amount} from ${payment.customerId.first_name} for ${payment.vehicleId.title} has been refunded.`;
+
+  // Create notification for owner
+  await Notification.create({
+    title: "Payment Refunded",
+    description,
+    type: "warning",
+    userId: payment.OwnerId._id, // Capital O as in payment schema
+    isRead: false
+  });
+
+  // Admin notification
+  const adminDescription = `Payment #${payment._id} of ${currencySymbol}${payment.amount.amount} has been refunded to ${payment.customerId.first_name}`;
+
+  await notifyAdmins({
+    title: "Payment Refunded",
+    description: adminDescription,
+    type: "warning"
+  });
+
+  // Send email to owner if they allow
+  const { allowed, user } = await canSendEmail(payment.OwnerId._id);
+  if (allowed && user) {
+    await sendPaymentEmail({
+      type: "refunded",
+      payment,
+      customer: payment.customerId,
+      owner: payment.OwnerId,
+      vehicle: payment.vehicleId
+    });
+  }
+};
+
+// Get payment notifications summary for dashboard
+export const getPaymentNotificationsSummary = async (req, res) => {
+  try {
+    const userId = req.user.userid;
+    const userRole = req.user.role;
+
+    // ✅ FIXED: Include all payment notification titles
+    const paymentTitles = [
+      "Payment Processing",
+      "Payment Initiated",
+      "Payment Initiated by Customer",
+      "Payment Received",
+      "Payment Successful",
+      "Payment Failed",
+      "Payment Refunded",
+      "Payment Completed"
+    ];
+
+    const query = {
+      userId: userId,
+      title: { $in: paymentTitles }
+    };
+
+    // Add role-based query if user is admin (role 3)
+    if (userRole === 3) {
+      // ✅ FIXED: Include all admin notification titles
+      const adminNotifications = await Notification.find({
+        role: 3,
+        title: { 
+          $in: [
+            "Payment Initiated",
+            "Payment Completed", 
+            "Payment Failed", 
+            "Payment Refunded"
+          ] 
+        }
+      }).sort({ createdAt: -1 }).limit(20);
+      
+      const userNotifications = await Notification.find(query)
+        .sort({ createdAt: -1 })
+        .limit(20);
+      
+      const allNotifications = [...userNotifications, ...adminNotifications]
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 20);
+      
+      const grouped = {};
+      allNotifications.forEach(notification => {
+        if (!grouped[notification.title]) {
+          grouped[notification.title] = {
+            count: 0,
+            unread: 0,
+            recent: notification
+          };
+        }
+        grouped[notification.title].count += 1;
+        if (!notification.isRead) {
+          grouped[notification.title].unread += 1;
+        }
+      });
+
+      const result = Object.keys(grouped).map(title => ({
+        _id: title,
+        ...grouped[title]
+      }));
+
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    }
+
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    const grouped = {};
+    notifications.forEach(notification => {
+      if (!grouped[notification.title]) {
+        grouped[notification.title] = {
+          count: 0,
+          unread: 0,
+          recent: notification
+        };
+      }
+      grouped[notification.title].count += 1;
+      if (!notification.isRead) {
+        grouped[notification.title].unread += 1;
+      }
+    });
+
+    const result = Object.keys(grouped).map(title => ({
+      _id: title,
+      ...grouped[title]
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: result
+    });
+
+  } catch (err) {
+    console.error("Error in getPaymentNotificationsSummary:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};
+
+// Get unread payment notifications count
+export const getUnreadPaymentCount = async (req, res) => {
+  try {
+    const userId = req.user.userid;
+    const userRole = req.user.role;
+
+    // ✅ FIXED: Include all payment notification titles
+    const paymentTitles = [
+      "Payment Processing",
+      "Payment Initiated",
+      "Payment Initiated by Customer",
+      "Payment Received",
+      "Payment Successful", 
+      "Payment Failed",
+      "Payment Refunded",
+      "Payment Completed"
+    ];
+
+    let query = {
+      isRead: false,
+      title: { $in: paymentTitles }
+    };
+
+    if (userRole !== 3) {
+      query.userId = userId;
+    } else {
+      query = {
+        $or: [
+          { userId: userId, title: { $in: paymentTitles } },
+          { role: 3, title: { $in: paymentTitles } }
+        ],
+        isRead: false
+      };
+    }
+
+    const count = await Notification.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      unreadCount: count
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};
 
 
 
