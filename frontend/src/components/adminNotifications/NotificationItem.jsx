@@ -59,7 +59,7 @@ const NotificationItem = ({
 
   return (
     <div
-      className={`p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer flex items-start justify-between ${
+      className={`p-3 sm:p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 ${
         !isRead ? 'bg-blue-50' : ''
       }`}
       onClick={() => {
@@ -67,13 +67,13 @@ const NotificationItem = ({
         onMarkAsRead(id);
       }}
     >
-      <div className="flex items-start gap-3 flex-1">
-        <div className="mt-1">
+      <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+        <div className="mt-0.5 flex-shrink-0">
           {getIconByType(type)}
         </div>
-        <div className="flex-1">
-          <h4 className="font-medium text-gray-900 text-sm">{title}</h4>
-          <p className="text-xs text-gray-600 mt-1">{description}</p>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-gray-900 text-xs sm:text-sm break-words">{title}</h4>
+          <p className="text-xs text-gray-600 mt-1 break-words">{description}</p>
           <div className="flex items-center gap-4 mt-2">
             <span className="text-xs text-gray-500">
               {timestamp}
@@ -81,7 +81,7 @@ const NotificationItem = ({
           </div>
         </div>
       </div>
-      <div className="ml-4 flex flex-col items-center gap-2 flex-shrink-0">
+      <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-2 flex-shrink-0 sm:ml-4">
         {!isRead && (
           <span className="inline-block px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full font-semibold">
             New
@@ -92,7 +92,7 @@ const NotificationItem = ({
             e.stopPropagation();
             onDelete(id);
           }}
-          className="text-red-500 hover:text-red-700 transition-colors"
+          className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
           title="Delete notification"
         >
           <Trash2 size={16} />
