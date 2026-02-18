@@ -3,10 +3,13 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Image,
   Switch,
   ScrollView,
   Modal,
 } from 'react-native';
+
+const whiteLogo = require('../../assets/images/Rent My Car.png');
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
@@ -131,17 +134,25 @@ export default function OwnerSidebar({
         {/* Main Sidebar */}
         <View className="flex-1 bg-[#1e3a8a]">
           <ScrollView className="flex-1">
-            {/* Sidebar Header with Owner Info */}
+            {/* Sidebar Header with Logo and Owner Info */}
             <View className="bg-[#1e40af] pt-12 pb-8 px-6">
+              <View className="flex-row items-center mb-6">
+                <Image
+                  source={whiteLogo}
+                  className="w-10 h-10 mr-3"
+                  resizeMode="contain"
+                />
+                <Text className="text-xl font-bold text-white">Rent My Car</Text>
+              </View>
               <View className="flex-row items-center mb-4">
                 <View className="w-12 h-12 rounded-full bg-blue-300 items-center justify-center mr-3">
                   <Text className="text-xl font-bold text-white">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    {user?.first_name?.charAt(0)?.toUpperCase() || 'U'}
                   </Text>
                 </View>
                 <View className="flex-1">
                   <Text className="text-white text-lg font-bold">
-                    {user?.name || 'Owner'}
+                    {user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Owner'}
                   </Text>
                   <View className="flex-row items-center mt-1">
                     <View className="w-2 h-2 bg-green-400 rounded-full mr-2" />
