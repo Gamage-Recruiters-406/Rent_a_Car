@@ -27,7 +27,7 @@ export default function Header({
   // Dynamic title
   const getTitle = () => {
     if (title !== 'Rent My Car') return title;
-    if (userRole === 'owner') return 'Owner Dashboard';
+    if (userRole === 'owner') return 'Rent My Car';
     return 'Rent My Car';
   };
 
@@ -53,30 +53,6 @@ export default function Header({
 
         {/* Right - Menu icon */}
         <View className="flex-row items-center">
-          {user && showNotifications && (
-            <TouchableOpacity
-              onPress={onNotificationsPress}
-              className="p-2 mr-1"
-            >
-              <Ionicons name="notifications-outline" size={24} color="#1e3a8a" />
-            </TouchableOpacity>
-          )}
-
-          {user && (
-            <TouchableOpacity onPress={onSettingsPress} className="p-1 mr-1">
-              {user.profilePicture ? (
-                <Image
-                  source={{ uri: `${ENV.API_BASE_URL}/${user.profilePicture}` }}
-                  className="w-9 h-9 rounded-full border-2 border-blue-200"
-                />
-              ) : (
-                <View className="w-9 h-9 rounded-full bg-blue-900 items-center justify-center">
-                  <Text className="text-white text-sm font-bold">{getInitials()}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          )}
-
           {showMenu && (
             <TouchableOpacity
               onPress={onMenuPress}
@@ -96,29 +72,6 @@ export default function Header({
           )}
         </View>
       </View>
-
-      {/* User Info Bar - only for logged in users */}
-      {user && userRole !== 'guest' && (
-        <View className="px-4 pb-3 flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <View className={`px-3 py-1 rounded-full ${
-              userRole === 'owner' ? 'bg-purple-100' : 'bg-blue-100'
-            }`}>
-              <Text className={`text-xs font-semibold ${
-                userRole === 'owner' ? 'text-purple-700' : 'text-blue-700'
-              }`}>
-                {userRole === 'owner' ? '🏢 Owner' : '👤 Customer'}
-              </Text>
-            </View>
-          </View>
-          <View className="items-end">
-            <Text className="text-xs font-medium text-gray-700">
-              {user.first_name} {user.last_name}
-            </Text>
-            <Text className="text-[10px] text-gray-400">{user.email}</Text>
-          </View>
-        </View>
-      )}
     </View>
   );
 }

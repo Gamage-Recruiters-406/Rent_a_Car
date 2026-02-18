@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,16 @@ import {
   Switch,
   ScrollView,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 
 const whiteLogo = require('../../assets/images/Rent My Car.png');
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+const apiVersion = process.env.EXPO_PUBLIC_API_VERSION;
 
 /**
  * OwnerSidebar Component - Sidebar menu for vehicle owner
@@ -24,6 +29,57 @@ export default function OwnerSidebar({
 }) {
   const router = useRouter();
   const [expandedBookings, setExpandedBookings] = useState(false);
+  const [activeItemId, setActiveItemId] = useState(1);
+  const [bookingCounts, setBookingCounts] = useState({ approved: 0, pending: 0, rejected: 0 });
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [loadingData, setLoadingData] = useState(false);
+
+  // Fetch booking counts and earnings when sidebar opens
+  useEffect(() => {
+    if (!isVisible || !user?._id) return;
+
+    const fetchOwnerData = async () => {
+      setLoadingData(true);
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) return;
+
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        };
+
+        // Fetch bookings and earnings in parallel
+        const [bookingsRes, earningsRes] = await Promise.all([
+          fetch(`${baseUrl}${apiVersion}/bookings/owner/${user._id}`, { headers }),
+          fetch(`${baseUrl}${apiVersion}/bookings/owner/earnings/${user._id}`, { headers }),
+        ]);
+
+        const bookingsData = await bookingsRes.json();
+        const earningsData = await earningsRes.json();
+
+        // Count bookings by status
+        if (bookingsData.success && Array.isArray(bookingsData.data)) {
+          const counts = { approved: 0, pending: 0, rejected: 0 };
+          bookingsData.data.forEach((b) => {
+            if (counts[b.status] !== undefined) counts[b.status]++;
+          });
+          setBookingCounts(counts);
+        }
+
+        // Set earnings
+        if (earningsData.success && earningsData.data) {
+          setTotalEarnings(earningsData.data.totalEarnings || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch owner data:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchOwnerData();
+  }, [isVisible, user?._id]);
 
   const menuItems = [
     {
@@ -42,10 +98,10 @@ export default function OwnerSidebar({
     },
     {
       id: 3,
-      icon: 'car-plus',
+      icon: 'add-circle-outline',
       label: 'Add Vehicle',
       route: '/vehicles/add',
-      iconType: 'MaterialCommunityIcons',
+      iconType: 'Ionicons',
     },
     {
       id: 4,
@@ -55,9 +111,9 @@ export default function OwnerSidebar({
       iconType: 'Ionicons',
       expandable: true,
       subItems: [
-        { label: 'Approved', count: '5' },
-        { label: 'Pending', count: '2' },
-        { label: 'Rejected', count: '1' },
+        { label: 'Approved', count: bookingCounts.approved },
+        { label: 'Pending', count: bookingCounts.pending },
+        { label: 'Rejected', count: bookingCounts.rejected },
       ],
     },
     {
@@ -110,10 +166,10 @@ export default function OwnerSidebar({
     router.push(route);
   };
 
-  const renderIcon = (item) => {
+  const renderIcon = (item, color = 'white') => {
     const iconProps = {
       size: 22,
-      color: 'white',
+      color: color,
       style: { marginRight: 16 },
     };
 
@@ -131,11 +187,12 @@ export default function OwnerSidebar({
       onRequestClose={onClose}
     >
       <View className="flex-1 flex-row">
-        {/* Main Sidebar */}
-        <View className="flex-1 bg-[#1e3a8a]">
+        {/* Main Sidebar - 85% width */}
+        <View className="bg-[#0D3778]" style={{ width: '70%' }}>
+
           <ScrollView className="flex-1">
             {/* Sidebar Header with Logo and Owner Info */}
-            <View className="bg-[#1e40af] pt-12 pb-8 px-6">
+            <View className="bg-[#0D3778] pt-12 pb-8 px-6">
               <View className="flex-row items-center mb-6">
                 <Image
                   source={whiteLogo}
@@ -171,14 +228,19 @@ export default function OwnerSidebar({
                       if (item.expandable) {
                         setExpandedBookings(!expandedBookings);
                       } else {
+                        setActiveItemId(item.id);
                         handleNavigation(item.route);
                       }
                     }}
-                    className="flex-row items-center px-6 py-4 border-b border-blue-700"
+                    className={`flex-row items-center px-6 py-4 mx-3 rounded-lg mb-1 ${
+                      activeItemId === item.id ? 'bg-white' : ''
+                    }`}
                     activeOpacity={0.7}
                   >
-                    {renderIcon(item)}
-                    <Text className="text-white text-base flex-1">{item.label}</Text>
+                    {renderIcon(item, activeItemId === item.id ? '#0D3778' : 'white')}
+                    <Text className={`text-base flex-1 ${
+                      activeItemId === item.id ? 'font-bold' : ''
+                    }`} style={{ color: activeItemId === item.id ? '#0D3778' : 'white' }}>{item.label}</Text>
 
                     {item.expandable && (
                       <MaterialCommunityIcons
@@ -223,7 +285,13 @@ export default function OwnerSidebar({
               {/* Total Earnings Section */}
               <View className="mx-6 mt-6 p-4 bg-[#1a2f70] rounded-lg border border-blue-600">
                 <Text className="text-blue-200 text-sm mb-2">Total Earnings</Text>
-                <Text className="text-white text-2xl font-bold">Rs. 45,000</Text>
+                {loadingData ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white text-2xl font-bold">
+                    Rs. {totalEarnings.toLocaleString()}
+                  </Text>
+                )}
               </View>
             </View>
 

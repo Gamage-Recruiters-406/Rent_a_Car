@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ export default function CustomerSidebar({
   user = {},
 }) {
   const router = useRouter();
+  const [activeItemId, setActiveItemId] = useState(1);
 
   const menuItems = [
     { id: 1, icon: 'home-outline', label: 'Home', route: '/home' },
@@ -35,9 +36,10 @@ export default function CustomerSidebar({
     { id: 9, icon: 'log-out-outline', label: 'Logout', route: '/logout' },
   ];
 
-  const handleNavigation = (route) => {
+  const handleNavigation = (item) => {
+    setActiveItemId(item.id);
     onClose();
-    router.push(route);
+    router.push(item.route);
   };
 
   return (
@@ -48,11 +50,12 @@ export default function CustomerSidebar({
       onRequestClose={onClose}
     >
       <View className="flex-1 flex-row">
-        {/* Main Sidebar */}
-        <View className="flex-1 bg-[#1e3a8a]">
+        {/* Main Sidebar - 85% width */}
+        <View className="bg-[#0D3778]" style={{ width: '70%' }}>
+
           <ScrollView className="flex-1">
             {/* Sidebar Header with Logo and User Info */}
-            <View className="bg-[#1e40af] pt-12 pb-8 px-6">
+            <View className="bg-[#0D3778] pt-12 pb-8 px-6">
               <View className="flex-row items-center mb-6">
                 <Image
                   source={whiteLogo}
@@ -84,17 +87,21 @@ export default function CustomerSidebar({
               {menuItems.map((item) => (
                 <TouchableOpacity
                   key={item.id}
-                  onPress={() => handleNavigation(item.route)}
-                  className="flex-row items-center px-6 py-4 border-b border-blue-700"
+                  onPress={() => handleNavigation(item)}
+                  className={`flex-row items-center px-6 py-4 mx-3 rounded-lg mb-1 ${
+                    activeItemId === item.id ? 'bg-white' : ''
+                  }`}
                   activeOpacity={0.7}
                 >
                   <Ionicons
                     name={item.icon}
                     size={22}
-                    color="white"
+                    color={activeItemId === item.id ? '#0D3778' : 'white'}
                     style={{ marginRight: 16 }}
                   />
-                  <Text className="text-white text-base flex-1">
+                  <Text className={`text-base flex-1 ${
+                    activeItemId === item.id ? 'font-bold' : ''
+                  }`} style={{ color: activeItemId === item.id ? '#0D3778' : 'white' }}>
                     {item.label}
                   </Text>
                   {item.badge && (
