@@ -15,6 +15,7 @@ import { searchVehicles, createBooking } from '../services/bookingApi';
 // import { RentYourCarPage } from './RentYourCarPage';
 // import { ContactPage } from './ContactPage';
 // import { PaymentModal } from './PaymentModal';
+import { getAllReviews } from '../services/reviewApi';
 
 // Analog Clock Time Picker Component
 function AnalogTimePicker({
@@ -332,68 +333,7 @@ function DatePicker({
     </div>);
 
 }
-// Testimonials data
-const allReviews = [
-  {
-    id: 1,
-    name: 'Person Name',
-    profession: 'Profession',
-    rating: 4,
-    image:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      "Fantastic service! Booking was smooth, car was clean and reliable. I'll definitely use RentmyCar for my future rentals."
-  },
-  {
-    id: 2,
-    name: 'Person Name',
-    profession: 'Profession',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'Loved the easy booking and transparent process. Customer support was very helpful, and the vehicle exceeded my expectations!'
-  },
-  {
-    id: 3,
-    name: 'John Smith',
-    profession: 'Business Owner',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      "Best car rental experience I've ever had. The process was seamless and the car was in perfect condition."
-  },
-  {
-    id: 4,
-    name: 'Sarah Johnson',
-    profession: 'Travel Blogger',
-    rating: 4,
-    image:
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'Great selection of vehicles and competitive prices. Will definitely recommend to my followers!'
-  },
-  {
-    id: 5,
-    name: 'Michael Chen',
-    profession: 'Software Engineer',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'The app made everything so easy. Picked up the car in minutes and the return was just as smooth.'
-  },
-  {
-    id: 6,
-    name: 'Emily Davis',
-    profession: 'Marketing Manager',
-    rating: 5,
-    image:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80',
-    quote:
-      'Exceptional service from start to finish. The team went above and beyond to accommodate my needs.'
-  }];
+// Testimonials data - Removed dummy data, now fetched from backend
 
 export function LandingPage({ onBookNow }) {
   // Date & Time State
@@ -427,16 +367,46 @@ export function LandingPage({ onBookNow }) {
   const [showDropoffCalendar, setShowDropoffCalendar] = useState(false);
   const [showDropoffTime, setShowDropoffTime] = useState(false);
   // Reviews carousel state
+  const [reviews, setReviews] = useState([]);
   const [reviewIndex, setReviewIndex] = useState(0);
   const reviewsPerPage = 2;
-  const maxIndex = Math.ceil(allReviews.length / reviewsPerPage) - 1;
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await getAllReviews();
+        console.log("Fetched All Reviews:", response); // Debug log
+
+        // Robust check for array in common response patterns
+        let fetchedReviews = [];
+        if (Array.isArray(response)) {
+          fetchedReviews = response;
+        } else if (response) {
+          fetchedReviews = response.reviews || response.allReviews || response.data || [];
+        }
+
+        if (Array.isArray(fetchedReviews)) {
+            setReviews(fetchedReviews);
+        } else {
+            console.warn("Reviews data format not recognized:", response);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+      }
+    };
+    fetchReviews();
+  }, []);
+
+  const maxIndex = Math.ceil(reviews.length / reviewsPerPage) - 1;
   const nextReviews = () => {
+    if (reviews.length === 0) return;
     setReviewIndex((prev) => prev < maxIndex ? prev + 1 : 0);
   };
   const prevReviews = () => {
+    if (reviews.length === 0) return;
     setReviewIndex((prev) => prev > 0 ? prev - 1 : maxIndex);
   };
-  const visibleReviews = allReviews.slice(
+  const visibleReviews = reviews.slice(
     reviewIndex * reviewsPerPage,
     reviewIndex * reviewsPerPage + reviewsPerPage
   );
@@ -485,15 +455,18 @@ export function LandingPage({ onBookNow }) {
 
     setIsLoading(true);
     try {
-      const res = await createBooking({
-        vehicleId: selectedVehicleId,
-        startingDate: start,
-        endDate: end,
-        documents: []
-      });
+      // Create FormData as backend expects multipart/form-data
+      const formData = new FormData();
+      formData.append('vehicleId', selectedVehicleId);
+      formData.append('startingDate', start.toISOString());
+      formData.append('endDate', end.toISOString());
+      // documents are currently empty for initial booking from landing page
+    
+      const res = await createBooking(formData);
+      
       if (res.success) {
         alert("Booking request sent successfully!");
-        onBookNow();
+        if (onBookNow) onBookNow();
       }
     } catch (err) {
       console.error(err);
@@ -765,23 +738,24 @@ export function LandingPage({ onBookNow }) {
             </button>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 md:px-0">
-              {visibleReviews.map((review) =>
+              {visibleReviews.length > 0 ? (
+                visibleReviews.map((review) => (
                 <div
-                  key={review.id}
+                  key={review.id || review._id}
                   className="bg-gray-100 rounded-lg p-8 relative transition-all duration-300">
 
                   <div className="flex items-center space-x-4 mb-4">
                     <img
-                      src={review.image}
-                      alt={review.name}
+                      src={review.image || review.User?.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                      alt={review.name || review.User?.name || "Customer"}
                       className="w-12 h-12 rounded-full object-cover border-2 border-[#1e3a5f]" />
 
                     <div>
                       <h4 className="font-bold text-[#1e3a5f]">
-                        {review.name}
+                        {review.name || review.User?.name || "Customer"}
                       </h4>
                       <p className="text-xs text-gray-500">
-                        {review.profession}
+                        {review.profession || review.User?.role || "Verified Cluster"}
                       </p>
                       <div className="flex text-red-700 text-xs mt-1">
                         {Array.from({
@@ -796,11 +770,16 @@ export function LandingPage({ onBookNow }) {
                     </div>
                   </div>
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    "{review.quote}"
+                    "{review.quote || review.feedback}"
                   </p>
                   <div className="absolute -top-3 right-8 bg-[#1a1a2e] text-white p-1 rounded-full">
                     <Quote className="h-4 w-4" />
                   </div>
+                </div>
+              ))
+              ) : (
+                <div className="col-span-2 text-center text-gray-400 py-10">
+                   No reviews available yet.
                 </div>
               )}
             </div>

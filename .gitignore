@@ -193,4 +193,8 @@ app-example
 
 expo-env.d.ts
 # @end expo-cli
+<<<<<<< HEAD
 
+=======
+config.bat
+>>>>>>> origin/frontend

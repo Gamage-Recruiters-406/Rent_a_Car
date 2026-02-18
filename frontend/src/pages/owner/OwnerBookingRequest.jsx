@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Car, Hourglass, CheckCircle2, XCircle } from 'lucide-react';
 import StatsCard from './../../components/owner/StatusCard';
 import TableHeader from './../../components/owner/TableHeader';
 import BookingTable from './../../components/owner/TableBooking';
+import BookingModal from './../../components/owner/BookingRequestModel'; 
+
 import Header from '../../layouts/Header';
 import Footer from '../../layouts/Footer';
 
@@ -16,7 +18,10 @@ const Dashboard = () => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Stats initial state with your theme colors
+  // --- Modal States ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
   const [stats, setStats] = useState([
     { label: 'Total Requests', val: '0', icon: <Car size={40} />, color: 'border-brand-dark' },
     { label: 'Pending Requests', val: '0', icon: <Hourglass size={40} />, color: 'border-status-pending' },
@@ -24,26 +29,8 @@ const Dashboard = () => {
     { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-status-rejected' },
   ]);
 
-  const filteredBookings = bookings.filter(booking => {
-    const matchesTab = filterStatus === 'All' || 
-      booking.status?.toLowerCase() === filterStatus.toLowerCase();
-    
-    const searchString = searchTerm.toLowerCase();
-    const matchesSearch = 
-      searchTerm === '' || 
-      (booking.customerId?.first_name?.toLowerCase().includes(searchString)) ||
-      (booking.customerId?.last_name?.toLowerCase().includes(searchString)) ||
-      (booking.vehicleId?.title?.toLowerCase().includes(searchString)) || 
-      (booking.vehicleId?.numberPlate?.toLowerCase().includes(searchString));
-
-    return matchesTab && matchesSearch;
-  });
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  // Data fetch karana function eka (useCallback use kare modal eka refresh weddi performance optimize karanna)
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -68,7 +55,7 @@ const Dashboard = () => {
         const fetchedData = response.data.data || [];
         setBookings(fetchedData);
         
-        // Update stats using your Tailwind @theme variable classes
+        // update stats based on fetched data 
         setStats([
           { label: 'Total Requests', val: fetchedData.length.toString(), icon: <Car size={40} />, color: 'border-brand-dark' },
           { label: 'Pending Requests', val: fetchedData.filter(b => b.status === 'pending').length.toString(), icon: <Hourglass size={40} />, color: 'border-status-pending text-status-pending' },
@@ -81,7 +68,32 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Booking details view karanna modal eka open karana function eka
+  const handleViewDetails = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
   };
+
+  const filteredBookings = bookings.filter(booking => {
+    const matchesTab = filterStatus === 'All' || 
+      booking.status?.toLowerCase() === filterStatus.toLowerCase();
+    
+    const searchString = searchTerm.toLowerCase();
+    const matchesSearch = 
+      searchTerm === '' || 
+      (booking.customerId?.first_name?.toLowerCase().includes(searchString)) ||
+      (booking.customerId?.last_name?.toLowerCase().includes(searchString)) ||
+      (booking.vehicleId?.title?.toLowerCase().includes(searchString)) || 
+      (booking.vehicleId?.numberPlate?.toLowerCase().includes(searchString));
+
+    return matchesTab && matchesSearch;
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
@@ -92,12 +104,11 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold text-[#0D3778] font-['Nunito']">Booking Request</h1>
             <p className="text-[#0D3778] mb-8 opacity-100 font-['Nunito']">Manage incoming booking requests from customers</p>
 
-            {/* Stats Cards with Theme Colors */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
               {stats.map((s, i) => <StatsCard key={i} {...s} />)}
             </div>
 
-            <div className="rounded-xl overflow-hidden">
+            <div className="rounded-xl overflow-hidden bg-white shadow-sm">
               <TableHeader 
                 activeFilter={filterStatus} 
                 onFilterChange={setFilterStatus}
@@ -106,15 +117,30 @@ const Dashboard = () => {
               />
               
               {loading ? (
-                <div className="p-20 text-center text-gray-400 animate-pulse">Loading bookings...</div>
+                <div className="p-20 text-center text-gray-400 animate-pulse font-['Nunito']">
+                  Loading bookings...
+                </div>
               ) : (
-                <BookingTable data={filteredBookings} refreshData={fetchDashboardData} />
+                <BookingTable 
+                  data={filteredBookings} 
+                  refreshData={fetchDashboardData} 
+                  onViewAction={handleViewDetails} 
+                />
               )}
             </div>
           </div>
         </main>
       </div>
       <Footer />
+
+      {/* Booking Modal - Connection ekata refreshData prop eka pass karala thiyenne */}
+      <BookingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        data={selectedBooking} 
+        allBookings={bookings}
+        refreshData={fetchDashboardData}
+      />
     </div>
   );
 };

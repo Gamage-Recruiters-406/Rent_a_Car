@@ -1,298 +1,356 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { getVehicleAvailability, createOwnerPersonalUseBooking } from "../services/bookingApi";
+import { toast } from "react-hot-toast";
 
 const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDates, setSelectedDates] = useState({});
-    const [availableDays, setAvailableDays] = useState(0);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [bookedDates, setBookedDates] = useState({}); // { "YYYY-MM-DD": "booked" }
+  const [loading, setLoading] = useState(false);
+  const [selectionRange, setSelectionRange] = useState({ start: null, end: null });
 
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
+  const months = useMemo(
+    () => [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ],
+    [],
+  );
 
-    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const daysOfWeek = useMemo(
+    () => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    [],
+  );
 
-    // Initialize with default availability (all days available)
-    useEffect(() => {
-        if (isOpen && vehicle) {
-            const dates = {};
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
 
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateKey = `${year}-${month}-${day}`;
-                dates[dateKey] = "available"; // Default to available
-            }
+  // Helper: Format Date to YYYY-MM-DD
+  const formatDateISO = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
 
-            setSelectedDates(dates);
-            calculateAvailableDays(dates);
-        }
-    }, [isOpen, currentDate, vehicle]);
+  const getDaysInMonthGrid = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
 
-    const calculateAvailableDays = (dates) => {
-        const available = Object.values(dates).filter((status) => status === "available").length;
-        setAvailableDays(available);
-    };
+    const days = [];
 
-    const getDaysInMonth = (date) => {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-
-        const days = [];
-
-        // Add empty cells for days before the first day of the month
-        const firstDayOfWeek = firstDay.getDay();
-        for (let i = 0; i < firstDayOfWeek; i++) {
-            const prevMonthDay = new Date(year, month, -firstDayOfWeek + i + 1);
-            days.push({
-                date: prevMonthDay.getDate(),
-                isCurrentMonth: false,
-                fullDate: prevMonthDay
-            });
-        }
-
-        // Add days of current month
-        for (let day = 1; day <= lastDay.getDate(); day++) {
-            days.push({
-                date: day,
-                isCurrentMonth: true,
-                fullDate: new Date(year, month, day)
-            });
-        }
-
-        // Add empty cells for days after the last day of the month
-        const remainingCells = 42 - days.length; // 6 rows * 7 days
-        for (let i = 1; i <= remainingCells; i++) {
-            const nextMonthDay = new Date(year, month + 1, i);
-            days.push({
-                date: nextMonthDay.getDate(),
-                isCurrentMonth: false,
-                fullDate: nextMonthDay
-            });
-        }
-
-        return days;
-    };
-
-    const handleDateClick = (day) => {
-        if (!day.isCurrentMonth) return;
-
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const dateKey = `${year}-${month}-${day.date}`;
-
-        const newSelectedDates = { ...selectedDates };
-
-        // Toggle between available and blocked
-        if (newSelectedDates[dateKey] === "available") {
-            newSelectedDates[dateKey] = "blocked";
-        } else {
-            newSelectedDates[dateKey] = "available";
-        }
-
-        setSelectedDates(newSelectedDates);
-        calculateAvailableDays(newSelectedDates);
-    };
-
-    const getDateStatus = (day) => {
-        if (!day.isCurrentMonth) return null;
-
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const dateKey = `${year}-${month}-${day.date}`;
-
-        return selectedDates[dateKey] || "available";
-    };
-
-    const handlePrevMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-    };
-
-    const handleNextMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-    };
-
-    const handleMonthChange = (e) => {
-        const newMonth = parseInt(e.target.value);
-        setCurrentDate(new Date(currentDate.getFullYear(), newMonth, 1));
-    };
-
-    const handleYearChange = (e) => {
-        const newYear = parseInt(e.target.value);
-        setCurrentDate(new Date(newYear, currentDate.getMonth(), 1));
-    };
-
-    const handleSave = () => {
-        // TODO: Implement save functionality - send to backend
-        console.log("Saving availability:", selectedDates);
-        // You can call an API here to save the availability
-        onClose();
-    };
-
-    if (!isOpen) return null;
-
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    const days = getDaysInMonth(currentDate);
-
-    // Generate year options (current year - 5 to current year + 5)
-    const yearOptions = [];
-    for (let i = currentYear - 1; i <= currentYear + 5; i++) {
-        yearOptions.push(i);
+    // previous month fillers
+    const firstDow = firstDay.getDay();
+    for (let i = 0; i < firstDow; i++) {
+      const prev = new Date(year, month, -firstDow + i + 1);
+      days.push({
+        date: prev.getDate(),
+        isCurrentMonth: false,
+        fullDate: prev,
+      });
     }
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-auto shadow-2xl">
-                {/* Header */}
-                <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-start rounded-t-2xl">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                            Set Availability for {vehicle?.title || "Vehicle"}
-                        </h2>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                            <span>Tap days to toggle Available/Blocked</span>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
+    // current month
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      days.push({
+        date: day,
+        isCurrentMonth: true,
+        fullDate: new Date(year, month, day),
+      });
+    }
 
-                {/* Calendar Body */}
-                <div className="p-6">
-                    {/* Legend */}
-                    <div className="flex items-center gap-6 mb-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-green-100 border border-green-300 rounded"></div>
-                            <span className="text-sm font-medium text-gray-700">Available</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-red-100 border border-red-300 rounded"></div>
-                            <span className="text-sm font-medium text-gray-700">Blocked</span>
-                        </div>
-                        <div className="ml-auto text-sm font-semibold text-gray-700">
-                            Available days: <span className="text-green-600">{availableDays}</span>
-                        </div>
-                    </div>
+    // next month fillers
+    const remaining = 42 - days.length;
+    for (let i = 1; i <= remaining; i++) {
+      const next = new Date(year, month + 1, i);
+      days.push({
+        date: next.getDate(),
+        isCurrentMonth: false,
+        fullDate: next,
+      });
+    }
 
-                    {/* Month/Year Navigation */}
-                    <div className="flex items-center justify-between mb-6">
-                        <button
-                            onClick={handlePrevMonth}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
+    return days;
+  };
 
-                        <div className="flex items-center gap-3">
-                            <select
-                                value={currentMonth}
-                                onChange={handleMonthChange}
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-gray-700"
-                            >
-                                {months.map((month, index) => (
-                                    <option key={index} value={index}>
-                                        {month}
-                                    </option>
-                                ))}
-                            </select>
+  const fetchAvailability = async () => {
+    if (!vehicle?._id) return;
 
-                            <select
-                                value={currentYear}
-                                onChange={handleYearChange}
-                                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-gray-700"
-                            >
-                                {yearOptions.map((year) => (
-                                    <option key={year} value={year}>
-                                        {year}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+    setLoading(true);
+    try {
+      const res = await getVehicleAvailability(vehicle._id);
+      const bookingsArr = res?.data || [];
+      const newBookedDates = {};
 
-                        <button
-                            onClick={handleNextMonth}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
+      bookingsArr.forEach((b) => {
+        if (["rejected", "cancelled"].includes(b.status)) return;
 
-                    {/* Calendar Grid */}
-                    <div className="border border-gray-300 rounded-lg overflow-hidden">
-                        {/* Day Headers */}
-                        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-300">
-                            {daysOfWeek.map((day) => (
-                                <div
-                                    key={day}
-                                    className="text-center py-3 text-sm font-semibold text-gray-600"
-                                >
-                                    {day}
-                                </div>
-                            ))}
-                        </div>
+        const startRaw = b.startingDate ?? b.startDate ?? b.from ?? b.start;
+        const endRaw = b.endDate ?? b.to ?? b.end;
 
-                        {/* Calendar Days */}
-                        <div className="grid grid-cols-7">
-                            {days.map((day, index) => {
-                                const status = getDateStatus(day);
-                                const isToday = day.isCurrentMonth &&
-                                    day.date === new Date().getDate() &&
-                                    currentMonth === new Date().getMonth() &&
-                                    currentYear === new Date().getFullYear();
+        if (!startRaw || !endRaw) return;
 
-                                return (
-                                    <div
-                                        key={index}
-                                        onClick={() => handleDateClick(day)}
-                                        className={`
-                      aspect-square flex items-center justify-center text-sm font-medium border-b border-r border-gray-200
-                      ${day.isCurrentMonth ? "cursor-pointer" : "cursor-not-allowed"}
-                      ${!day.isCurrentMonth ? "text-gray-300 bg-gray-50" : ""}
-                      ${day.isCurrentMonth && status === "available" ? "bg-green-100 hover:bg-green-200 text-gray-800" : ""}
-                      ${day.isCurrentMonth && status === "blocked" ? "bg-red-100 hover:bg-red-200 text-gray-800" : ""}
-                      ${isToday ? "ring-2 ring-blue-500 ring-inset font-bold" : ""}
-                      transition-colors
-                    `}
-                                    >
-                                        {day.date}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+        const start = new Date(startRaw);
+        const end = new Date(endRaw);
 
-                    {/* Save Button */}
-                    <button
-                        onClick={handleSave}
-                        style={{ backgroundColor: "#0D3778" }}
-                        className="w-full mt-6 px-6 py-3 text-white font-semibold rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                    >
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        Save Availability
-                    </button>
-                </div>
+        let cur = new Date(start);
+        while (cur <= end) {
+          newBookedDates[formatDateISO(cur)] = "booked";
+          cur.setDate(cur.getDate() + 1);
+        }
+      });
+
+      setBookedDates(newBookedDates);
+    } catch (e) {
+      console.error("fetchAvailability error:", e);
+      toast.error("Failed to load availability");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAvailability();
+      setSelectionRange({ start: null, end: null });
+    }
+  }, [isOpen, vehicle?._id]);
+
+  const handleDateClick = (day) => {
+    if (!day.isCurrentMonth) return;
+
+    // Prevent selecting past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (day.fullDate < today) return;
+
+    const dateStr = formatDateISO(day.fullDate);
+    if (bookedDates[dateStr] === "booked") return;
+
+    if (!selectionRange.start || (selectionRange.start && selectionRange.end)) {
+      // Start new selection
+      setSelectionRange({ start: day.fullDate, end: null });
+    } else {
+      // Complete selection
+      if (day.fullDate < selectionRange.start) {
+        setSelectionRange({ start: day.fullDate, end: selectionRange.start });
+      } else {
+        setSelectionRange({ ...selectionRange, end: day.fullDate });
+      }
+    }
+  };
+
+  const isDateSelected = (date) => {
+    if (!selectionRange.start) return false;
+    if (selectionRange.end) {
+      return date >= selectionRange.start && date <= selectionRange.end;
+    }
+    return date.getTime() === selectionRange.start.getTime();
+  };
+
+  const handleBlockDates = async () => {
+    if (!selectionRange.start || !selectionRange.end) return;
+
+    // Check for overlap locally first
+    let cur = new Date(selectionRange.start);
+    while (cur <= selectionRange.end) {
+      if (bookedDates[formatDateISO(cur)] === "booked") {
+        toast.error("One or more dates in range are already booked");
+        return;
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    try {
+      setLoading(true);
+
+      // For single day or multi-day, end date should be end of that day to cover full day
+      const endDateTime = new Date(selectionRange.end);
+      endDateTime.setHours(23, 59, 59, 999);
+
+      await createOwnerPersonalUseBooking({
+        vehicleId: vehicle._id,
+        startingDate: selectionRange.start, // 00:00:00
+        endDate: endDateTime // 23:59:59
+      });
+      toast.success("Dates blocked successfully");
+      setSelectionRange({ start: null, end: null });
+      await fetchAvailability();
+    } catch (error) {
+      console.error("Block dates error:", error);
+      toast.error(error.message || "Failed to block dates");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrevMonth = () => setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+
+  if (!isOpen) return null;
+
+  const days = getDaysInMonthGrid(currentDate);
+
+  // Stats
+  const selectedCount = selectionRange.start && selectionRange.end
+    ? Math.round((selectionRange.end - selectionRange.start) / (1000 * 60 * 60 * 24)) + 1
+    : 0;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl scale-100 transform transition-all">
+        {/* Header */}
+        <div className="bg-white p-4 pb-2 border-b border-gray-100 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-50 p-1.5 rounded-lg text-blue-600">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">{vehicle?.title || "Availability"}</h2>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-    );
+
+        <div className="p-4">
+          {/* Navigation */}
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors border border-gray-200 hover:border-blue-500 hover:text-blue-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h3 className="text-base font-bold text-gray-800">
+              {months[currentMonth]} <span className="text-blue-600">{currentYear}</span>
+            </h3>
+            <button onClick={handleNextMonth} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors border border-gray-200 hover:border-blue-500 hover:text-blue-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="mb-4">
+            <div className="grid grid-cols-7 mb-2">
+              {daysOfWeek.map(day => (
+                <div key={day} className="text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  {day}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day, idx) => {
+                const dateStr = formatDateISO(day.fullDate);
+                const isBooked = bookedDates[dateStr] === "booked";
+                const isSelected = isDateSelected(day.fullDate);
+                const isCurrentMonth = day.isCurrentMonth;
+
+                // Check if in past
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const isPast = day.fullDate < today;
+
+                let bgClass = "bg-white hover:bg-gray-50 border border-gray-100";
+                let textClass = "text-gray-700";
+
+                if (!isCurrentMonth) {
+                  textClass = "text-gray-300";
+                  bgClass = "bg-transparent border-transparent";
+                } else if (isBooked) {
+                  bgClass = "bg-red-50 border-red-100"; // Lite red
+                  textClass = "text-red-400 cursor-not-allowed";
+                } else if (isSelected) {
+                  bgClass = "bg-blue-100 border-blue-200"; // Lite blue
+                  textClass = "text-blue-600 font-semibold";
+                } else if (isPast) {
+                  textClass = "text-gray-300 cursor-not-allowed";
+                  bgClass = "bg-gray-50 border-transparent";
+                } else {
+                  bgClass = "bg-green-50 hover:bg-green-100 border-green-100 cursor-pointer"; // Lite green
+                  textClass = "text-green-700";
+                }
+
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => handleDateClick(day)}
+                    className={`
+                                    aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-200
+                                    ${bgClass} ${textClass}
+                                `}
+                  >
+                    {day.date}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-4 pb-4 border-b border-gray-100 justify-center">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-green-50 border border-green-200"></div>
+              <span className="text-xs text-gray-500 font-medium">Available</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-50 border border-red-200"></div>
+              <span className="text-xs text-gray-500 font-medium">Blocked</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-blue-100 border border-blue-200"></div>
+              <span className="text-xs text-gray-500 font-medium">Selected</span>
+            </div>
+          </div>
+
+          {/* Footer / Action */}
+          <div className="mt-4">
+            <button
+              onClick={handleBlockDates}
+              disabled={!selectionRange.start || !selectionRange.end || loading}
+              className={`
+                        w-full py-3 px-4 rounded-xl font-bold text-white shadow-lg shadow-blue-100 flex items-center justify-center gap-2 text-sm
+                        transition-all duration-200
+                        ${(!selectionRange.start || !selectionRange.end || loading)
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                  : "bg-[#0D3778] hover:bg-[#0a2b5e] hover:shadow-xl hover:-translate-y-0.5"
+                }
+                    `}
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <span>Block Selected Range</span>
+                  {selectedCount > 0 && <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px]">{selectedCount} days</span>}
+                </>
+              )}
+            </button>
+            <div className="text-center mt-2 text-xs text-gray-400">
+              {Object.keys(bookedDates).length} days currently blocked
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default AvailabilityOwner;
