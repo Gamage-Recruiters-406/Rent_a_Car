@@ -20,6 +20,8 @@ import {
   formatCurrency,
   getVehicleImageUrl,
 } from '../services/bookingHistoryService';
+import PaymentPage from './payment/paymentPage';
+import Modal from '../layouts/Modal';
 
 const BookingHistory = () => {
   const [bookings, setBookings] = useState([]);
@@ -212,6 +214,8 @@ const BookingHistory = () => {
       API_BASE_URL,
     );
 
+    const [open, setOpen] = useState(false);
+
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         {/* Image and Status  */}
@@ -306,7 +310,13 @@ const BookingHistory = () => {
 
           {/* Bottom Actions */}
           <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-            <div>
+            <div className='flex gap-3'>
+              <button
+                onClick={() => setOpen(true)}
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#0D3778] text-white text-xs font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
+              >
+                Pay
+              </button>
               <button
                 onClick={() => handleViewDetails(booking._id)}
                 className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#0D3778] text-white text-xs font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
@@ -316,6 +326,9 @@ const BookingHistory = () => {
               </button>
             </div>
           </div>
+            <Modal open={open} onClose={() => setOpen(false)}>
+              <PaymentPage bookingId={booking._id} />
+            </Modal>
         </div>
       </div>
     );
@@ -325,6 +338,10 @@ const BookingHistory = () => {
   const DesktopBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
+
+    const [open, setOpen] = useState(false);
+
+
 
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -427,7 +444,13 @@ const BookingHistory = () => {
               </div>
             </div>
 
-            <div className="flex justify-end items-center pt-3 border-t border-gray-100 mt-auto">
+            <div className="flex justify-end items-center gap-3 pt-3 border-t border-gray-100 mt-auto">
+              <button
+                onClick={() => setOpen(true)}
+                className="px-10 py-2  bg-[#0D3778] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
+              >
+                Pay
+              </button>
               <button
                 onClick={() => handleViewDetails(booking._id)}
                 className="px-4 py-2 bg-[#0D3778] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
@@ -435,6 +458,9 @@ const BookingHistory = () => {
                 View Details
               </button>
             </div>
+            <Modal open={open} onClose={() => setOpen(false)}>
+              <PaymentPage bookingId={booking._id} />
+            </Modal>
           </div>
         </div>
       </div>

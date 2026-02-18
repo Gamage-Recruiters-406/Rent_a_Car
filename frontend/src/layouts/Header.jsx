@@ -15,8 +15,13 @@ const Avatar = ({ name }) => (
 	</div>
 );
 
-const NotificationBell = ({ count = 0 }) => (
-	<div className="relative">
+const NotificationBell = ({ count = 0, onClick }) => (
+	<button
+		type="button"
+		onClick={onClick}
+		className="relative hover:opacity-75 transition bg-transparent border-none cursor-pointer"
+		aria-label="View notifications"
+	>
 		<svg
 			viewBox="0 0 24 24"
 			className="h-5 w-5 text-slate-600"
@@ -42,7 +47,7 @@ const NotificationBell = ({ count = 0 }) => (
 				{count}
 			</span>
 		)}
-	</div>
+	</button>
 );
 
 const NavLink = ({ to, children, active }) => (
@@ -61,6 +66,19 @@ const NavLink = ({ to, children, active }) => (
 const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigate();
+
+	const getProfileRoute = () => {
+		switch (roleLabel) {
+			case "Admin":
+				return "/admin-profile";
+			case "Owner":
+				return "/owner-profile";
+			case "Customer":
+				return "/customer-profile";
+			default:
+				return "/customer-profile";
+		}
+	};
 
 	const AvatarDiv = () => (
 		<div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
@@ -114,7 +132,7 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 			{open && (
 				<div className="absolute right-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1.5 shadow-lg">
 					<Link
-						to="/profile"
+						to={getProfileRoute()}
 						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -123,7 +141,7 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 						<span>Profile</span>
 					</Link>
 					<Link
-						to="/settings"
+						to="/admin/settings"
 						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -157,6 +175,7 @@ export default function Header({
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const location = useLocation();
+	const navigate = useNavigate();
 
 	const normalizedRole = useMemo(() => {
 		if (typeof role === "string") return role.toLowerCase();
@@ -185,12 +204,14 @@ export default function Header({
 					{(normalizedRole === "customer" || !isAuthenticated) && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 md:flex">
-								<NavLink to="/cars">Browse Cars</NavLink>
-								<NavLink to="/how-it-works">How It Works</NavLink>
-								<NavLink to="/become-a-host">Become a Host</NavLink>
+								<NavLink to="/vehicles" active={location.pathname === "/vehicles"}>Browse Cars</NavLink>
+								<NavLink to="/how-it-works" active={location.pathname === "/how-it-works"}>How It Works</NavLink>
+								<NavLink to="/become-a-host" active={location.pathname === "/become-a-host"}>Become a Host</NavLink>
+								<NavLink to="/contact" active={location.pathname === "/contact"}>Contact Us</NavLink>
 							</div>
 							{isAuthenticated ? (
-								<div className="hidden md:flex">
+								<div className="hidden items-center gap-4 md:flex">
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -225,10 +246,9 @@ export default function Header({
 								<NavLink to="/owner/vehicles/new" active={location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle"}>Add Vehicle</NavLink>
 								<NavLink to="/booking-history" active={location.pathname === "/booking-history"}>Bookings</NavLink>
 								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
-								<NavLink to="/owner/reviews" active={location.pathname === "/owner/reviews"}>Reviews</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} />
+								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -249,10 +269,9 @@ export default function Header({
 								<NavLink to="/admin/vehicles" active={location.pathname === "/admin/vehicles"}>Vehicle</NavLink>
 								<NavLink to="/admin/booking" active={location.pathname === "/admin/booking"}>Booking</NavLink>
 								<NavLink to="/admin/report" active={location.pathname === "/admin/report"}>Reports</NavLink>
-								<NavLink to="/admin/settings" active={location.pathname === "/admin/settings"}>Settings</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} />
+								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -287,8 +306,11 @@ export default function Header({
 					<div className="mx-auto flex max-w-7xl flex-col gap-3 px-8 py-4">
 						{(normalizedRole === "customer" || !isAuthenticated) && (
 							<div className="flex flex-col gap-2">
-								<Link to="/cars" className="text-sm font-medium text-slate-700">
+								<Link to="/vehicles" className="text-sm font-medium text-slate-700">
 									Browse Cars
+								</Link>
+								<Link to="/contact" className="text-sm font-medium text-slate-700">
+									Contact Us
 								</Link>
 								<Link to="/how-it-works" className="text-sm font-medium text-slate-700">
 									How It Works
@@ -297,12 +319,15 @@ export default function Header({
 									Become a Host
 								</Link>
 								{isAuthenticated ? (
+								<div className="flex items-center gap-3 pt-2">
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
 										onLogout={onLogout}
 										avatarAfterName={true}
 									/>
+								</div>
 								) : (
 									<div className="flex flex-col gap-2 pt-2">
 										<Link
@@ -343,7 +368,7 @@ export default function Header({
 									Reviews
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} />
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -375,7 +400,7 @@ export default function Header({
 									Settings
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} />
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
