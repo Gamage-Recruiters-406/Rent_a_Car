@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from 'expo-router';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Hero } from '../components/ui/Hero';
@@ -13,8 +14,8 @@ export default function HomeScreen() {
   return (
    
           <ScrollView
-            style={styles.container}
-            showsVerticalScrollIndicator={false}
+            // style={styles.container}
+            // showsVerticalScrollIndicator={false}
            >  
              
           {/*The temporary buttons shown in the mobile view cannot navigate to actual URLs. These buttons are only added for testing 
@@ -31,6 +32,28 @@ export default function HomeScreen() {
                 <Text className="text-white font-semibold text-lg text-center">Reviews</Text>
               </TouchableOpacity>
             </Link>
+
+
+            <Link href="/vehicle_booking" asChild>
+              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+                <Text className="text-white font-semibold text-lg text-center">VEHICLE BOOKING</Text>
+              </TouchableOpacity>
+            </Link>
+
+
+            <TouchableOpacity 
+              onPress={async () => {
+                const keys = ['userToken', 'userId', 'userRole'];
+                const result = await AsyncStorage.multiGet(keys);
+                const message = result.map(([key, value]) => `${key}: ${value}`).join('\n');
+                Alert.alert('Stored Data', message || 'No data found');
+              }}
+              className="bg-green-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64"
+            >
+              <Text className="text-white font-semibold text-lg text-center">Check Stored Data</Text>
+            </TouchableOpacity>
+
+           
 
             {/* <Hero />
             <Stats />
