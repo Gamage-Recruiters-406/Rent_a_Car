@@ -5,6 +5,15 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "src/services/vehicleApi.js",
+    "src/services/bookingApi.js",
+    "components/vehicle/Rows.jsx",
+    "components/vehicle/MiniCalendar.jsx",
+    "components/vehicle/Icons.jsx",
+    "components/vehicle/DropdownCard.jsx",
+    "app/vehicle/[id].jsx",
+    "app/vehicle/VehicleDetailScreen.jsx",
+    "config/env.js"
   ]
 }

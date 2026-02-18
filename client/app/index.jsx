@@ -1,27 +1,45 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Hero } from '../components/ui/Hero';
+import { Stats } from '../components/ui/Stats';
+import { Items } from '../components/ui/Items';
+import { QuickStats } from '../components/ui/Quickstats';
+import { NewsLetter } from '../components/ui/NewsLetter';
+import { Testimonials } from '../components/ui/Testimornials';
+
 
 export default function HomeScreen() {
   return (
-    <View className="flex-1 justify-center items-center bg-white">
-      <Text className="text-2xl font-bold text-center text-blue-500">
-        Welcome to Rent a Car Mobile
-      </Text>
-      <Text className="text-lg text-green-600 mt-4">
-        Tailwind is running
-      </Text>
-      
-      <Link href="/login/SignInPage" asChild>
-        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center">Login</Text>
-        </TouchableOpacity>
-      </Link>
-      <Link href="/Reviews" asChild>
-        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center">Reviews</Text>
-        </TouchableOpacity>
-      </Link>
+   
+          <ScrollView
+            style={styles.container}
+            showsVerticalScrollIndicator={false}
+           >  
+             
+          {/*The temporary buttons shown in the mobile view cannot navigate to actual URLs. These buttons are only added for testing 
+          and demonstration purposes of navigation flow.
+          pleas donot delet this buttons. after connect every part then delet this buttons*/}
 
-    </View>
+            <Link href="/login/SignInPage" asChild>
+              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+                <Text className="text-white font-semibold text-lg text-center">Login</Text>
+              </TouchableOpacity>
+            </Link>
+
+            <Hero />
+            <Stats />
+          <Items />
+            <QuickStats/>
+            <NewsLetter />
+          <Testimonials/>
+          </ScrollView>
   );
+ 
 }
+ const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+});

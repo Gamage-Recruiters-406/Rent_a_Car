@@ -145,7 +145,7 @@ export default function SignInPage() {
                     <Text className="text-sm text-gray-600">Remember me for 30 days</Text>
                   </TouchableOpacity>
 
-                  <Link href="/forgot-password" asChild>
+                  <Link href="/login/fogotpassword/fogotindex" asChild>
                     <TouchableOpacity>
                       <Text className="text-sm font-medium text-[#0A2E5C]">Forgot password?</Text>
                     </TouchableOpacity>
@@ -166,7 +166,8 @@ export default function SignInPage() {
 
                 <View className="flex-row justify-center gap-1">
                   <Text className="text-sm text-gray-500">Don't have an account?</Text>
-                  <Link href="/signup" asChild>
+                   <Link href="/login/SignUpPage"asChild>
+
                     <TouchableOpacity>
                       <Text className="font-medium text-[#0A2E5C]">Sign up</Text>
                     </TouchableOpacity>

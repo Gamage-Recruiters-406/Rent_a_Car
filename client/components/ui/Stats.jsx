@@ -1,61 +1,53 @@
-// client/components/ui/Stats.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  ActivityIndicator,
-  Dimensions,
-  Easing,
-  Platform,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import React, { useState, useEffect } from 'react';
 
 const baseUrl = 'http://localhost:8090';
-const apiVersion =  '/api/v1';
-
-interface Stat {
-  icon: keyof typeof Ionicons.glyphMap;
-  number: string;
-  value: number;
-  label: string;
-  isDecimal?: boolean;
-}
+const apiVersion = '/api/v1';
 
 export const Stats = () => {
-  const [counts, setCounts] = useState<number[]>([0, 0, 0, 0]);
+  const [counts, setCounts] = useState([0, 0, 0, 0]);
   const [vehicleCount, setVehicleCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(4.9);
 
-  const scrollX = useRef(new Animated.Value(0)).current;
-
-  const stats: Stat[] = [
+  const stats = [
     {
-      icon: 'car-sport',
+      icon: (
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
       number: `${vehicleCount}+`,
       value: vehicleCount,
       label: 'Vehicles Available',
     },
     {
-      icon: 'people',
+      icon: (
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
       number: `${userCount}+`,
       value: userCount,
       label: 'Happy Customers',
     },
     {
-      icon: 'location',
+      icon: (
+        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
       number: '25+',
       value: 25,
       label: 'Cities Covered',
     },
     {
-      icon: 'star',
+      icon: (
+        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ),
       number: '4.9',
       value: averageRating,
       label: 'Average Rating',
@@ -65,9 +57,6 @@ export const Stats = () => {
 
   // Triple the stats for seamless infinite scroll
   const duplicatedStats = [...stats, ...stats, ...stats];
-
-  const STAT_WIDTH = SCREEN_WIDTH * 0.5; // Each stat takes 50% of screen width
-  const TOTAL_WIDTH = STAT_WIDTH * stats.length;
 
   // Fetch vehicle count
   useEffect(() => {
@@ -164,7 +153,7 @@ export const Stats = () => {
     const duration = 2000; // 2 seconds
     const frameRate = 1000 / 60; // 60fps
     const totalFrames = duration / frameRate;
-    const intervals: number[] = [];
+    const intervals = [];
 
     stats.forEach((stat, index) => {
       let frame = 0;
@@ -198,29 +187,7 @@ export const Stats = () => {
     };
   }, [isLoading, vehicleCount, userCount, averageRating]);
 
-  // ✅ INFINITE MARQUEE ANIMATION - NEVER STOPS
-  useEffect(() => {
-    if (isLoading) return;
-
-    // Start the infinite loop animation
-    const loopAnimation = Animated.loop(
-      Animated.timing(scrollX, {
-        toValue: TOTAL_WIDTH,
-        duration: 15000, // 15 seconds for one complete cycle
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-
-    loopAnimation.start();
-
-    // Cleanup: stop animation when component unmounts
-    return () => {
-      loopAnimation.stop();
-    };
-  }, [isLoading, TOTAL_WIDTH, scrollX]);
-
-  const formatNumber = (value: number, isDecimal?: boolean) => {
+  const formatNumber = (value, isDecimal) => {
     if (isDecimal) {
       return value.toFixed(1);
     }
@@ -229,134 +196,66 @@ export const Stats = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#0d3778" />
-          <Text style={styles.loadingText}>Loading stats...</Text>
-        </View>
-      </View>
+      <div className="bg-white py-6 border-b border-gray-200">
+        <div className="py-8 flex flex-col items-center justify-center">
+          <div className="w-6 h-6 border-2 border-[#0d3778] border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-2 text-sm text-gray-600">Loading stats...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.marqueeContainer}>
-        <Animated.View
-          style={[
-            styles.statsRow,
-            {
-              transform: [
-                {
-                  translateX: scrollX.interpolate({
-                    inputRange: [0, TOTAL_WIDTH],
-                    outputRange: [0, -TOTAL_WIDTH],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
+    <div className="bg-white py-6 border-b border-gray-200 overflow-hidden">
+      <div className="relative overflow-hidden">
+        <div className="flex animate-stats-marquee">
           {duplicatedStats.map((stat, index) => {
             const statIndex = index % stats.length;
-            
-            return (
-              <View key={index} style={[styles.statItem, { width: STAT_WIDTH }]}>
-                <View style={styles.statCard}>
-                  <LinearGradient
-                    colors={['#0d3778', '#1a4d99']}
-                    style={styles.iconContainer}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <Ionicons name={stat.icon} size={28} color="#fff" />
-                  </LinearGradient>
 
-                  <View style={styles.statContent}>
-                    <Text style={styles.statNumber}>
+            return (
+              <div
+                key={index}
+                className="flex-shrink-0 w-1/2 px-4 flex justify-center items-center"
+              >
+                <div className="text-center">
+                  <div className="w-14 h-14 bg-gradient-to-br from-[#0d3778] to-[#1a4d99] rounded-xl flex items-center justify-center mb-3 mx-auto shadow-md">
+                    <div className="text-white">
+                      {stat.icon}
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-[#0d3778] mb-1">
                       {formatNumber(counts[statIndex], stat.isDecimal)}
                       {stat.isDecimal ? '' : '+'}
-                    </Text>
-                    <Text style={styles.statLabel} numberOfLines={2}>
+                    </p>
+                    <p className="text-xs text-gray-600 leading-4 max-w-[160px] line-clamp-2">
                       {stat.label}
-                    </Text>
-                  </View>
-                </View>
-              </View>
+                    </p>
+                  </div>
+                </div>
+              </div>
             );
           })}
-        </Animated.View>
-      </View>
-    </View>
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes stats-marquee {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-33.333%);
+          }
+        }
+        .animate-stats-marquee {
+          animation: stats-marquee 15s linear infinite;
+        }
+        .animate-stats-marquee:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+    </div>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    paddingVertical: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    overflow: 'hidden',
-  },
-  loadingContainer: {
-    paddingVertical: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  marqueeContainer: {
-    overflow: 'hidden',
-  },
-  statsRow: {
-    flexDirection: 'row',
-  },
-  statItem: {
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statCard: {
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statContent: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0d3778',
-    marginBottom: 4,
-    ...Platform.select({
-      ios: {
-        fontWeight: '700',
-      },
-      android: {
-        fontWeight: 'bold',
-      },
-    }),
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-    maxWidth: SCREEN_WIDTH * 0.4,
-    lineHeight: 16,
-  },
-});
