@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import Vehicle from "../models/Vehicle.js";
+import Booking from "../models/Booking.js";
 import { request } from "http";
 import {
   notifyAdminNewVehicle,
@@ -42,13 +43,13 @@ export const createVehicleListing = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const { title, description, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, km, pricePerKm, address, lat, lng } = req.body;
+    const { title, description, numberPlate, model, vehicleType, seats, year, fuelType, transmission, pricePerDay, km, pricePerKm, address, lat, lng } = req.body;
 
-    if (!title || !numberPlate || !model || !vehicleType || !year || !fuelType || !transmission || pricePerDay === undefined || km === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
+    if (!title || !numberPlate || !model || !vehicleType || seats === undefined || !year || !fuelType || !transmission || pricePerDay === undefined || km === undefined || pricePerKm === undefined || lat === undefined || lng === undefined ) {
       if (tempDir) removeDirSafe(tempDir);
       return res.status(400).json({
         success: false,
-        message: "Required: title, numberPlate, model, vehicleType, year, fuelType, transmission, pricePerDay, pricePerKm, lat, lng",
+        message: "Required: title, numberPlate, model, vehicleType, seats, year, fuelType, transmission, pricePerDay, pricePerKm, lat, lng",
       });
     }
 
@@ -81,6 +82,15 @@ export const createVehicleListing = async (req, res) => {
       });
     }
 
+    const seatsNum = Number(seats);
+    if (Number.isNaN(seatsNum) || seatsNum < 1) {
+      if (tempDir) removeDirSafe(tempDir);
+      return res.status(400).json({
+        success: false,
+        message: "seats must be a valid number greater than 0.",
+      });
+    }
+
     // 1) Create vehicle first WITHOUT photos (so we can get _id)
     const vehicle = await Vehicle.create({
       ownerId,
@@ -89,6 +99,7 @@ export const createVehicleListing = async (req, res) => {
       numberPlate: numberPlate.trim(),
       model: model.trim(),
       vehicleType,
+      seats: seatsNum,
       year: Number(year),
       fuelType,
       transmission,
@@ -331,6 +342,7 @@ export const updateVehicleListing = async (req,res) => {
       numberPlate,
       model,
       vehicleType,
+      seats,
       year,
       fuelType,
       transmission,
@@ -386,6 +398,15 @@ export const updateVehicleListing = async (req,res) => {
         return res.status(400).json({ success: false, message: "pricePerKm must be a valid non-negative number." });
       }
       vehicle.pricePerKm = ppk;
+    }
+
+    if (seats !== undefined) {
+      const seatsNum = Number(seats);
+      if (Number.isNaN(seatsNum) || seatsNum < 1) {
+        if (tempDir) removeDirSafe(tempDir);
+        return res.status(400).json({ success: false, message: "seats must be a valid number greater than 0." });
+      }
+      vehicle.seats = seatsNum;
     }
 
     const latProvided = lat !== undefined && lat !== "";
@@ -517,7 +538,7 @@ export const updateVehicleStatus = async (req,res) => {
     try {
       await notifyVehicle({
         vehicleId: vehicle._id,
-        status: vehicle.status
+        type: status === "Approved" ? "approved" : "rejected",
       });
     } catch (err) {
       console.error("Vehicle status notification error:", err.message);
@@ -611,6 +632,61 @@ export const getApprovedVehicleCount = async (req, res) => {
     });
   } catch (error) {
     console.log("GET APPROVED VEHICLE COUNT ERROR:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server Side Error",
+    });
+  }
+};
+
+
+
+// GET 4 MOST BOOKED VEHICLES (Ascending Order)
+export const getTopBookedVehicles = async (req, res) => {
+  try {
+    const vehicles = await Booking.aggregate([
+      { $match: { status: "approved" } }, // Only count approved bookings
+
+      // Group by vehicleId and count bookings
+      {
+        $group: {
+          _id: "$vehicleId",
+          bookingCount: { $sum: 1 },
+        },
+      },
+
+      { $sort: { bookingCount: -1 } }, // Sort by bookingCount descending (most booked first)
+      { $limit: 4 }, // Take only first 4
+
+      // Join with Vehicle collection
+      {
+        $lookup: {
+          from: "vehicles",
+          localField: "_id",
+          foreignField: "_id",
+          as: "vehicle",
+        },
+      },
+
+      { $unwind: "$vehicle" }, // Flatten the vehicle array
+
+      { $match: { "vehicle.status": "Approved" } }, // Only return approved vehicles
+
+      {
+        $project: {
+          bookingCount: 1,
+          vehicle: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      count: vehicles.length,
+      vehicles,
+    });
+  } catch (error) {
+    console.log("GET TOP BOOKED VEHICLES ERROR:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Server Side Error",

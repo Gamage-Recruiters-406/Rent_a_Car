@@ -728,7 +728,7 @@ export const getOverallAverageRating = async (req, res) => {
 export const getHomePageReviews = async (req, res) => {
   try {
     const reviews = await Review.find()
-      .populate("customer_id", "name")
+      .populate("customer_id", "first_name last_name")
       .populate("vehicle_id", "title")
       .sort({ createdAt: -1 })   // latest first
       .limit(15);                 // show only 15 reviews on homepage

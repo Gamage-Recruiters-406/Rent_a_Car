@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Car, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import logo from '../../assets/Rent My Car.png';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -40,11 +41,9 @@ export function SignInPage() {
       if (data.success) {
         toast.success(data.message || "Login Successfully");
         localStorage.setItem('token', data.token);
-  
-        localStorage.setItem('user', JSON.stringify(data));
-        navigate('/dashboard');
+        localStorage.setItem('user', JSON.stringify({ userid: data.userid, role: data.role }));
+        navigate('/');
 
-     
       } else {
         toast.error(data.message || 'Login failed');
       }
@@ -61,7 +60,7 @@ export function SignInPage() {
       <div className="w-full lg:w-[40%] bg-[#0A2E5C] p-8 lg:p-12 flex flex-col justify-between text-white min-h-[300px] lg:min-h-screen relative overflow-hidden">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <Car className="w-8 h-8" />
+          <img src={logo} alt="Rent My Car" className="w-12 h-12 object-contain" />
           <span className="text-xl font-medium tracking-wide">Rent My Car</span>
         </div>
 
