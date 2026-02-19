@@ -1,7 +1,7 @@
 import User from "../models/userModel.js";
 import Vehicle from "../models/Vehicle.js";
 import Booking from "../models/Booking.js";
-
+import Payment from "../models/paymentModel.js"
 
 //user improvement chart
 export const getMonthlyUserChart = async (req, res) => {
@@ -361,6 +361,327 @@ export const getBestPerformanceVehicles = async (req, res) => {
     });
   }
 };
+
+//get revenue stats (customer + platform)
+export const getSystemMoneyAnalytics = async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Month boundaries (UTC safe)
+    const startOfThisMonth = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      1, 0, 0, 0, 0
+    ));
+
+    const startOfNextMonth = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() + 1,
+      1, 0, 0, 0, 0
+    ));
+
+    const startOfLastMonth = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() - 1,
+      1, 0, 0, 0, 0
+    ));
+
+    //  TOTAL ALL TIME
+    const totalResult = await Payment.aggregate([
+      { $match: { status: "paid" } },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: {
+              $add: ["$amount.amount", "$amount.platformFee"]
+            }
+          }
+        }
+      }
+    ]);
+
+    const totalMoney = totalResult[0]?.total || 0;
+
+    // THIS MONTH
+    const thisMonthResult = await Payment.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paymentDate: {
+            $gte: startOfThisMonth,
+            $lt: startOfNextMonth
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: {
+              $add: ["$amount.amount", "$amount.platformFee"]
+            }
+          }
+        }
+      }
+    ]);
+
+    const thisMonth = thisMonthResult[0]?.total || 0;
+
+    //  LAST MONTH
+    const lastMonthResult = await Payment.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paymentDate: {
+            $gte: startOfLastMonth,
+            $lt: startOfThisMonth
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: {
+              $add: ["$amount.amount", "$amount.platformFee"]
+            }
+          }
+        }
+      }
+    ]);
+
+    const lastMonth = lastMonthResult[0]?.total || 0;
+
+    //  Growth %
+    let growth = 0;
+
+    if (lastMonth === 0) {
+      growth = thisMonth > 0 ? 100 : 0;
+    } else {
+      growth = Number(
+        (((thisMonth - lastMonth) / lastMonth) * 100).toFixed(2)
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      totalMoney,
+      thisMonth,
+      lastMonth,
+      growth
+    });
+
+  } catch (error) {
+    console.error("System Money Analytics Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    });
+  }
+};
+
+//get revenue stats (platform only)
+export const getAdminEarningsAnalytics = async (req, res) => {
+  try {
+    const now = new Date();
+
+    const startOfThisMonth = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      1
+    ));
+
+    const startOfNextMonth = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() + 1,
+      1
+    ));
+
+    const startOfLastMonth = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() - 1,
+      1
+    ));
+
+    // TOTAL
+    const totalResult = await Payment.aggregate([
+      { $match: { status: "paid" } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount.platformFee" }
+        }
+      }
+    ]);
+
+    const totalEarnings = totalResult[0]?.total || 0;
+
+    // THIS MONTH
+    const thisMonthResult = await Payment.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paymentDate: {
+            $gte: startOfThisMonth,
+            $lt: startOfNextMonth
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount.platformFee" }
+        }
+      }
+    ]);
+
+    const thisMonth = thisMonthResult[0]?.total || 0;
+
+    // LAST MONTH
+    const lastMonthResult = await Payment.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paymentDate: {
+            $gte: startOfLastMonth,
+            $lt: startOfThisMonth
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount.platformFee" }
+        }
+      }
+    ]);
+
+    const lastMonth = lastMonthResult[0]?.total || 0;
+
+    // Growth
+    let growth = 0;
+
+    if (lastMonth === 0) {
+      growth = thisMonth > 0 ? 100 : 0;
+    } else {
+      growth = Number(
+        (((thisMonth - lastMonth) / lastMonth) * 100).toFixed(2)
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      totalEarnings,
+      thisMonth,
+      lastMonth,
+      growth
+    });
+
+  } catch (error) {
+    console.error("Admin Earnings Analytics Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    });
+  }
+};
+
+// Revenue Monthly Line Chart (all-time)
+export const getMonthlyRevenueChart = async (req, res) => {
+  try {
+    const data = await Payment.aggregate([
+      { 
+        $match: { status: "paid" } // only paid payments
+      },
+      {
+        // Group by year and month
+        $group: {
+          _id: {
+            year: { $year: "$paymentDate" },
+            month: { $month: "$paymentDate" }
+          },
+          totalRevenue: { $sum: "$amount.amount" },
+          totalPlatformFee: { $sum: "$amount.platformFee" }
+        }
+      },
+      {
+        // Sort chronologically
+        $sort: {
+          "_id.year": 1,
+          "_id.month": 1
+        }
+      }
+    ]);
+
+    // Format for frontend line chart
+    const formattedData = data.map(item => ({
+      month: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`, // YYYY-MM
+      totalRevenue: item.totalRevenue,
+      platformFee: item.totalPlatformFee
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedData
+    });
+
+  } catch (error) {
+    console.error("Monthly Revenue Chart Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    });
+  }
+};
+
+// GET /api/admin/payment-report
+export const getPaymentReport = async (req, res) => {
+  try {
+    // Fetch all payments with customer & vehicle info
+    const payments = await Payment.find()
+      .populate({
+        path: "customerId",
+        select: "first_name last_name" 
+      })
+      .populate({
+        path: "vehicleId",
+        select: "title model"
+      })
+      .sort({ paymentDate: -1 }); // latest first
+
+    // Map to frontend table structure
+    const report = payments.map(p => ({
+      customerName: p.customerId ? `${p.customerId.first_name} ${p.customerId.last_name}` : "Unknown",
+      vehicle: p.vehicleId ? `${p.vehicleId.title} (${p.vehicleId.model})` : "Unknown",
+      revenue: p.amount.amount + (p.amount.platformFee || 0),
+      status: p.status
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    console.error("Payment Report Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error"
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

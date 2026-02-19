@@ -36,11 +36,11 @@ router.post("/logout", requiredSignIn, logout);
 router.get("/verify-email", verifyEmail);
 
 //get verify email again
-router.patch("/getVerificationMail",requiredSignIn, isOwner, ReSendVerificationMail);
+router.patch("/getVerificationMail",requiredSignIn, ReSendVerificationMail);
 
 //password reset otp code
 router.post("/passwordRestOTP",otp);
-router.post("/verifyOTP",verifyResetOtp); //comapre OTP code
+router.post("/verifyOTP",verifyResetOtp); //compare OTP code
 router.patch("/ResetPassword",ResetPassword); //reset password
 
 //get all users except admins
