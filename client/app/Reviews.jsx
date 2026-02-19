@@ -143,7 +143,7 @@ export default function ReviewsScreen() {
       );
       setCanReview(res.data.canReview);
       setReviewReason(res.data.reason || '');
-    } catch {
+    } catch (error) {
       console.error("Failed to Check Permission", error);
 
       if (error.request && !error.response) {
@@ -349,6 +349,14 @@ export default function ReviewsScreen() {
                         How our cherished clients express experiences and feedback from
                         customers through RentMyCar with us
                     </Text>
+
+                    {loadingReviews && (
+                      <Text className="text-center text-gray-500 my-4">Loading Reviews ....</Text>
+                    )}
+
+                    {!loadingReviews && reviews.length === 0 && (
+                      <Text className="text-white text-center text-xs leading-5 mb-3">No reviews yet. Be the first to review this vehicle!</Text>
+                    )}
 
                     <ScrollView
                         ref={scrollX}
