@@ -12,7 +12,7 @@ import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordP
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
 
-import{OwnerProfileEdit} from "./pages/profilePages/OwnerProfileEdit";
+import { OwnerProfileEdit } from "./pages/profilePages/OwnerProfileEdit";
 import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
 import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
 
@@ -20,6 +20,7 @@ import CustomerReviews from "./pages/CustomerRating";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
 import AddVehicle from "./pages/AddVehicle.jsx";
+import EditVehicle from "./pages/EditVehicle.jsx";
 import MyVehicleOwner from "./pages/MyVehicleOwner.jsx";
 
 import BookingHistory from "./pages/BookingHistory.jsx";
@@ -30,7 +31,9 @@ import { Homepage } from "./pages/Homepage";
 import AdminReport from "./pages/admin/AdminReport";
 import VehicleManagement from "./pages/admin/VehicleManagement";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
+import AdminNotifications from "./pages/admin/AdminNotifications";
 import OwnerBookingRequests from "./pages/owner/OwnerBookingRequest.jsx";
+
 
 
 function App() {
@@ -39,16 +42,17 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/verify-email" element={<VerifyEmailPage />} />
-        
+
         {/* owner */}
         <Route path="/rental-history" element={<RentalHistoryPage />} />
         <Route path="/owner/vehicles" element={<MyVehicleOwner />} />
         <Route path="/owner/vehicles/new" element={<AddVehicle />} />
+        <Route path="/owner/vehicles/:id/edit" element={<EditVehicle />} />
         <Route path="/owner/booking-requests" element={<OwnerBookingRequests />} />
 
         {/* public */}
         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
-        <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/" element={<Homepage />} />
         {/*<Route path="/" element={<CustomerVehicleListPage />} />*/}
@@ -66,6 +70,7 @@ function App() {
         <Route path="/admin/vehicles" element={<VehicleManagement />} />
         <Route path="/admin/settings" element={<AdminSettingsPage />} />
         <Route path="/booking" element={<BookingPage1 />} />
+        <Route path="/notifications" element={<AdminNotifications />} />
 
 
         {/* login */}
@@ -78,10 +83,10 @@ function App() {
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        <Route path="/owner-profile" element={<OwnerProfileEdit/>} />
-        <Route path="/admin-profile" element={<AdminProfileEdit/>} /> 
-        <Route path="/customer-profile" element={<CustomerProfileEdit/>} />   
-       
+        <Route path="/owner-profile" element={<OwnerProfileEdit />} />
+        <Route path="/admin-profile" element={<AdminProfileEdit />} />
+        <Route path="/customer-profile" element={<CustomerProfileEdit />} />
+
 
       </Routes>
     </Router>
