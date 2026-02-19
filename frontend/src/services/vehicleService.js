@@ -66,8 +66,9 @@ export const getAllVehicles = async () => {
 /**
  * UPDATE vehicle status (Approve/Reject) - ADMIN
  * Backend: PATCH /api/v1/vehicle/admin/status/:id
+ * Only sends status and rejectionReason fields
  */
-export const updateVehicleStatus = async (id, status) => {
+export const updateVehicleStatus = async (id, status, rejectionReason = null) => {
   // Backend expects status with capitalized enum values: "Pending", "Approved", "Rejected"
   let apiStatus = status;
   if (typeof status === "string") {
@@ -77,7 +78,15 @@ export const updateVehicleStatus = async (id, status) => {
     else if (lower === VEHICLE_STATUS.REJECTED) apiStatus = "Rejected";
   }
 
-  const res = await api.patch(`/vehicle/admin/status/${id}`, { status: apiStatus });
+  // Prepare minimal payload - only send status and rejection reason
+  const payload = { status: apiStatus };
+  
+  // Add rejection reason if provided
+  if (rejectionReason && apiStatus === "Rejected") {
+    payload.rejectionReason = rejectionReason;
+  }
+
+  const res = await api.patch(`/vehicle/admin/status/${id}`, payload);
   return res.data; // { success, message, vehicle }
 };
 
