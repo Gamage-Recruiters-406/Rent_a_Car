@@ -17,6 +17,7 @@ const defaultRecentActivity = [
 export const CustomerProfileEdit = ({
   'data-id': dataId,
   profile ,
+  bio,
   stats ,
   recentActivity = defaultRecentActivity,
   onSave,
@@ -346,7 +347,7 @@ useEffect(() => {
                 Bio
               </h2>
               <textarea
-                value={activeProfile.bio||""}
+                value={currentProfile.bio||""}
                 onChange={(e) => handleFieldChange('bio', e.target.value)}
                 disabled={!isEditing}
                 rows={4}
