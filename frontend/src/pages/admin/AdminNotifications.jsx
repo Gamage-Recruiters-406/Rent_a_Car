@@ -18,7 +18,7 @@ const AdminNotifications = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [counts, setCounts] = useState({
     all: 0,
-    unread: 0,
+    // unread: 0,
     alerts: 0,
     info: 0,
     success: 0
@@ -203,7 +203,7 @@ const AdminNotifications = () => {
   };
 
   // Handle mark all as read
-  const handleMarkAllAsRead = async () => {
+  {/* const handleMarkAllAsRead = async () => {
     try {
       const response = await notificationApi.markAllAsRead();
       if (response.success) {
@@ -222,7 +222,7 @@ const AdminNotifications = () => {
       updateCounts(allReadNotifications);
       toast.success('All notifications marked as read');
     }
-  };
+  }; */}
 
 
   return (
@@ -231,7 +231,7 @@ const AdminNotifications = () => {
         role={role}
         isAuthenticated={isAuthenticated}
         user={user}
-        notifications={counts.unread}
+        //notifications={counts.unread}
         onLogout={handleLogout}
       />
       <div className="min-h-screen bg-gray-50 pb-20">
@@ -242,18 +242,18 @@ const AdminNotifications = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-                <p className="text-sm text-gray-500 mt-1">
+                {/* <p className="text-sm text-gray-500 mt-1">
                   You have {counts.unread} unread notifications
-                </p>
+                </p> */}
               </div>
-              {counts.unread > 0 && (
+              {/* {counts.unread > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
                   className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   Mark all as read
                 </button>
-              )}
+              )} */}
             </div>
           </div>
         </div>
