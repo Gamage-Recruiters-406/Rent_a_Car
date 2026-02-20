@@ -68,3 +68,12 @@ export const getAllBookings = async () => {
     throw error;
   }
 };
+
+export const createOwnerPersonalUseBooking = async (data) => {
+  try {
+    const response = await api.post("/bookings/owner/personal-use", data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

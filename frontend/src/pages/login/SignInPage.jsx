@@ -42,7 +42,7 @@ export function SignInPage() {
         toast.success(data.message || "Login Successfully");
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify({ userid: data.userid, role: data.role }));
-        navigate('/vehicles');
+        navigate('/');
 
       } else {
         toast.error(data.message || 'Login failed');

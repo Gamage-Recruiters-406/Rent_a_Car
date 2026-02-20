@@ -53,8 +53,8 @@ const ContactPage = () => {
                             </Link>
                             <span className="mx-2">/</span>
 
-                <a href="#" className="hover:text-white no-underline">
-                  Page
+                <a href="/vehicles" className="hover:text-white no-underline">
+                  Browse Cars
                 </a>
 
                 <span className="mx-2">/</span>
