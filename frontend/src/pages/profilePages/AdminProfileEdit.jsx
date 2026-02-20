@@ -173,13 +173,13 @@ export const AdminProfileEdit = ({
   //   }
   // };
 
-  // const handleFieldChange = (field, value) => {
-  //   setEditedProfile((prev) => ({
-  //     ...prev,
-  //     [field]: value
-  //   }));
-  //   onProfileChange?.(field, value);
-  // };
+  const handleFieldChange = (field, value) => {
+    setEditedProfile((prev) => ({
+      ...prev,
+      [field]: value
+    }));
+    onProfileChange?.(field, value);
+  };
 
   const currentProfile = isEditing ? editedProfile : activeProfile;
 
