@@ -19,12 +19,12 @@ const OwnerManagement = () => {
         const token = localStorage.getItem('token');
 
         // Fetch Owners
-        const ownersResponse = await fetch(`${baseUrl}${version}/admin/owners`, {
+        const ownersResponse = await fetch(`${baseUrl}${version}/adminReports/owners`, {
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
         
         // Fetch Stats
-        const statsResponse = await fetch(`${baseUrl}${version}/admin/user-stats`, {
+        const statsResponse = await fetch(`${baseUrl}${version}/adminReports/user-stats`, {
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
 

@@ -18,12 +18,12 @@ const CustomerManagement = () => {
         const token = localStorage.getItem('token');
 
         // Fetch Customers
-        const custRes = await fetch(`${baseUrl}${version}/admin/customers`, {
+        const custRes = await fetch(`${baseUrl}${version}/adminReports/customers`, {
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
         
         // Fetch Stats
-        const statsRes = await fetch(`${baseUrl}${version}/admin/user-stats`, {
+        const statsRes = await fetch(`${baseUrl}${version}/adminReports/user-stats`, {
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
 
