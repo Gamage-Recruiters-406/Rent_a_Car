@@ -89,11 +89,41 @@ export function CustomerVehicleListPage() {
   };
 
   const handleViewDetails = (vehicleId) => {
-    navigate(`/vehicles/${vehicleId}`);
+    const vehicle = vehicles.find(v => (v._id || v.id) === vehicleId);
+    if (vehicle) {
+      setSelectedVehicle(vehicle);
+      setIsModalOpen(true);
+    }
   };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedVehicle(null), 300);
+  };
+
+  const getRatingValue = (vehicle) => {
+    if (!vehicle) return null;
+    const raw = vehicle.averageRating ?? vehicle.rating ?? vehicle.statistics?.averageRating;
+    const num = Number(raw);
+    return Number.isFinite(num) ? num : null;
+  };
+
+  const getReviewCount = (vehicle) => {
+    if (!vehicle) return 0;
+    const raw =
+      vehicle.reviewCount ??
+      vehicle.totalReviews ??
+      vehicle.statistics?.totalReviews ??
+      vehicle.statistics?.reviewCount;
+    const num = Number(raw);
+    return Number.isFinite(num) ? num : 0;
+  };
+
+  const selectedRating = getRatingValue(selectedVehicle);
+  const selectedReviewCount = getReviewCount(selectedVehicle);
+
   const filteredVehicles = vehicles.filter(vehicle => {
-    if (filters.location && !vehicle.address?.toLowerCase().includes(filters.location.toLowerCase())) {
+    if (filters.location && !vehicle.location?.address?.toLowerCase().includes(filters.location.toLowerCase())) {
       return false;
     }
     if (filters.vehicleType && vehicle.vehicleType !== filters.vehicleType) {
@@ -123,7 +153,7 @@ export function CustomerVehicleListPage() {
         </div>
 
         {/* Filter Section */}
-        <div className="bg-white shadow-lg sticky top-0 z-10">
+        <div className="bg-white shadow-lg">
           <div className="max-w-7xl mx-auto p-4 md:p-8">
             <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 items-stretch md:items-end">
               <div className="flex-1">
@@ -268,16 +298,20 @@ export function CustomerVehicleListPage() {
 
               {/* Vehicles Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {filteredVehicles.map((vehicle) => (
-                  <div
-                    key={vehicle._id || vehicle.id}
-                    className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-gray-100 hover:border-[#0D3778] group transform hover:-translate-y-1"
-                  >
+                {filteredVehicles.map((vehicle) => {
+                  const ratingValue = getRatingValue(vehicle);
+                  const reviewCount = getReviewCount(vehicle);
+
+                  return (
+                    <div
+                      key={vehicle._id || vehicle.id}
+                      className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-gray-100 hover:border-[#0D3778] group transform hover:-translate-y-1"
+                    >
                     {/* Vehicle Image Container */}
                     <div className="relative h-44 sm:h-52 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 overflow-hidden">
                       {vehicle.photos && vehicle.photos.length > 0 ? (
                         <img
-                          src={vehicle.photos[0]}
+                          src={vehicle.photos[0]?.url || vehicle.photos[0]}
                           alt={vehicle.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
@@ -292,7 +326,12 @@ export function CustomerVehicleListPage() {
                       {/* Rating Badge */}
                       <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-1 shadow-md">
                         <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm font-bold text-gray-800">4.2</span>
+                        <span className="text-sm font-bold text-gray-800">
+                          {(ratingValue ?? 0).toFixed(1)}
+                        </span>
+                        {reviewCount > 0 && (
+                          <span className="text-xs text-gray-600">({reviewCount})</span>
+                        )}
                       </div>
                     </div>
 
@@ -328,7 +367,7 @@ export function CustomerVehicleListPage() {
                       {/* Location */}
                       <div className="flex items-start gap-2 text-sm text-gray-600 mb-4">
                         <MapPin className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                        <span className="line-clamp-1">{vehicle.address || 'Location not specified'}</span>
+                        <span className="line-clamp-1">{vehicle.location?.address || 'Location not specified'}</span>
                       </div>
 
                       {/* Divider */}
@@ -358,8 +397,9 @@ export function CustomerVehicleListPage() {
                         View Details
                       </button>
                     </div>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </>
           ) : (
@@ -405,7 +445,7 @@ export function CustomerVehicleListPage() {
               <div className="relative h-56 sm:h-80 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-400 rounded-t-2xl sm:rounded-t-3xl overflow-hidden">
                 {selectedVehicle.photos && selectedVehicle.photos.length > 0 ? (
                   <img
-                    src={selectedVehicle.photos[0]}
+                    src={selectedVehicle.photos[0]?.url || selectedVehicle.photos[0]}
                     alt={selectedVehicle.title}
                     className="w-full h-full object-cover"
                   />
@@ -420,7 +460,12 @@ export function CustomerVehicleListPage() {
                 {/* Rating Badge */}
                 <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2 shadow-xl">
                   <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span className="text-lg font-bold text-gray-800">4.2</span>
+                  <span className="text-lg font-bold text-gray-800">
+                    {(selectedRating ?? 0).toFixed(1)}
+                  </span>
+                  {selectedReviewCount > 0 && (
+                    <span className="text-sm text-gray-600">({selectedReviewCount})</span>
+                  )}
                 </div>
               </div>
 
@@ -441,7 +486,7 @@ export function CustomerVehicleListPage() {
                   <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />
                   <div>
                     <p className="text-sm text-gray-600 font-medium">Location</p>
-                    <p className="text-base text-gray-900">{selectedVehicle.address || 'Location not specified'}</p>
+                    <p className="text-base text-gray-900">{selectedVehicle.location?.address || 'Location not specified'}</p>
                   </div>
                 </div>
 

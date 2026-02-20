@@ -17,6 +17,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState(1);
 
   // --- Modal States ---
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +31,60 @@ const Dashboard = () => {
     { label: 'Approved Requests', val: '0', icon: <CheckCircle2 size={40} />, color: 'border-status-approved' },
     { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-status-rejected' },
   ]);
+
+  // Fetch user authentication on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(
+          `${baseUrl}${apiVersion}/authUser/getUserDetails`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          setUser(null);
+          setRole(1);
+          setIsAuthenticated(false);
+          return;
+        }
+
+        const data = await response.json();
+        if (data?.success && data?.user) {
+          setUser(data.user);
+          setRole(data.user.role ?? 1);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setRole(1);
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setUser(null);
+        setRole(1);
+        setIsAuthenticated(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${baseUrl}${apiVersion}/authUser/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+    setUser(null);
+    setRole(1);
+    setIsAuthenticated(false);
+  };
 
   // Data fetch karana function eka (useCallback use kare modal eka refresh weddi performance optimize karanna)
   const fetchDashboardData = useCallback(async () => {
@@ -97,7 +154,13 @@ const Dashboard = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
-      <Header />
+      <Header 
+        role={role}
+        isAuthenticated={isAuthenticated}
+        user={user}
+        notifications={0}
+        onLogout={handleLogout}
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-10 bg-gray-50/50">
           <div className="max-w-7xl mx-auto"> 

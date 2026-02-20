@@ -93,7 +93,18 @@ const ContactPage = () => {
 
                 <div className="mt-3 space-y-1 text-center text-sm text-slate-600">
                   {c.lines.map((line, idx) => (
-                    <p key={idx}>{line}</p>
+                    <p key={idx}>
+                      {c.title === "Mail Us" ? (
+                        <a
+                          href={`mailto:${line}`}
+                          className="hover:text-blue-600 underline"
+                        >
+                          {line}
+                        </a>
+                      ) : (
+                        line
+                      )}
+                    </p>
                   ))}
                 </div>
               </div>
