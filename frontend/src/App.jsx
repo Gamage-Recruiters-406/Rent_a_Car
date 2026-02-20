@@ -33,7 +33,8 @@ import VehicleManagement from "./pages/admin/VehicleManagement";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage.jsx";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import OwnerBookingRequests from "./pages/owner/OwnerBookingRequest.jsx";
-
+import OwnerManagement from "./pages/OwnerManagement.jsx";
+import CustomerManagement from "./pages/CustomerManagement.jsx";
 
 
 function App() {
@@ -71,6 +72,10 @@ function App() {
         <Route path="/admin/settings" element={<AdminSettingsPage />} />
         <Route path="/booking" element={<BookingPage1 />} />
         <Route path="/notifications" element={<AdminNotifications />} />
+
+        
+        <Route path="/admin/owners" element={<OwnerManagement />} />
+        <Route path="/admin/customers" element={<CustomerManagement />} />
 
 
         {/* login */}
