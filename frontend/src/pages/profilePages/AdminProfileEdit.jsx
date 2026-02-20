@@ -150,36 +150,36 @@ export const AdminProfileEdit = ({
     setImagePreview(activeProfile.profilePicture ? `${baseUrl}/${activeProfile.profilePicture}` : null);
   };
 
-  const handleVerify = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if(!token){
-        toast.error("Please login and try again to verify your email");
-      }
+  // const handleVerify = async () => {
+  //   try {
+  //     const token = localStorage.getItem('token');
+  //     if(!token){
+  //       toast.error("Please login and try again to verify your email");
+  //     }
         
-        const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {
-            params: { token: token },
-            withCredentials: true
-        });
+  //       const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {
+  //           params: { token: token },
+  //           withCredentials: true
+  //       });
 
-        if (response.data && response.data.success) {
-            toast.success(response.data.message || "Verification email sent. Please check your inbox.");
-        } else {
-            toast.error(response.data?.message || "Failed to send verification email.");
-        }
-    } catch (error) {
-        console.error("Verification error:", error);
-        toast.error(error.response?.data?.message || "An error occurred while sending verification email.");
-    }
-  };
+  //       if (response.data && response.data.success) {
+  //           toast.success(response.data.message || "Verification email sent. Please check your inbox.");
+  //       } else {
+  //           toast.error(response.data?.message || "Failed to send verification email.");
+  //       }
+  //   } catch (error) {
+  //       console.error("Verification error:", error);
+  //       toast.error(error.response?.data?.message || "An error occurred while sending verification email.");
+  //   }
+  // };
 
-  const handleFieldChange = (field, value) => {
-    setEditedProfile((prev) => ({
-      ...prev,
-      [field]: value
-    }));
-    onProfileChange?.(field, value);
-  };
+  // const handleFieldChange = (field, value) => {
+  //   setEditedProfile((prev) => ({
+  //     ...prev,
+  //     [field]: value
+  //   }));
+  //   onProfileChange?.(field, value);
+  // };
 
   const currentProfile = isEditing ? editedProfile : activeProfile;
 
@@ -382,7 +382,7 @@ export const AdminProfileEdit = ({
           </div>
 
           {/* status */}
-          <div className="mt-8 border-t pt-6">
+          {/* <div className="mt-8 border-t pt-6">
             <h3 className="text-[#0A2E5C] font-semibold text-base mb-3">
               Account Status
             </h3>
@@ -405,9 +405,9 @@ export const AdminProfileEdit = ({
                   <CheckCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
                   <span className="text-sm font-semibold">Verify Now</span>
                 </button>
-              </div>
+              </div> 
             )}
-          </div>
+          </div>*/}
 
         </div>
       </div>
