@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
@@ -12,25 +12,20 @@ export default function VerifyEmailPage() {
     []
   );
 
-  const ranOnce = useRef(false);
-
   const [msg, setMsg] = useState("Verifying your email...");
   const [ok, setOk] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If token missing, just set message async
+    // If token missing, just set message
     if (!token) {
       setMsg("Invalid verification link.");
       setLoading(false);
       return;
     }
 
-    // prevent double-call in React StrictMode (dev)
-    if (ranOnce.current) return;
-    ranOnce.current = true;
-
     const controller = new AbortController();
+    let aborted = false;
 
     (async () => {
       try {
@@ -49,12 +44,18 @@ export default function VerifyEmailPage() {
           setMsg(data.message || "Verification failed.");
         }
       } catch (e) {
-        if (e.name !== "AbortError") {
-          setOk(false);
-          setMsg("Network error. Please try again.");
+        if (e.name === "AbortError") {
+          // StrictMode cleanup aborted this call — let the second mount handle it
+          aborted = true;
+          return;
         }
+        setOk(false);
+        setMsg("Network error. Please try again.");
       } finally {
-        setLoading(false);
+        // Only update loading state if this request actually completed (not aborted)
+        if (!aborted) {
+          setLoading(false);
+        }
       }
     })();
 
