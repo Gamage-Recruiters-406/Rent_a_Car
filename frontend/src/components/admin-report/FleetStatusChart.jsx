@@ -26,20 +26,20 @@ export const FleetStatusChart = ({ data: apiData = {} }) => {
   };
 
   return (
-    <div className="rounded-xl bg-white p-5 shadow-sm border border-gray-200 h-full">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Fleet Status</h3>
-        <p className="text-sm text-gray-500">Current vehicle availability</p>
+    <div className="rounded-lg sm:rounded-xl bg-white p-3 sm:p-4 md:p-5 shadow-sm border border-gray-200 h-full">
+      <div className="mb-3 sm:mb-4">
+        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">Fleet Status</h3>
+        <p className="text-[10px] sm:text-xs md:text-sm text-gray-500">Current vehicle availability</p>
       </div>
-      <div className="h-[160px] relative" style={{ outline: 'none' }}>
-        <ResponsiveContainer width="100%" height="100%" minHeight={160}>
+      <div className="h-[120px] sm:h-[140px] md:h-[160px] relative" style={{ outline: 'none' }}>
+        <ResponsiveContainer width="100%" height="100%" minHeight={120}>
           <PieChart style={{ outline: 'none' }}>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={50}
-              outerRadius={70}
+              innerRadius={35}
+              outerRadius={55}
               paddingAngle={2}
               dataKey="value"
               onMouseEnter={onPieEnter}
@@ -56,15 +56,15 @@ export const FleetStatusChart = ({ data: apiData = {} }) => {
           </PieChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-          <span className="text-xs text-gray-500">{data[activeIndex].name}</span>
-          <span className="text-lg font-bold text-gray-900">{data[activeIndex].value}</span>
+          <span className="text-[10px] sm:text-xs text-gray-500">{data[activeIndex].name}</span>
+          <span className="text-sm sm:text-lg font-bold text-gray-900">{data[activeIndex].value}</span>
         </div>
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
         {data.map((item, index) => (
           <div 
             key={item.name} 
-            className="flex items-center justify-between text-sm cursor-pointer hover:opacity-80 py-1"
+            className="flex items-center justify-between text-xs sm:text-sm cursor-pointer hover:opacity-80 py-0.5 sm:py-1"
             onClick={() => setActiveIndex(index)}
             onMouseEnter={() => setActiveIndex(index)}
           >

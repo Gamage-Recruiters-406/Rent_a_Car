@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 export function Hero() {
   return (
     <section className="relative w-full h-[600px] md:h-[700px] overflow-hidden">
@@ -32,9 +33,12 @@ export function Hero() {
             Don't hesitate and reach <span className="text-blue-300 font-bold">RentmyCar.lk</span>
           </p>
 
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-lg font-bold text-lg transition-all transform hover:scale-110 hover:shadow-2xl shadow-xl mt-4 animate-bounce-in">
+          <Link
+            to="/contact"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-lg font-bold text-lg transition-all transform hover:scale-110 hover:shadow-2xl shadow-xl mt-4 animate-bounce-in"
+          >
             Contact Us
-          </button>
+          </Link>
         </div>
       </div>
     </section>);
