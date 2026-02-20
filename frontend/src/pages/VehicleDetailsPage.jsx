@@ -5,6 +5,7 @@ import { getVehicleById } from "../services/vehicleApi";
 import DropdownCard from "../components/vehicle/DropdownCard";
 import MiniCalendar from "../components/vehicle/MiniCalendar";
 import { SimpleRow, BulletRow, LegendItem } from "../components/vehicle/Rows";
+import ReviewCards from "../components/Reviews/ReviewCards";
 
 import {
   SettingsIcon,
@@ -393,6 +394,7 @@ export default function VehicleDetailsPage() {
           </div>
         </div>
       </div>
+      <ReviewCards vehicleId= {id}/>
     </Layout>
   );
 }
