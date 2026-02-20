@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Car, Hourglass, CheckCircle2, XCircle } from 'lucide-react';
 import StatsCard from './../../components/owner/StatusCard';
@@ -31,6 +31,10 @@ const Dashboard = () => {
     { label: 'Approved Requests', val: '0', icon: <CheckCircle2 size={40} />, color: 'border-status-approved' },
     { label: 'Rejected Requests', val: '0', icon: <XCircle size={40} />, color: 'border-status-rejected' },
   ]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   // Fetch user authentication on mount
   useEffect(() => {
@@ -87,25 +91,14 @@ const Dashboard = () => {
   };
 
   // Data fetch karana function eka (useCallback use kare modal eka refresh weddi performance optimize karanna)
-  const fetchDashboardData = useCallback(async () => {
+  const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const currentUserId = localStorage.getItem("userid");
-
-      if (!token || !currentUserId) {
-        setLoading(false);
-        return;
-      }
-
-      const url = `${baseUrl}${apiVersion}/bookings/owner/${currentUserId}`;
+     
+      // console.log("currentUserId: ",currentUserId)
+      const url = `${baseUrl}${apiVersion}/bookings/owner`;
       const response = await axios.get(url, {
         withCredentials: true,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
       });
 
       if (response.data.success) {
@@ -125,11 +118,9 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData]);
+
 
   // Booking details view karanna modal eka open karana function eka
   const handleViewDetails = (booking) => {
