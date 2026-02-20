@@ -349,10 +349,12 @@ export default function AdminDashboard() {
       const vehiclesData = await vehiclesRes.json();
       const bookingsData = await bookingsRes.json();
 
-      if (usersData.success && vehiclesData.success && bookingsData.success) {
-        const users = usersData.users || [];
-        const vehicles = vehiclesData.vehicles || [];
-        const bookings = bookingsData.data || [];
+      // usersData is a plain array (no success wrapper), others have { success, ... }
+      const users = Array.isArray(usersData) ? usersData : (usersData.users || []);
+      const vehicles = vehiclesData.vehicles || [];
+      const bookings = bookingsData.data || [];
+
+      if ((Array.isArray(usersData) || usersData.success) && vehiclesData.success && bookingsData.success) {
 
         const totalRevenue = bookings
           .filter(b => b.status === 'approved')
