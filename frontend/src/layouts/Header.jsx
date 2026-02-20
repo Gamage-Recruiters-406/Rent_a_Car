@@ -140,6 +140,28 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 						</svg>
 						<span>Profile</span>
 					</Link>
+					{roleLabel === "Customer" && (
+						<>
+							<Link
+								to="/booking-history"
+								className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
+							>
+								<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+									<path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 16H5V10h14v10ZM5 8V6h14v2H5Zm2 4h5v5H7v-5Z" />
+								</svg>
+								<span>Booking History</span>
+							</Link>
+							<Link
+								to="/my-reviews"
+								className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
+							>
+								<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+									<path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2Z" />
+								</svg>
+								<span>My Reviews</span>
+							</Link>
+						</>
+					)}
 					<Link
 						to="/admin/settings"
 						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
@@ -204,9 +226,8 @@ export default function Header({
 					{(normalizedRole === "customer" || !isAuthenticated) && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 md:flex">
+								<NavLink to="/" active={location.pathname === "/"}>Home</NavLink>
 								<NavLink to="/vehicles" active={location.pathname === "/vehicles"}>Browse Cars</NavLink>
-								<NavLink to="/how-it-works" active={location.pathname === "/how-it-works"}>How It Works</NavLink>
-								<NavLink to="/become-a-host" active={location.pathname === "/become-a-host"}>Become a Host</NavLink>
 								<NavLink to="/contact" active={location.pathname === "/contact"}>Contact Us</NavLink>
 							</div>
 							{isAuthenticated ? (
@@ -241,10 +262,11 @@ export default function Header({
 					{normalizedRole === "owner" && isAuthenticated && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 lg:flex">
+								<NavLink to="/" active={location.pathname === "/"}>Home</NavLink>
 								<NavLink to="/owner/dashboard" active={location.pathname === "/owner/dashboard"}>Dashboard</NavLink>
 								<NavLink to="/owner/vehicles" active={location.pathname === "/owner/vehicles"}>My Vehicles</NavLink>
 								<NavLink to="/owner/vehicles/new" active={location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle"}>Add Vehicle</NavLink>
-								<NavLink to="/booking-history" active={location.pathname === "/booking-history"}>Bookings</NavLink>
+								<NavLink to="/owner/booking-requests" active={location.pathname === "/owner/booking-requests"}>Booking Requests</NavLink>
 								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
@@ -265,7 +287,7 @@ export default function Header({
 								<NavLink to="/admin/dashboard" active={location.pathname === "/admin/dashboard"}>
 									Dashboard
 								</NavLink>
-								<NavLink to="/admin/users" active={location.pathname === "/admin/users"}>User</NavLink>
+								<NavLink to="/admin/customers" active={location.pathname === "/admin/customers"}>User</NavLink>
 								<NavLink to="/admin/vehicles" active={location.pathname === "/admin/vehicles"}>Vehicle</NavLink>
 								<NavLink to="/admin/booking" active={location.pathname === "/admin/booking"}>Booking</NavLink>
 								<NavLink to="/admin/report" active={location.pathname === "/admin/report"}>Reports</NavLink>
@@ -306,17 +328,14 @@ export default function Header({
 					<div className="mx-auto flex max-w-7xl flex-col gap-3 px-8 py-4">
 						{(normalizedRole === "customer" || !isAuthenticated) && (
 							<div className="flex flex-col gap-2">
+								<Link to="/" className="text-sm font-medium text-slate-700">
+									Home
+								</Link>
 								<Link to="/vehicles" className="text-sm font-medium text-slate-700">
 									Browse Cars
 								</Link>
 								<Link to="/contact" className="text-sm font-medium text-slate-700">
 									Contact Us
-								</Link>
-								<Link to="/how-it-works" className="text-sm font-medium text-slate-700">
-									How It Works
-								</Link>
-								<Link to="/become-a-host" className="text-sm font-medium text-slate-700">
-									Become a Host
 								</Link>
 								{isAuthenticated ? (
 								<div className="flex items-center gap-3 pt-2">
@@ -349,6 +368,9 @@ export default function Header({
 
 						{normalizedRole === "owner" && isAuthenticated && (
 							<div className="flex flex-col gap-2">
+								<Link to="/" className={`text-sm font-medium ${location.pathname === "/" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
+									Home
+								</Link>
 								<Link to="/owner/dashboard" className={`text-sm font-medium ${location.pathname === "/owner/dashboard" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Dashboard
 								</Link>
@@ -358,8 +380,8 @@ export default function Header({
 								<Link to="/owner/vehicles/new" className={`text-sm font-medium ${location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Add Vehicle
 								</Link>
-								<Link to="/booking-history" className={`text-sm font-medium ${location.pathname === "/booking-history" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
-									Bookings
+								<Link to="/owner/booking-requests" className={`text-sm font-medium ${location.pathname === "/owner/booking-requests" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
+									Booking Requests
 								</Link>
 								<Link to="/rental-history" className={`text-sm font-medium ${location.pathname === "/rental-history" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Earnings
