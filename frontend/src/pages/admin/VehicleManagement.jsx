@@ -98,7 +98,7 @@ function VehicleList({ vehicles, loading, searchQuery, activeTab, onApprove, onR
 }
 
 // Rejection Reason Modal
-function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
+function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm, isProcessing = false }) {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -110,15 +110,16 @@ function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
     
     setIsSubmitting(true);
     try {
-      await onConfirm?.(vehicle.id, reason.trim());
+      await onConfirm?.(vehicle?.id, reason.trim());
     } finally {
       setIsSubmitting(false);
       setReason('');
-      onClose();
     }
   };
 
   if (!isOpen || !vehicle) return null;
+
+  const isDisabled = isSubmitting || isProcessing || !reason.trim();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -127,7 +128,8 @@ function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 shadow hover:bg-white"
+          disabled={isSubmitting || isProcessing}
+          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 shadow hover:bg-white disabled:opacity-50"
         >
           <XCircle className="w-5 h-5 text-gray-700" />
         </button>
@@ -138,7 +140,7 @@ function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
             Reject Vehicle
           </h2>
           <p className="text-gray-600 mb-6">
-            {vehicle.name}
+            {vehicle?.name}
           </p>
 
           <div className="mb-6">
@@ -150,7 +152,8 @@ function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
               onChange={(e) => setReason(e.target.value)}
               placeholder="Enter the reason for rejecting this vehicle..."
               rows="4"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              disabled={isSubmitting || isProcessing}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-100 disabled:opacity-50"
             />
           </div>
 
@@ -159,7 +162,7 @@ function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
             <button
               type="button"
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isProcessing}
               className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancel
@@ -167,11 +170,11 @@ function RejectionReasonModal({ vehicle, isOpen, onClose, onConfirm }) {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isSubmitting || !reason.trim()}
+              disabled={isDisabled}
               className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
             >
               <XCircle className="w-4 h-4" />
-              {isSubmitting ? 'Rejecting...' : 'Reject Vehicle'}
+              {isSubmitting || isProcessing ? 'Rejecting...' : 'Reject Vehicle'}
             </button>
           </div>
         </div>
@@ -190,6 +193,11 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
 
   const handleReject = () => {
     onReject?.(vehicle.id);
+  };
+
+  const handleRejectClick = () => {
+    onClose();
+    onReject?.('open-modal', vehicle.id);
   };
 
   return (
@@ -349,7 +357,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
 
           {vehicle.status === 'rejected' && vehicle.rejectionReason && (
             <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg font-medium flex items-start gap-2">
-              <XCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
                 <p className="font-semibold">Rejection Reason</p>
                 <p className="text-sm mt-1">{vehicle.rejectionReason}</p>
@@ -370,7 +378,7 @@ function VehicleDetailsModal({ vehicle, isOpen, onClose, onApprove, onReject }) 
               </button>
               <button
                 type="button"
-                onClick={handleReject}
+                onClick={handleRejectClick}
                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg bg-red-600 text-white text-sm md:text-base font-semibold hover:bg-red-700 transition-colors"
               >
                 <XCircle className="w-4 h-4 md:w-5 md:h-5" />
@@ -392,7 +400,8 @@ export function VehicleManagement() {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [rejectionVehicle, setRejectionVehicle] = useState(null);
-  const [isRejectionopen, setIsRejectionOpen] = useState(false);
+  const [isRejectionOpen, setIsRejectionOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Get user from localStorage
   const getUser = () => {
@@ -552,48 +561,201 @@ export function VehicleManagement() {
   };
 
   const handleApprove = async (vehicleId) => {
+    if (!vehicleId) {
+      toast.error('Invalid vehicle ID');
+      return;
+    }
+
+    if (isProcessing) {
+      toast.error('Please wait for the current operation to complete');
+      return;
+    }
+
+    setIsProcessing(true);
     try {
       console.log('Approving vehicle:', vehicleId);
       
       // Call backend API to update status
-      await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.APPROVED);
+      const response = await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.APPROVED);
+      console.log('Vehicle approved:', response);
       
       toast.success('Vehicle approved successfully');
+      setIsDetailsOpen(false);
       
       // Refresh vehicle list
       await fetchVehicles();
     } catch (error) {
       console.error('Failed to approve vehicle:', error);
       
-      if (error.response?.status === 401) {
-        toast.error('Session expired. Please login again.');
+      // Detailed error logging
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        
+        if (error.response.status === 401) {
+          toast.error('Session expired. Please login again.');
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+          }, 1500);
+        } else if (error.response.status === 500) {
+          const message = error.response.data?.message || 'Server error occurred';
+          console.error('Full error response:', error.response.data);
+          toast.error(`Server error: ${message}`);
+        } else {
+          const message = error.response.data?.message || 'Failed to approve vehicle';
+          toast.error(message);
+        }
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        toast.error('Cannot connect to server. Please check if backend is running.');
       } else {
-        const message = error.response?.data?.message || 'Failed to approve vehicle';
-        toast.error(message);
+        console.error('Error:', error.message);
+        toast.error('An error occurred while approving the vehicle');
       }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleReject = async (vehicleId) => {
+  const handleReject = async (vehicleIdOrAction, vehicleId) => {
+    // Check if this is a request to open the modal
+    if (vehicleIdOrAction === 'open-modal') {
+      const vehicle = vehicles.find(v => v.id === vehicleId);
+      if (vehicle) {
+        setRejectionVehicle(vehicle);
+        setIsRejectionOpen(true);
+      }
+      return;
+    }
+
+    // If only one argument, it's the vehicleId - reject without reason
+    const id = vehicleIdOrAction;
+    
+    if (!id) {
+      toast.error('Invalid vehicle ID');
+      return;
+    }
+
+    if (isProcessing) {
+      toast.error('Please wait for the current operation to complete');
+      return;
+    }
+    
+    setIsProcessing(true);
     try {
-      console.log('Rejecting vehicle:', vehicleId);
+      console.log('Rejecting vehicle:', id);
       
       // Call backend API to update status
-      await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.REJECTED);
+      const response = await vehicleAPI.updateVehicleStatus(id, VEHICLE_STATUS.REJECTED);
+      console.log('Vehicle rejected:', response);
       
       toast.success('Vehicle rejected successfully');
+      setIsDetailsOpen(false);
       
       // Refresh vehicle list
       await fetchVehicles();
     } catch (error) {
       console.error('Failed to reject vehicle:', error);
       
-      if (error.response?.status === 401) {
-        toast.error('Session expired. Please login again.');
+      // Detailed error logging
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        
+        if (error.response.status === 401) {
+          toast.error('Session expired. Please login again.');
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+          }, 1500);
+        } else if (error.response.status === 500) {
+          const message = error.response.data?.message || 'Server error occurred';
+          console.error('Full error response:', error.response.data);
+          toast.error(`Server error: ${message}`);
+        } else {
+          const message = error.response.data?.message || 'Failed to reject vehicle';
+          toast.error(message);
+        }
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        toast.error('Cannot connect to server. Please check if backend is running.');
       } else {
-        const message = error.response?.data?.message || 'Failed to reject vehicle';
-        toast.error(message);
+        console.error('Error:', error.message);
+        toast.error('An error occurred while rejecting the vehicle');
       }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRejectWithReason = async (vehicleId, rejectionReason) => {
+    if (!vehicleId) {
+      toast.error('Invalid vehicle');
+      return;
+    }
+
+    if (!rejectionReason || !rejectionReason.trim()) {
+      toast.error('Please provide a rejection reason');
+      return;
+    }
+
+    if (isProcessing) {
+      toast.error('Please wait for the current operation to complete');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      console.log('Rejecting vehicle with reason:', vehicleId, rejectionReason);
+      
+      // Call backend API to update status with rejection reason
+      const response = await vehicleAPI.updateVehicleStatus(vehicleId, VEHICLE_STATUS.REJECTED, rejectionReason.trim());
+      console.log('Vehicle rejected with reason:', response);
+      
+      toast.success('Vehicle rejected successfully');
+      setIsRejectionOpen(false);
+      setRejectionVehicle(null);
+      
+      // Close the details modal as well
+      setIsDetailsOpen(false);
+      
+      // Refresh vehicle list
+      await fetchVehicles();
+    } catch (error) {
+      console.error('Failed to reject vehicle:', error);
+      
+      // Detailed error logging
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+        
+        if (error.response.status === 401) {
+          toast.error('Session expired. Please login again.');
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+          }, 1500);
+        } else if (error.response.status === 500) {
+          const message = error.response.data?.message || 'Server error occurred';
+          console.error('Full error response:', error.response.data);
+          toast.error(`Server error: ${message}`);
+        } else {
+          const message = error.response.data?.message || 'Failed to reject vehicle';
+          toast.error(message);
+        }
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+        toast.error('Cannot connect to server. Please check if backend is running.');
+      } else {
+        console.error('Error:', error.message);
+        toast.error('An error occurred while rejecting the vehicle');
+      }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -792,6 +954,14 @@ export function VehicleManagement() {
         onClose={() => setIsDetailsOpen(false)}
         onApprove={handleApprove}
         onReject={handleReject}
+      />
+
+      <RejectionReasonModal
+        vehicle={rejectionVehicle}
+        isOpen={isRejectionOpen}
+        onClose={() => setIsRejectionOpen(false)}
+        onConfirm={handleRejectWithReason}
+        isProcessing={isProcessing}
       />
     </div>
   );
