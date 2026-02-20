@@ -60,7 +60,7 @@ app.use("/api/v1/bookings", bookingRoutes);
 
 // ✅ UPDATED: Changed from /adminReports to /admin to match your frontend fetch requests
 // This allows calls to http://localhost:8090/api/v1/admin/owners
-app.use("/api/v1/admin", adminRoutes); 
+app.use("/api/v1/adminReports", adminRoutes); 
 
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/subscription", subscriptionRoutes);
