@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+// ✅ IMPORT LAYOUT
+import Layout from '../layouts/Layout'; 
 
 const CustomerManagement = () => {
   const [customers, setCustomers] = useState([]);
-  const [filteredCustomers, setFilteredCustomers] = useState([]); // ✅ Added for filtering
-  const [statusFilter, setStatusFilter] = useState('Status'); // ✅ Added for dropdown state
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [stats, setStats] = useState({ totalUsers: 0, owners: 0, customers: 0 });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('Status');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,173 +17,158 @@ const CustomerManagement = () => {
         const version = import.meta.env.VITE_API_VERSION || '/api/v1';
         const token = localStorage.getItem('token');
 
-        // 1. Fetch Customers List
-        const customersResponse = await fetch(`${baseUrl}${version}/admin/customers`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+        // Fetch Customers
+        const custRes = await fetch(`${baseUrl}${version}/admin/customers`, {
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
+        
+        // Fetch Stats
+        const statsRes = await fetch(`${baseUrl}${version}/admin/user-stats`, {
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         });
 
-        // 2. Fetch Dashboard Statistics
-        const statsResponse = await fetch(`${baseUrl}${version}/admin/user-stats`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        const customersData = await customersResponse.json();
-        const statsData = await statsResponse.json();
-
-        if (customersResponse.ok) {
-          const dataArray = Array.isArray(customersData) ? customersData : customersData.users || [];
-          setCustomers(dataArray);
-          setFilteredCustomers(dataArray); // Initial load
+        if (custRes.ok) {
+          const data = await custRes.json();
+          const list = Array.isArray(data) ? data : data.users || [];
+          setCustomers(list);
+          setFilteredCustomers(list);
         }
 
-        if (statsResponse.ok) {
-          setStats({
-            totalUsers: statsData.totalUsers || 0,
-            owners: statsData.owners || 0,
-            customers: statsData.customers || 0
-          });
+        if (statsRes.ok) {
+          const s = await statsRes.json();
+          setStats({ totalUsers: s.totalUsers || 0, owners: s.owners || 0, customers: s.customers || 0 });
         }
-        setError(null);
       } catch (err) {
-        setError("Could not connect to the server. Using local fallback.");
-        // Fallback Mock Data for UI demonstration
-        const mockData = [
-          { _id: '1', first_name: 'C.', last_name: 'Bandara', email: 'c.bandara@gmail.com', role: 'Customer', status: 'verified' },
-          { _id: '2', first_name: 'M.', last_name: 'Perera', email: 'm.perera@yahoo.com', role: 'Customer', status: 'pending' },
-        ];
-        setCustomers(mockData);
-        setFilteredCustomers(mockData);
+        console.error("Failed to fetch data");
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  // ✅ Trigger filtering whenever the statusFilter or customers list changes
   useEffect(() => {
-    if (statusFilter === 'Status') {
-      setFilteredCustomers(customers);
-    } else {
-      const filtered = customers.filter((user) => 
-        user.status.toLowerCase() === statusFilter.toLowerCase()
-      );
-      setFilteredCustomers(filtered);
-    }
+    if (statusFilter === 'Status') setFilteredCustomers(customers);
+    else setFilteredCustomers(customers.filter(u => u.status?.toLowerCase() === statusFilter.toLowerCase()));
   }, [statusFilter, customers]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 font-sans">
-      <h1 className="text-2xl font-bold text-blue-900 mb-8">User Management</h1>
+    // ✅ WRAP EVERYTHING IN LAYOUT
+    <Layout>
+      <div className="min-h-screen bg-gray-50 p-6 md:p-10 font-sans">
+        
+        <h2 className="text-2xl font-bold text-blue-900 mb-6">User Management</h2>
 
-      {/* --- Stats Cards --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center">
-          <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center text-2xl mr-4 text-purple-600">👥</div>
-          <div><h3 className="text-3xl font-bold text-gray-800">{loading ? "..." : stats.totalUsers}</h3><p className="text-gray-500 text-sm">Total Users</p></div>
+        {/* --- Stats Cards --- */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Total Users */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-purple-200 flex items-center">
+            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-xl mr-4 text-purple-600">👥</div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-800">{stats.totalUsers}</h3>
+              <p className="text-gray-500 text-sm">Total Users</p>
+            </div>
+          </div>
+
+          {/* Owners */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-orange-200 flex items-center">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-xl mr-4 text-orange-500">👤</div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-800">{stats.owners}</h3>
+              <p className="text-gray-500 text-sm">Owners</p>
+            </div>
+          </div>
+
+          {/* Customers (Highlighted Green) */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-green-300 ring-2 ring-green-50 flex items-center">
+            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-xl mr-4 text-green-500">⭐</div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-800">{stats.customers}</h3>
+              <p className="text-gray-500 text-sm">Customers</p>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center">
-          <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center text-2xl mr-4 text-orange-500">👤</div>
-          <div><h3 className="text-3xl font-bold text-gray-800">{loading ? "..." : stats.owners}</h3><p className="text-gray-500 text-sm">Owners</p></div>
+        {/* --- Tabs & Dropdown --- */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+          {/* Tabs */}
+          <div className="flex space-x-2">
+            <Link to="/admin/owners">
+              <button className="px-6 py-2 rounded-full text-gray-600 font-medium text-sm hover:bg-gray-200">
+                Owner
+              </button>
+            </Link>
+            <button className="px-6 py-2 rounded-full bg-blue-900 text-white font-medium text-sm shadow-md">
+              Customer
+            </button>
+          </div>
+
+          {/* Status Dropdown */}
+          <div className="mt-4 md:mt-0">
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="Status">All Status</option>
+              <option value="verified">Active</option>
+              <option value="pending">Pending</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
         </div>
 
-        {/* Customer Card Highlighted */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-green-200 ring-2 ring-green-50 flex items-center">
-          <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-2xl mr-4 text-green-500">⭐</div>
-          <div><h3 className="text-3xl font-bold text-gray-800">{loading ? "..." : stats.customers}</h3><p className="text-gray-500 text-sm">Customers</p></div>
+        {/* --- Data Table --- */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <table className="min-w-full">
+            <thead className="bg-blue-900 text-white">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold uppercase">Name</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold uppercase">E-Mail</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold uppercase">Role</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold uppercase">Status</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold uppercase">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                <tr><td colSpan="5" className="text-center py-10">Loading...</td></tr>
+              ) : filteredCustomers.length === 0 ? (
+                <tr><td colSpan="5" className="text-center py-10 text-gray-500">No customers found.</td></tr>
+              ) : (
+                filteredCustomers.map((user) => (
+                  <tr key={user._id || user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.first_name} {user.last_name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                    <td className="px-6 py-4 text-sm text-center">Customer</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`text-xs font-bold ${
+                        user.status === 'verified' ? 'text-green-500' : 
+                        user.status === 'pending' ? 'text-blue-500' : 
+                        'text-red-500'
+                      }`}>
+                        {user.status === 'verified' ? 'Active' : user.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button className="bg-blue-900 text-white px-4 py-1 rounded text-xs hover:bg-blue-800">
+                        Details
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
+
+        {/* Pagination */}
+        <div className="flex justify-end items-center mt-4 text-sm text-blue-900 font-medium cursor-pointer">
+           &lt; Prev &nbsp; Page 1 of 5 &nbsp; Next &gt;
+        </div>
+
       </div>
-
-      {/* --- Tab Switcher & Filter --- */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-        <div className="flex space-x-4 bg-gray-200 p-1 rounded-full">
-          <Link to="/admin/owners" className="px-8 py-2 rounded-full text-gray-600 font-semibold text-sm hover:bg-gray-300 transition-all">
-            Owner
-          </Link>
-          <button className="px-8 py-2 rounded-full bg-blue-900 text-white font-semibold text-sm shadow-md transition-all">
-            Customer
-          </button>
-        </div>
-
-        <div className="mt-4 md:mt-0">
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Status">All Status</option>
-            <option value="verified">Verified</option>
-            <option value="pending">Pending</option>
-            <option value="suspend">Suspended</option>
-          </select>
-        </div>
-      </div>
-
-      {/* --- Customer Table --- */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="min-w-full leading-normal">
-          <thead>
-            <tr className="bg-blue-900 text-white">
-              <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Name</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">E-Mail</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wider">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {loading ? (
-              <tr><td colSpan="4" className="text-center py-12 italic">Connecting to Database...</td></tr>
-            ) : filteredCustomers.length === 0 ? (
-              <tr><td colSpan="4" className="text-center py-12 text-gray-400 italic">No matching customers found.</td></tr>
-            ) : (
-              filteredCustomers.map((user) => (
-                <tr key={user._id || user.id} className="hover:bg-gray-50 transition duration-150">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {user.first_name} {user.last_name}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
-                  <td className="px-6 py-4 text-sm font-medium">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      user.status === 'verified' ? 'text-green-600 bg-green-50' : 
-                      user.status === 'pending' ? 'text-blue-500 bg-blue-50' : 
-                      'text-red-500 bg-red-50'
-                    }`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button className="bg-blue-900 text-white px-5 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-800 transition shadow-sm">
-                      Details
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        {/* --- Pagination Footer --- */}
-        <div className="flex justify-end items-center p-4 bg-white border-t border-gray-200">
-          <button className="text-gray-500 hover:text-blue-900 font-medium text-sm px-2 flex items-center">
-            <span className="mr-1">‹</span> Prev
-          </button>
-          <span className="text-sm text-gray-600 mx-4 font-medium">Page 1 of 5</span>
-          <button className="text-blue-900 font-bold hover:text-blue-700 text-sm px-2 flex items-center">
-            Next <span className="ml-1">›</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    </Layout>
   );
 };
 
