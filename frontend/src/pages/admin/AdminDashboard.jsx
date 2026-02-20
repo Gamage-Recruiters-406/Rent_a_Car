@@ -308,6 +308,8 @@ const MostRentedCars = ({ vehicles = [] }) => (
 );
 
 export default function AdminDashboard() {
+  const isCompletedBookingStatus = (status) => ['approved', 'paid'].includes(String(status || '').toLowerCase());
+
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -357,13 +359,12 @@ export default function AdminDashboard() {
       if ((Array.isArray(usersData) || usersData.success) && vehiclesData.success && bookingsData.success) {
 
         const totalRevenue = bookings
-          .filter(b => b.status === 'approved')
+          .filter(b => String(b.status || '').toLowerCase() === 'paid')
           .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
 
         const pendingCount = bookings.filter(b => b.status === 'pending').length;
         const cancelledCount = bookings.filter(b => b.status === 'cancelled').length;
 
-        const approvedVehicles = vehicles.filter(v => v.status === 'Approved');
         // Count vehicles by status
         const approvedVehicleCount = vehicles.filter(v => v.status === 'Approved').length;
         const pendingVehicleCount = vehicles.filter(v => v.status === 'Pending').length;
@@ -412,7 +413,7 @@ export default function AdminDashboard() {
 
       return {
         month,
-        done: monthBookings.filter(b => b.status === 'approved').length,
+        done: monthBookings.filter(b => isCompletedBookingStatus(b.status)).length,
         cancelled: monthBookings.filter(b => b.status === 'cancelled').length,
       };
     });
@@ -427,7 +428,7 @@ export default function AdminDashboard() {
     bookings.forEach(booking => {
       const vehicleId = booking.vehicleId?._id || booking.vehicleId;
       const vehicle = approvedVehicles.find(v => v._id === vehicleId);
-      if (vehicleId && vehicle && booking.status === 'approved') {
+      if (vehicleId && vehicle && isCompletedBookingStatus(booking.status)) {
         vehicleRentCount[vehicleId] = (vehicleRentCount[vehicleId] || 0) + 1;
       }
     });
