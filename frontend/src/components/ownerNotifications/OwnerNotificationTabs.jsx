@@ -11,12 +11,12 @@ const OwnerNotificationTabs = ({ activeTab, onTabChange, counts }) => {
 
   return (
     <div className="border-b border-gray-200">
-      <div className="flex gap-0">
+      <div className="flex gap-0 overflow-x-auto sm:overflow-x-visible scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors relative ${
+            className={`px-2 sm:px-4 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors relative whitespace-nowrap ${
               activeTab === tab.id
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'

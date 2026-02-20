@@ -59,7 +59,7 @@ const OwnerNotificationItem = ({
 
   return (
     <div
-      className={`p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer flex items-start justify-between ${
+      className={`p-3 sm:p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 ${
         !isRead ? 'bg-blue-50 bg-opacity-60' : 'bg-white'
       }`}
       onClick={() => {
@@ -67,13 +67,13 @@ const OwnerNotificationItem = ({
         onMarkAsRead(id);
       }}
     >
-      <div className="flex items-start gap-3 flex-1">
-        <div className="mt-1">
+      <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+        <div className="mt-0.5 flex-shrink-0">
           {getIconByType(type)}
         </div>
-        <div className="flex-1">
-          <h4 className={`font-medium text-sm ${!isRead ? 'text-gray-900 font-semibold' : 'text-gray-800'}`}>{title}</h4>
-          <p className={`text-xs mt-1 ${!isRead ? 'text-gray-600' : 'text-gray-500'}`}>{description}</p>
+        <div className="flex-1 min-w-0">
+          <h4 className={`font-medium text-xs sm:text-sm ${!isRead ? 'text-gray-900 font-semibold' : 'text-gray-800'} break-words`}>{title}</h4>
+          <p className={`text-xs mt-1 break-words ${!isRead ? 'text-gray-600' : 'text-gray-500'}`}>{description}</p>
           <div className="flex items-center gap-4 mt-2">
             <span className="text-xs text-gray-500">
               {timestamp}
@@ -81,7 +81,7 @@ const OwnerNotificationItem = ({
           </div>
         </div>
       </div>
-      <div className="ml-4 flex flex-col items-center gap-2 flex-shrink-0">
+      <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-2 flex-shrink-0 sm:ml-4">
         {!isRead && (
           <span className="inline-block px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full font-semibold animate-pulse">
             New
@@ -97,7 +97,7 @@ const OwnerNotificationItem = ({
             e.stopPropagation();
             onDelete(id);
           }}
-          className="text-red-500 hover:text-red-700 transition-colors"
+          className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
         >
           <Trash2 size={16} />
         </button>
