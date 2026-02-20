@@ -708,6 +708,7 @@ export const getCustomerBookings = async (req, res) => {
 export const getOwnerBookings = async (req, res) => {
     try {
         const ownerId = req.user?.userid;
+        console.log(ownerId)
         const { ownerId: paramOwnerId } = req.params;
         const { status } = req.query;
 
