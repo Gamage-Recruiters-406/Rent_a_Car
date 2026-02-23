@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Fuel, Zap, Users, X, Calendar, DollarSign, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Layout from '../layouts/Layout';
+import { getImageBaseUrl } from '../services/vehicleService';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -22,6 +23,37 @@ export function CustomerVehicleListPage() {
     fuelType: '',
     maxPrice: '',
   });
+
+  const apiBase = getImageBaseUrl();
+  const toFullImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${apiBase}${path}`;
+  };
+
+  const getPhotoUrls = (vehicle) => {
+    const out = [];
+    if (Array.isArray(vehicle?.photos) && vehicle.photos.length > 0) {
+      vehicle.photos.forEach((p) => {
+        const u = p && (typeof p === 'string' ? p : p.url);
+        const full = toFullImageUrl(u);
+        if (full) out.push(full);
+      });
+    }
+    if (out.length) return out;
+    if (vehicle?.image && typeof vehicle.image === 'string') {
+      const full = toFullImageUrl(vehicle.image);
+      if (full) return [full];
+    }
+    if (Array.isArray(vehicle?.images)) {
+      vehicle.images.forEach((u) => {
+        const full = typeof u === 'string' ? toFullImageUrl(u) : (u?.url ? toFullImageUrl(u.url) : null);
+        if (full) out.push(full);
+      });
+    }
+    return out;
+  };
 
   // Fetch vehicles on component mount
   useEffect(() => {
@@ -60,7 +92,11 @@ export function CustomerVehicleListPage() {
       const data = await response.json();
       // Handle different response formats from backend
       const vehicleList = data.vehicles || data.data || [];
-      setVehicles(Array.isArray(vehicleList) ? vehicleList : []);
+      const normalizedVehicles = (Array.isArray(vehicleList) ? vehicleList : []).map((vehicle) => ({
+        ...vehicle,
+        photos: getPhotoUrls(vehicle),
+      }));
+      setVehicles(normalizedVehicles);
       
       if (vehicleList.length === 0) {
         // Don't show toast for empty state
