@@ -5,7 +5,8 @@ import {
   getUnreadCount,
   getUnreadCountsByType,
   getUnreadNotifications,
-  getNotificationsByType
+  getNotificationsByType,
+  deleteNotification
 } from "../controllers/notificationController.js";
 
 import { requiredSignIn } from "../middlewares/authMiddleware.js";
@@ -38,5 +39,7 @@ router.get("/unread", requiredSignIn, getUnreadNotifications);
 // Get notifications filtered by type (and optional unread)
 // Example: /api/notifications/by-type?type=alert&unread=true
 router.get("/by-type", requiredSignIn, getNotificationsByType);
+
+router.delete("/:notificationId", requiredSignIn, deleteNotification);
 
 export default router;
