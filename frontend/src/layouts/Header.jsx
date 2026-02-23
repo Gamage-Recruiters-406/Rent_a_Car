@@ -69,6 +69,7 @@ const NavLink = ({ to, children, active }) => (
 const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigate();
+	
 
 	const getProfileRoute = () => {
 		switch (roleLabel) {
