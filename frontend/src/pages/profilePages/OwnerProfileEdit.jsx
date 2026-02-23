@@ -58,7 +58,7 @@ export const OwnerProfileEdit = ({
             const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/earnings/${userId}`, {
                 withCredentials: true
             });
-            const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/${userId}`, {
+            const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/`, {
                 withCredentials: true
             });
             const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/get-my-all`, {
