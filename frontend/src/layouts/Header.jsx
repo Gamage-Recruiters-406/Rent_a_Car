@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logoBlue from "../assets/Rent My Car(Blue).png";
+
+// Import the notification API
+import { getUnreadCount } from "../services/notificationApi";
 
 const Logo = () => (
 	<div className="flex items-center gap-2">
@@ -193,9 +196,10 @@ export default function Header({
 	user,
 	isAuthenticated = false,
 	onLogout,
-	notifications = 0,
+	notifications: notificationsProp = 0,
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [unreadCount, setUnreadCount] = useState(notificationsProp);
 	const location = useLocation();
 	const navigate = useNavigate();
 
@@ -215,6 +219,21 @@ export default function Header({
 		return "Customer";
 	}, [normalizedRole]);
 
+	// Fetch unread notification count on mount and when authenticated changes
+	useEffect(() => {
+		if (isAuthenticated) {
+			getUnreadCount().then(res => {
+				if (res.success) {
+					setUnreadCount(res.unreadCount || res.count || 0);
+				} else {
+					setUnreadCount(0);
+				}
+			}).catch(() => setUnreadCount(0));
+		} else {
+			setUnreadCount(0);
+		}
+	}, [isAuthenticated]);
+
 	return (
 		<header className="sticky top-0 z-50 w-full bg-white shadow-sm">
 			<div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
@@ -232,7 +251,7 @@ export default function Header({
 							</div>
 							{isAuthenticated ? (
 								<div className="hidden items-center gap-4 md:flex">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -270,7 +289,7 @@ export default function Header({
 								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+								<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -293,7 +312,7 @@ export default function Header({
 								<NavLink to="/admin/report" active={location.pathname === "/admin/report"}>Reports</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+								<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -339,7 +358,7 @@ export default function Header({
 								</Link>
 								{isAuthenticated ? (
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
