@@ -5,7 +5,7 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8090";
 const API_VERSION = import.meta.env.VITE_API_VERSION || "/api/v1";
 
-/** Base URL for vehicle photo URLs (e.g. http://localhost:8090). Use to build full image URL from path like /uploads/vehicleId/file.jpg */
+/** Base URL for vehicle photo URLs */
 export const getImageBaseUrl = () => BASE_URL;
 
 export const api = axios.create({
@@ -25,14 +25,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle response errors - do NOT redirect here so the page can render and handle 401 (e.g. show message then redirect)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      // Let the calling component handle redirect (e.g. VehicleManagement shows toast then redirects)
     }
     return Promise.reject(error);
   }
@@ -46,12 +44,50 @@ export const VEHICLE_STATUS = {
 };
 
 /**
+ * GET user by ID (Admin only)
+ * Backend: GET /api/v1/user/getUserbyId/:id
+ */
+export const getUserById = async (id) => {
+  if (!id) return null;
+  try {
+    const res = await api.get(`/user/getUserbyId/${id}`);
+    console.log(`[getUserById] Response for ${id}:`, res.data);
+    return res.data;
+  } catch (err) {
+    console.error(`[getUserById] Failed for id=${id}:`, err.response?.status, err.response?.data);
+    throw err;
+  }
+};
+
+/**
+ * Extract display name from a user object.
+ * Logs the raw user so you can see exactly what fields exist.
+ */
+export const resolveUserName = (user) => {
+  console.log('[resolveUserName] raw user object:', user);
+  if (!user) return 'Unknown Owner';
+  if (typeof user === 'string') return user;
+
+  // Try every common field combination
+  if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`.trim();
+  if (user.firstName)                  return user.firstName;
+  if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`.trim();
+  if (user.first_name)                 return user.first_name;
+  if (user.name)                       return user.name;
+  if (user.fullName)                   return user.fullName;
+  if (user.username)                   return user.username;
+  if (user.email)                      return user.email;
+
+  return 'Unknown Owner';
+};
+
+/**
  * GET single vehicle details
  * Backend: GET /api/v1/vehicle/get/:id
  */
 export const getVehicleById = async (id) => {
   const res = await api.get(`/vehicle/get/${id}`);
-  return res.data; // { success, vehicle }
+  return res.data;
 };
 
 /**
@@ -60,38 +96,33 @@ export const getVehicleById = async (id) => {
  */
 export const getAllVehicles = async () => {
   const res = await api.get("/vehicle/admin/get-all");
-  return res.data; // { success, vehicles[] }
+  return res.data;
 };
 
 /**
  * UPDATE vehicle status (Approve/Reject) - ADMIN
  * Backend: PATCH /api/v1/vehicle/admin/status/:id
- * Only sends status and rejectionReason fields
  */
 export const updateVehicleStatus = async (id, status, rejectionReason = null) => {
-  // Backend expects status with capitalized enum values: "Pending", "Approved", "Rejected"
   let apiStatus = status;
   if (typeof status === "string") {
     const lower = status.toLowerCase();
-    if (lower === VEHICLE_STATUS.PENDING) apiStatus = "Pending";
+    if (lower === VEHICLE_STATUS.PENDING)       apiStatus = "Pending";
     else if (lower === VEHICLE_STATUS.APPROVED) apiStatus = "Approved";
     else if (lower === VEHICLE_STATUS.REJECTED) apiStatus = "Rejected";
   }
 
-  // Prepare minimal payload - only send status and rejection reason
   const payload = { status: apiStatus };
-  
-  // Add rejection reason if provided
   if (rejectionReason && apiStatus === "Rejected") {
     payload.rejectionReason = rejectionReason;
   }
 
   const res = await api.patch(`/vehicle/admin/status/${id}`, payload);
-  return res.data; // { success, message, vehicle }
+  return res.data;
 };
 
 /**
- * DELETE vehicle listing (owner only on backend)
+ * DELETE vehicle listing
  * Backend: DELETE /api/v1/vehicle/delete/:id
  */
 export const deleteVehicle = async (id) => {
@@ -99,10 +130,10 @@ export const deleteVehicle = async (id) => {
   return res.data;
 };
 
-// Export as vehicleAPI object for compatibility
 export const vehicleAPI = {
   getAllVehicles,
   getVehicleById,
   updateVehicleStatus,
   deleteVehicle,
+  getUserById,
 };
