@@ -282,7 +282,7 @@ export default function Header({
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 lg:flex">
 								<NavLink to="/" active={location.pathname === "/"}>Home</NavLink>
-								<NavLink to="/owner/dashboard" active={location.pathname === "/owner/dashboard"}>Dashboard</NavLink>
+								<NavLink to="/dashboard" active={location.pathname === "/dashboard"}>Dashboard</NavLink>
 								<NavLink to="/owner/vehicles" active={location.pathname === "/owner/vehicles"}>My Vehicles</NavLink>
 								<NavLink to="/owner/vehicles/new" active={location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle"}>Add Vehicle</NavLink>
 								<NavLink to="/owner/booking-requests" active={location.pathname === "/owner/booking-requests"}>Booking Requests</NavLink>
@@ -390,7 +390,7 @@ export default function Header({
 								<Link to="/" className={`text-sm font-medium ${location.pathname === "/" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Home
 								</Link>
-								<Link to="/owner/dashboard" className={`text-sm font-medium ${location.pathname === "/owner/dashboard" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
+								<Link to="/dashboard" className={`text-sm font-medium ${location.pathname === "/dashboard" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Dashboard
 								</Link>
 								<Link to="/owner/vehicles" className={`text-sm font-medium ${location.pathname === "/owner/vehicles" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
@@ -405,11 +405,9 @@ export default function Header({
 								<Link to="/rental-history" className={`text-sm font-medium ${location.pathname === "/rental-history" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Earnings
 								</Link>
-								<Link to="/owner/reviews" className={`text-sm font-medium ${location.pathname === "/owner/reviews" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
-									Reviews
-								</Link>
+
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -441,7 +439,7 @@ export default function Header({
 									Settings
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
