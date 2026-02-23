@@ -1,24 +1,24 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Stats } from '../../components/ui/Stats';
+
+// ✅ All named exports — must use { }
 import { Hero } from '../../components/ui/Hero';
+import { Stats } from '../../components/ui/Stats';
+import { QuickStats } from '../../components/ui/QuickStats';
 import { Items } from '../../components/ui/Items';
-import { QuickStats } from '../../components/ui/Quickstats';
-import { Testimonials } from '../../components/ui/Testimornials';
+
 import { NewsLetter } from '../../components/ui/NewsLetter';
+import { Testimonials } from '../../components/ui/Testimonials';
 
 export default function HomeScreen() {
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Hero />
       <Stats />
-      <Items />
       <QuickStats />
-      <NewsLetter />
+      <Items />
       <Testimonials />
+      <NewsLetter />
     </ScrollView>
   );
 }
