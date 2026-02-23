@@ -388,7 +388,9 @@ export default function VehicleDetailsPage() {
               <button
                 className="w-full h-[48px] rounded-xl bg-[#0d3778] text-white font-semibold text-[14px] hover:opacity-95"
                 onClick={() =>
-                  navigate("/booking", { state: { vehicleId: id } })
+                  navigate(`/booking/${id}`, {
+                    state: { vehicleId: id, vehicle },
+                  })
                 }
               >
                 Book Now
