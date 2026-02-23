@@ -405,11 +405,9 @@ export default function Header({
 								<Link to="/rental-history" className={`text-sm font-medium ${location.pathname === "/rental-history" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Earnings
 								</Link>
-								<Link to="/owner/reviews" className={`text-sm font-medium ${location.pathname === "/owner/reviews" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
-									Reviews
-								</Link>
+								
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -441,7 +439,7 @@ export default function Header({
 									Settings
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
