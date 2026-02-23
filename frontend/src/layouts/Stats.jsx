@@ -107,8 +107,8 @@ export const Stats = () => {
 
         const data = await response.json();
 
-        if (data.success && Array.isArray(data.users)) {
-          setUserCount(data.users.length);
+        if (response.ok) {
+          setUserCount(data.length);
         } else {
           console.error("Invalid response format:", data);
           setUserCount(0);
