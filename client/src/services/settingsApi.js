@@ -1,15 +1,15 @@
-import { ENV } from "../../config/env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+const apiVersion = process.env.EXPO_PUBLIC_API_VERSION;
 
 // ------------------
 // Get User Details
 // ------------------
 export async function getUserDetails() {
-  const url = `${ENV.API_BASE_URL}${ENV.API_VERSION}/authUser/getUserDetails`;
+  const token = await AsyncStorage.getItem("userToken");
 
-  const token =
-    typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
-
-  const res = await fetch(url, {
+  const res = await fetch(`${baseUrl}${apiVersion}/authUser/getUserDetails`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -28,20 +28,17 @@ export async function getUserDetails() {
 // Update Email Notify
 // ------------------
 export async function updateEmailNotify(enabled) {
-  const value = enabled ? "on" : "off";
+  const token = await AsyncStorage.getItem("userToken");
 
-  const url = `${ENV.API_BASE_URL}${ENV.API_VERSION}/authUser/emailNotify`;
-
-  const token =
-    typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
-
-  const res = await fetch(url, {
+  const res = await fetch(`${baseUrl}${apiVersion}/authUser/emailNotify`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ emailNotify: value }),
+    body: JSON.stringify({
+      emailNotify: enabled ? "on" : "off",
+    }),
   });
 
   const data = await res.json().catch(() => null);

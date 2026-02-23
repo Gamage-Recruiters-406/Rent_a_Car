@@ -58,6 +58,21 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
+      <Link href="/admin/settings" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Admin setting
+          </Text>
+        </TouchableOpacity>
+      </Link>
+      <Link href="/vehicle/69898ca8cf081e71ac4b8bb3" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            vehicles
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
       {/* <Hero />
             <Stats />
           <Items />
