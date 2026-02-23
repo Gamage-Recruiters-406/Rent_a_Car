@@ -44,44 +44,6 @@ export const VEHICLE_STATUS = {
 };
 
 /**
- * GET user by ID (Admin only)
- * Backend: GET /api/v1/user/getUserbyId/:id
- */
-export const getUserById = async (id) => {
-  if (!id) return null;
-  try {
-    const res = await api.get(`/user/getUserbyId/${id}`);
-    console.log(`[getUserById] Response for ${id}:`, res.data);
-    return res.data;
-  } catch (err) {
-    console.error(`[getUserById] Failed for id=${id}:`, err.response?.status, err.response?.data);
-    throw err;
-  }
-};
-
-/**
- * Extract display name from a user object.
- * Logs the raw user so you can see exactly what fields exist.
- */
-export const resolveUserName = (user) => {
-  console.log('[resolveUserName] raw user object:', user);
-  if (!user) return 'Unknown Owner';
-  if (typeof user === 'string') return user;
-
-  // Try every common field combination
-  if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`.trim();
-  if (user.firstName)                  return user.firstName;
-  if (user.first_name && user.last_name) return `${user.first_name} ${user.last_name}`.trim();
-  if (user.first_name)                 return user.first_name;
-  if (user.name)                       return user.name;
-  if (user.fullName)                   return user.fullName;
-  if (user.username)                   return user.username;
-  if (user.email)                      return user.email;
-
-  return 'Unknown Owner';
-};
-
-/**
  * GET single vehicle details
  * Backend: GET /api/v1/vehicle/get/:id
  */
@@ -93,10 +55,59 @@ export const getVehicleById = async (id) => {
 /**
  * GET all vehicles (ADMIN)
  * Backend: GET /api/v1/vehicle/admin/get-all
+ * NOTE: Backend only populates ownerId with { name, email, phoneNumber }
+ * It does NOT include first_name / last_name in this endpoint.
  */
 export const getAllVehicles = async () => {
   const res = await api.get("/vehicle/admin/get-all");
   return res.data;
+};
+
+/**
+ * GET all available vehicles (public/customer endpoint — no auth needed)
+ * Backend: GET /api/v1/vehicle/get-all
+ * This endpoint populates ownerId with { first_name, last_name, email, ... }
+ * We use this to build an ownerId → full name lookup map.
+ */
+export const getAllAvailableVehiclesPublic = async () => {
+  const res = await api.get("/vehicle/get-all");
+  return res.data;
+};
+
+/**
+ * Build a map of { ownerId_string → "First Last" } from the public endpoint.
+ * Falls back to empty map if the request fails.
+ */
+export const buildOwnerNameMap = async () => {
+  try {
+    const data = await getAllAvailableVehiclesPublic();
+    const vehicles = data?.vehicles || [];
+    const map = {};
+    vehicles.forEach((v) => {
+      const owner = v.ownerId;
+      if (!owner || typeof owner !== "object") return;
+      const ownerId = owner._id?.toString();
+      if (!ownerId) return;
+
+      // This endpoint selects: first_name, last_name, email, contactNumber, status
+      let name = "";
+      if (owner.first_name && owner.last_name) {
+        name = `${owner.first_name} ${owner.last_name}`.trim();
+      } else if (owner.first_name) {
+        name = owner.first_name.trim();
+      } else if (owner.last_name) {
+        name = owner.last_name.trim();
+      } else if (owner.name) {
+        name = owner.name.trim();
+      }
+
+      if (name) map[ownerId] = name;
+    });
+    return map;
+  } catch (err) {
+    console.warn("[buildOwnerNameMap] Failed to fetch public vehicles:", err);
+    return {};
+  }
 };
 
 /**
@@ -135,5 +146,5 @@ export const vehicleAPI = {
   getVehicleById,
   updateVehicleStatus,
   deleteVehicle,
-  getUserById,
+  buildOwnerNameMap,
 };
