@@ -12,15 +12,15 @@ export const Testimonials = () => {
   const containerRef = useRef(null);
   const slideIntervalRef = useRef(null);
 
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  const apiVersion = import.meta.env.VITE_API_VERSION;
+ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_VERSION = import.meta.env.VITE_API_VERSION;
 
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
         setLoading(true);
         
-        const url = `http://localhost:8090/api/v1/reviews/home`;
+        const url = `${API_BASE_URL}${API_VERSION}/reviews/home`;
         console.log('Fetching testimonials from:', url);
         
         const response = await fetch(url);
@@ -51,7 +51,7 @@ export const Testimonials = () => {
     };
 
     fetchTestimonials();
-  }, [baseUrl, apiVersion]);
+  }, [API_BASE_URL, API_VERSION]);
 
   // Update visible items based on screen size
   useEffect(() => {

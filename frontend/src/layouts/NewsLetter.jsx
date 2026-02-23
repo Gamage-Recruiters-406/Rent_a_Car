@@ -8,6 +8,9 @@ export const NewsLetter = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_VERSION = import.meta.env.VITE_API_VERSION;
+
   const appFeatures = [
     "Instant booking & confirmations",
     "Real-time notifications",
@@ -28,7 +31,7 @@ export const NewsLetter = () => {
     setMessage({ text: "", type: "" });
 
     try {
-      const response = await fetch("http://localhost:8090/api/v1/subscription/create-subscription", {
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/subscription/create-subscription`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
