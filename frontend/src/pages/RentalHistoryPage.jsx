@@ -90,7 +90,7 @@ const RentalHistoryPage = () => {
       setLoading(true);
       setError(null);
 
-      const response = await getOwnerBookings(ownerId);
+      const response = await getOwnerBookings();
 
       const transformedData = transformBookingsData(response || []);
 
