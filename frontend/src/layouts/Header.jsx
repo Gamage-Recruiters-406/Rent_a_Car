@@ -178,8 +178,7 @@ export default function Header({
 					{(normalizedRole === "customer" || !isAuthenticated) && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 md:flex">
-								<NavLink to="/cars">Browse Cars</NavLink>
-								<NavLink to="/how-it-works">How It Works</NavLink>
+								<NavLink to="/cars">Browse Cars</NavLink>							<NavLink to="/rent-vehicle">Rent Your Vehicle</NavLink>								<NavLink to="/how-it-works">How It Works</NavLink>
 								<NavLink to="/become-a-host">Become a Host</NavLink>
 							</div>
 							{isAuthenticated ? (
@@ -284,8 +283,9 @@ export default function Header({
 							<div className="flex flex-col gap-2">
 								<Link to="/cars" className="text-sm font-medium text-slate-700">
 									Browse Cars
-								</Link>
-								<Link to="/how-it-works" className="text-sm font-medium text-slate-700">
+								</Link>							<Link to="/rent-vehicle" className="text-sm font-medium text-slate-700">
+								Rent Your Vehicle
+							</Link>								<Link to="/how-it-works" className="text-sm font-medium text-slate-700">
 									How It Works
 								</Link>
 								<Link to="/become-a-host" className="text-sm font-medium text-slate-700">
