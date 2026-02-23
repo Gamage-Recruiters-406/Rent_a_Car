@@ -896,6 +896,49 @@ export const getUnreadPaymentCount = async (req, res) => {
   }
 };
 
+// Delete a single notification
+export const deleteNotification = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const userId = req.user.userid;
+    const userRole = req.user.role;
+
+    const notification = await Notification.findById(notificationId);
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found"
+      });
+    }
+
+    // If admin (role = 3), allow delete
+    // Otherwise only allow owner to delete
+    if (
+      userRole !== 3 &&
+      (!notification.userId || !notification.userId.equals(userId))
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied"
+      });
+    }
+
+    await notification.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification deleted successfully"
+    });
+
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};
+
 
 
 
