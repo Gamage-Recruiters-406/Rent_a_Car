@@ -1,7 +1,7 @@
 // src/services/bookingApi.js
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8090";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL 
 const API_VERSION = import.meta.env.VITE_API_VERSION || "/api/v1";
 
 const api = axios.create({
@@ -66,5 +66,14 @@ export const getAllBookings = async () => {
       document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
     throw error;
+  }
+};
+
+export const createOwnerPersonalUseBooking = async (data) => {
+  try {
+    const response = await api.post("/bookings/owner/personal-use", data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
   }
 };

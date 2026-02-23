@@ -12,6 +12,7 @@ const MyVehicleOwner = () => {
   const [loading, setLoading] = useState(true);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState({});
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -112,6 +113,24 @@ const MyVehicleOwner = () => {
   const handleCloseAvailability = () => {
     setShowAvailabilityModal(false);
     setSelectedVehicle(null);
+  };
+
+  const handlePrevPhoto = (vehicleId, photosLength) => {
+    setCurrentPhotoIndex((prev) => ({
+      ...prev,
+      [vehicleId]: prev[vehicleId] > 0 ? prev[vehicleId] - 1 : photosLength - 1,
+    }));
+  };
+
+  const handleNextPhoto = (vehicleId, photosLength) => {
+    setCurrentPhotoIndex((prev) => ({
+      ...prev,
+      [vehicleId]: prev[vehicleId] < photosLength - 1 ? prev[vehicleId] + 1 : 0,
+    }));
+  };
+
+  const getCurrentPhotoIndex = (vehicleId) => {
+    return currentPhotoIndex[vehicleId] || 0;
   };
 
   if (loading) {
@@ -242,17 +261,81 @@ const MyVehicleOwner = () => {
                   className="bg-white rounded-xl border border-gray-300 overflow-hidden shadow-sm hover:shadow-lg transition duration-200"
                 >
                   <div className="flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6">
-                    {/* Vehicle Image */}
-                    <div className="flex-shrink-0 w-full md:w-48 h-40 md:h-40">
+                    {/* Vehicle Image Carousel */}
+                    <div className="flex-shrink-0 w-full md:w-48 h-40 md:h-40 relative group">
                       {vehicle.photos && vehicle.photos.length > 0 ? (
-                        <img
-                          src={`${import.meta.env.VITE_API_BASE_URL}${vehicle.photos[0].url}`}
-                          alt={vehicle.title}
-                          className="w-full h-full object-cover rounded-lg"
-                          onError={(e) => {
-                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E";
-                          }}
-                        />
+                        <>
+                          <img
+                            src={`${import.meta.env.VITE_API_BASE_URL}${vehicle.photos[getCurrentPhotoIndex(vehicle._id)].url}`}
+                            alt={vehicle.title}
+                            className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='16' fill='%236b7280'%3EImage not found%3C/text%3E%3C/svg%3E";
+                            }}
+                          />
+
+                          {/* Navigation Buttons - Show only if more than 1 photo */}
+                          {vehicle.photos.length > 1 && (
+                            <>
+                              {/* Previous Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePrevPhoto(vehicle._id, vehicle.photos.length);
+                                }}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ backgroundColor: "rgba(13, 55, 120, 0.7)" }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(13, 55, 120, 0.9)"}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(13, 55, 120, 0.7)"}
+                                aria-label="Previous photo"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                              </button>
+
+                              {/* Next Button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleNextPhoto(vehicle._id, vehicle.photos.length);
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ backgroundColor: "rgba(13, 55, 120, 0.7)" }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(13, 55, 120, 0.9)"}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "rgba(13, 55, 120, 0.7)"}
+                                aria-label="Next photo"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+
+                              {/* Photo Indicators */}
+                              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                                {vehicle.photos.map((_, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setCurrentPhotoIndex((prev) => ({ ...prev, [vehicle._id]: index }));
+                                    }}
+                                    className={`w-2 h-2 rounded-full transition-all ${getCurrentPhotoIndex(vehicle._id) === index
+                                      ? 'bg-white w-4'
+                                      : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                                      }`}
+                                    aria-label={`Go to photo ${index + 1}`}
+                                  />
+                                ))}
+                              </div>
+
+                              {/* Photo Counter */}
+                              <div className="absolute top-2 right-2 text-white text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "rgba(13, 55, 120, 0.7)" }}>
+                                {getCurrentPhotoIndex(vehicle._id) + 1}/{vehicle.photos.length}
+                              </div>
+                            </>
+                          )}
+                        </>
                       ) : (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-lg">
                           <span className="text-gray-500 text-sm">No Image</span>
@@ -315,6 +398,17 @@ const MyVehicleOwner = () => {
 
                       {/* Action Buttons - Bottom Horizontal */}
                       <div className="flex flex-col sm:flex-row gap-2 w-full mt-auto pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => navigate(`/vehicles/${vehicle._id}`)}
+                          style={{ backgroundColor: "#0D3778" }}
+                          className="flex-1 px-4 py-2 hover:opacity-90 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center gap-2 text-sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View Details
+                        </button>
                         <button
                           onClick={() => handleManage(vehicle._id)}
                           style={{ backgroundColor: "#0D3778" }}

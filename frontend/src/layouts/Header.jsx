@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logoBlue from "../assets/Rent My Car(Blue).png";
+
+// Import the notification API
+import { getUnreadCount } from "../services/notificationApi";
 
 const Logo = () => (
 	<div className="flex items-center gap-2">
@@ -15,8 +18,13 @@ const Avatar = ({ name }) => (
 	</div>
 );
 
-const NotificationBell = ({ count = 0 }) => (
-	<div className="relative">
+const NotificationBell = ({ count = 0, onClick }) => (
+	<button
+		type="button"
+		onClick={onClick}
+		className="relative hover:opacity-75 transition bg-transparent border-none cursor-pointer"
+		aria-label="View notifications"
+	>
 		<svg
 			viewBox="0 0 24 24"
 			className="h-5 w-5 text-slate-600"
@@ -42,7 +50,7 @@ const NotificationBell = ({ count = 0 }) => (
 				{count}
 			</span>
 		)}
-	</div>
+	</button>
 );
 
 const NavLink = ({ to, children, active }) => (
@@ -60,6 +68,20 @@ const NavLink = ({ to, children, active }) => (
 
 const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => {
 	const [open, setOpen] = useState(false);
+	const navigate = useNavigate();
+
+	const getProfileRoute = () => {
+		switch (roleLabel) {
+			case "Admin":
+				return "/admin-profile";
+			case "Owner":
+				return "/owner-profile";
+			case "Customer":
+				return "/customer-profile";
+			default:
+				return "/customer-profile";
+		}
+	};
 
 	const AvatarDiv = () => (
 		<div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
@@ -76,6 +98,11 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 			)}
 		</div>
 	);
+
+	const handleLogoutClick = () => {
+		onLogout();
+		navigate("/login");
+	};
 
 	return (
 		<div className="relative">
@@ -108,7 +135,7 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 			{open && (
 				<div className="absolute right-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1.5 shadow-lg">
 					<Link
-						to="/profile"
+						to={getProfileRoute()}
 						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -116,8 +143,30 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 						</svg>
 						<span>Profile</span>
 					</Link>
+					{roleLabel === "Customer" && (
+						<>
+							<Link
+								to="/booking-history"
+								className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
+							>
+								<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+									<path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 16H5V10h14v10ZM5 8V6h14v2H5Zm2 4h5v5H7v-5Z" />
+								</svg>
+								<span>Booking History</span>
+							</Link>
+							<Link
+								to="/my-reviews"
+								className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
+							>
+								<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+									<path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2Z" />
+								</svg>
+								<span>My Reviews</span>
+							</Link>
+						</>
+					)}
 					<Link
-						to="/settings"
+						to="/admin/settings"
 						className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
 					>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -128,7 +177,7 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 					<hr className="my-1.5 border-slate-200" />
 					<button
 						type="button"
-						onClick={onLogout}
+						onClick={handleLogoutClick}
 						className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
 					>
 						<svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -147,9 +196,12 @@ export default function Header({
 	user,
 	isAuthenticated = false,
 	onLogout,
-	notifications = 0,
+	notifications: notificationsProp = 0,
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [unreadCount, setUnreadCount] = useState(notificationsProp);
+	const location = useLocation();
+	const navigate = useNavigate();
 
 	const normalizedRole = useMemo(() => {
 		if (typeof role === "string") return role.toLowerCase();
@@ -167,6 +219,21 @@ export default function Header({
 		return "Customer";
 	}, [normalizedRole]);
 
+	// Fetch unread notification count on mount and when authenticated changes
+	useEffect(() => {
+		if (isAuthenticated) {
+			getUnreadCount().then(res => {
+				if (res.success) {
+					setUnreadCount(res.unreadCount || res.count || 0);
+				} else {
+					setUnreadCount(0);
+				}
+			}).catch(() => setUnreadCount(0));
+		} else {
+			setUnreadCount(0);
+		}
+	}, [isAuthenticated]);
+
 	return (
 		<header className="sticky top-0 z-50 w-full bg-white shadow-sm">
 			<div className="mx-auto flex max-w-7xl items-center justify-between px-8 py-4">
@@ -178,12 +245,13 @@ export default function Header({
 					{(normalizedRole === "customer" || !isAuthenticated) && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 md:flex">
-								<NavLink to="/cars">Browse Cars</NavLink>
-								<NavLink to="/how-it-works">How It Works</NavLink>
-								<NavLink to="/become-a-host">Become a Host</NavLink>
+								<NavLink to="/" active={location.pathname === "/"}>Home</NavLink>
+								<NavLink to="/vehicles" active={location.pathname === "/vehicles"}>Browse Cars</NavLink>
+								<NavLink to="/contact" active={location.pathname === "/contact"}>Contact Us</NavLink>
 							</div>
 							{isAuthenticated ? (
-								<div className="hidden md:flex">
+								<div className="hidden items-center gap-4 md:flex">
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -213,17 +281,15 @@ export default function Header({
 					{normalizedRole === "owner" && isAuthenticated && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 lg:flex">
-								<NavLink to="/owner/dashboard" active>
-									Dashboard
-								</NavLink>
-								<NavLink to="/owner/vehicles">My Vehicles</NavLink>
-								<NavLink to="/owner/vehicles/new">Add Vehicle</NavLink>
-								<NavLink to="/owner/bookings">Bookings</NavLink>
-								<NavLink to="/owner/earnings">Earnings</NavLink>
-								<NavLink to="/owner/reviews">Reviews</NavLink>
+								<NavLink to="/" active={location.pathname === "/"}>Home</NavLink>
+								<NavLink to="/owner/dashboard" active={location.pathname === "/owner/dashboard"}>Dashboard</NavLink>
+								<NavLink to="/owner/vehicles" active={location.pathname === "/owner/vehicles"}>My Vehicles</NavLink>
+								<NavLink to="/owner/vehicles/new" active={location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle"}>Add Vehicle</NavLink>
+								<NavLink to="/owner/booking-requests" active={location.pathname === "/owner/booking-requests"}>Booking Requests</NavLink>
+								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} />
+								<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -237,17 +303,16 @@ export default function Header({
 					{normalizedRole === "admin" && isAuthenticated && (
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 lg:flex">
-								<NavLink to="/admin/dashboard" active>
+								<NavLink to="/admin/dashboard" active={location.pathname === "/admin/dashboard"}>
 									Dashboard
 								</NavLink>
-								<NavLink to="/admin/users">User</NavLink>
-								<NavLink to="/admin/vehicles">Vehicle</NavLink>
-								<NavLink to="/admin/bookings">Booking</NavLink>
-								<NavLink to="/admin/reports">Reports</NavLink>
-								<NavLink to="/admin/settings">Settings</NavLink>
+								<NavLink to="/admin/customers" active={location.pathname === "/admin/customers"}>User</NavLink>
+								<NavLink to="/admin/vehicles" active={location.pathname === "/admin/vehicles"}>Vehicle</NavLink>
+								<NavLink to="/admin/booking" active={location.pathname === "/admin/booking"}>Booking</NavLink>
+								<NavLink to="/admin/report" active={location.pathname === "/admin/report"}>Reports</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} />
+								<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -282,22 +347,25 @@ export default function Header({
 					<div className="mx-auto flex max-w-7xl flex-col gap-3 px-8 py-4">
 						{(normalizedRole === "customer" || !isAuthenticated) && (
 							<div className="flex flex-col gap-2">
-								<Link to="/cars" className="text-sm font-medium text-slate-700">
+								<Link to="/" className="text-sm font-medium text-slate-700">
+									Home
+								</Link>
+								<Link to="/vehicles" className="text-sm font-medium text-slate-700">
 									Browse Cars
 								</Link>
-								<Link to="/how-it-works" className="text-sm font-medium text-slate-700">
-									How It Works
-								</Link>
-								<Link to="/become-a-host" className="text-sm font-medium text-slate-700">
-									Become a Host
+								<Link to="/contact" className="text-sm font-medium text-slate-700">
+									Contact Us
 								</Link>
 								{isAuthenticated ? (
+								<div className="flex items-center gap-3 pt-2">
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
 										onLogout={onLogout}
 										avatarAfterName={true}
 									/>
+								</div>
 								) : (
 									<div className="flex flex-col gap-2 pt-2">
 										<Link
@@ -319,26 +387,29 @@ export default function Header({
 
 						{normalizedRole === "owner" && isAuthenticated && (
 							<div className="flex flex-col gap-2">
-								<Link to="/owner/dashboard" className="text-sm font-medium text-slate-700">
+								<Link to="/" className={`text-sm font-medium ${location.pathname === "/" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
+									Home
+								</Link>
+								<Link to="/owner/dashboard" className={`text-sm font-medium ${location.pathname === "/owner/dashboard" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Dashboard
 								</Link>
-								<Link to="/owner/vehicles" className="text-sm font-medium text-slate-700">
+								<Link to="/owner/vehicles" className={`text-sm font-medium ${location.pathname === "/owner/vehicles" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									My Vehicles
 								</Link>
-								<Link to="/owner/vehicles/new" className="text-sm font-medium text-slate-700">
+								<Link to="/owner/vehicles/new" className={`text-sm font-medium ${location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Add Vehicle
 								</Link>
-								<Link to="/owner/bookings" className="text-sm font-medium text-slate-700">
-									Bookings
+								<Link to="/owner/booking-requests" className={`text-sm font-medium ${location.pathname === "/owner/booking-requests" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
+									Booking Requests
 								</Link>
-								<Link to="/owner/earnings" className="text-sm font-medium text-slate-700">
+								<Link to="/rental-history" className={`text-sm font-medium ${location.pathname === "/rental-history" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Earnings
 								</Link>
-								<Link to="/owner/reviews" className="text-sm font-medium text-slate-700">
+								<Link to="/owner/reviews" className={`text-sm font-medium ${location.pathname === "/owner/reviews" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Reviews
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} />
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -351,26 +422,26 @@ export default function Header({
 
 						{normalizedRole === "admin" && isAuthenticated && (
 							<div className="flex flex-col gap-2">
-								<Link to="/admin/dashboard" className="text-sm font-medium text-slate-700">
+								<Link to="/admin/dashboard" className={`text-sm font-medium ${location.pathname === "/admin/dashboard" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Dashboard
 								</Link>
-								<Link to="/admin/users" className="text-sm font-medium text-slate-700">
+								<Link to="/admin/users" className={`text-sm font-medium ${location.pathname === "/admin/users" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									User
 								</Link>
-								<Link to="/admin/vehicles" className="text-sm font-medium text-slate-700">
+								<Link to="/admin/vehicles" className={`text-sm font-medium ${location.pathname === "/admin/vehicles" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Vehicle
 								</Link>
-								<Link to="/admin/bookings" className="text-sm font-medium text-slate-700">
+								<Link to="/admin/booking" className={`text-sm font-medium ${location.pathname === "/admin/booking" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Booking
 								</Link>
-								<Link to="/admin/reports" className="text-sm font-medium text-slate-700">
+								<Link to="/admin/report" className={`text-sm font-medium ${location.pathname === "/admin/report" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Reports
 								</Link>
-								<Link to="/admin/settings" className="text-sm font-medium text-slate-700">
+								<Link to="/admin/settings" className={`text-sm font-medium ${location.pathname === "/admin/settings" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Settings
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} />
+									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}

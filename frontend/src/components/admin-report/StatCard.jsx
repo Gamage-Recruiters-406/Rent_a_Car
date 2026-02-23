@@ -24,20 +24,24 @@ export const StatCard = ({
   variant,
 }) => {
   return (
-    <div className={`rounded-xl bg-white p-4 sm:p-5 shadow-sm border border-gray-200 border-l-4 ${borderStyles[variant]}`}>
-      <div className="flex items-start justify-between">
-        <div className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl text-white ${variantStyles[variant]}`}>
-          <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+    <div className={`rounded-lg sm:rounded-xl bg-white p-3 sm:p-4 md:p-5 shadow-sm border border-gray-200 border-l-4 ${borderStyles[variant]}`}>
+      <div className="flex items-start justify-between gap-1">
+        <div className={`flex h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 items-center justify-center rounded-lg sm:rounded-xl text-white ${variantStyles[variant]} flex-shrink-0`}>
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
         </div>
-        <span className={`text-xs sm:text-sm font-medium ${changeType === "positive" ? "text-green-600" : "text-red-600"}`}>
+        <span className={`text-[10px] sm:text-xs md:text-sm font-medium px-1.5 py-0.5 rounded ${
+          changeType === "positive" 
+            ? "text-green-700 bg-green-50" 
+            : "text-red-700 bg-red-50"
+        }`}>
           {changeType === "positive" ? "+" : ""}
           {change}
         </span>
       </div>
-      <div className="mt-3 sm:mt-4">
-        <p className="text-xs sm:text-sm text-gray-500">{title}</p>
-        <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+      <div className="mt-2 sm:mt-3 md:mt-4">
+        <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 truncate">{title}</p>
+        <p className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 truncate">{value}</p>
+        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 truncate">{subtitle}</p>
       </div>
     </div>
   );
