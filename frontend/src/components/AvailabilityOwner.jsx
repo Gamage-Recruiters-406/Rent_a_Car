@@ -198,10 +198,10 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
     : 0;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl scale-100 transform transition-all">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-white rounded-[2rem] w-full max-w-[380px] sm:max-w-md overflow-hidden shadow-2xl scale-100 transform transition-all flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-white p-4 pb-2 border-b border-gray-100 flex justify-between items-center">
+        <div className="bg-white p-3 sm:p-4 pb-1 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="bg-blue-50 p-1.5 rounded-lg text-blue-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,9 +223,9 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="p-3 sm:p-4 overflow-y-auto flex-1">
           {/* Navigation */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <button onClick={handlePrevMonth} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors border border-gray-200 hover:border-blue-500 hover:text-blue-500">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -242,7 +242,7 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
           </div>
 
           {/* Calendar Grid */}
-          <div className="mb-4">
+          <div className="mb-3">
             <div className="grid grid-cols-7 mb-2">
               {daysOfWeek.map(day => (
                 <div key={day} className="text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
@@ -299,7 +299,7 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-4 pb-4 border-b border-gray-100 justify-center">
+          <div className="flex items-center gap-4 pb-3 border-b border-gray-100 justify-center">
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full bg-green-50 border border-green-200"></div>
               <span className="text-xs text-gray-500 font-medium">Available</span>
@@ -315,7 +315,7 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
           </div>
 
           {/* Footer / Action */}
-          <div className="mt-4">
+          <div className="mt-3 flex-shrink-0">
             <button
               onClick={handleBlockDates}
               disabled={!selectionRange.start || !selectionRange.end || loading}
