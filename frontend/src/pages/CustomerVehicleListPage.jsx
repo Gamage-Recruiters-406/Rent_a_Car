@@ -14,6 +14,8 @@ export function CustomerVehicleListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [selectedReviewCount, setSelectedReviewCount] = useState(0);
   const [filters, setFilters] = useState({
     location: '',
     startDate: '',
@@ -25,6 +27,30 @@ export function CustomerVehicleListPage() {
   });
 
   const apiBase = getImageBaseUrl();
+  
+  // Helper function to get rating value
+  const getRatingValue = (vehicle) => {
+    if (vehicle?.rating) return vehicle.rating;
+    if (vehicle?.averageRating) return vehicle.averageRating;
+    return 0;
+  };
+
+  // Helper function to get review count
+  const getReviewCount = (vehicle) => {
+    if (vehicle?.reviewCount) return vehicle.reviewCount;
+    if (vehicle?.totalReviews) return vehicle.totalReviews;
+    if (Array.isArray(vehicle?.reviews)) return vehicle.reviews.length;
+    return 0;
+  };
+
+  // Function to close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedVehicle(null);
+    setSelectedRating(0);
+    setSelectedReviewCount(0);
+  };
+
   const toFullImageUrl = (url) => {
     if (!url || typeof url !== 'string') return null;
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
@@ -125,41 +151,18 @@ export function CustomerVehicleListPage() {
   };
 
   const handleViewDetails = (vehicleId) => {
-    const vehicle = vehicles.find(v => (v._id || v.id) === vehicleId);
-    if (vehicle) {
-      setSelectedVehicle(vehicle);
-      setIsModalOpen(true);
-    }
+    navigate(`/vehicles/${vehicleId}`);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedVehicle(null), 300);
+  const handleOpenModal = (vehicle) => {
+    setSelectedVehicle(vehicle);
+    setSelectedRating(getRatingValue(vehicle));
+    setSelectedReviewCount(getReviewCount(vehicle));
+    setIsModalOpen(true);
   };
-
-  const getRatingValue = (vehicle) => {
-    if (!vehicle) return null;
-    const raw = vehicle.averageRating ?? vehicle.rating ?? vehicle.statistics?.averageRating;
-    const num = Number(raw);
-    return Number.isFinite(num) ? num : null;
-  };
-
-  const getReviewCount = (vehicle) => {
-    if (!vehicle) return 0;
-    const raw =
-      vehicle.reviewCount ??
-      vehicle.totalReviews ??
-      vehicle.statistics?.totalReviews ??
-      vehicle.statistics?.reviewCount;
-    const num = Number(raw);
-    return Number.isFinite(num) ? num : 0;
-  };
-
-  const selectedRating = getRatingValue(selectedVehicle);
-  const selectedReviewCount = getReviewCount(selectedVehicle);
 
   const filteredVehicles = vehicles.filter(vehicle => {
-    if (filters.location && !vehicle.location?.address?.toLowerCase().includes(filters.location.toLowerCase())) {
+    if (filters.location && !vehicle.address?.toLowerCase().includes(filters.location.toLowerCase())) {
       return false;
     }
     if (filters.vehicleType && vehicle.vehicleType !== filters.vehicleType) {
