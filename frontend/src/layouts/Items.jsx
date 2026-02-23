@@ -8,11 +8,14 @@ export const Items = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_VERSION = import.meta.env.VITE_API_VERSION;
+
   useEffect(() => {
     const fetchCars = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8090/api/v1/vehicle/top-booked');
+        const response = await fetch(`${API_BASE_URL}${API_VERSION}/vehicle/top-booked`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch vehicles');
@@ -20,8 +23,6 @@ export const Items = () => {
         
         const data = await response.json();
         
-        // The API returns { success, count, vehicles: [...] }
-        // Extract the vehicles array from the response
         if (data.success && data.vehicles) {
           setCars(data.vehicles);
         } else {
@@ -89,20 +90,17 @@ export const Items = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {cars.map((item, index) => {
-              // Safely extract vehicle data with fallbacks
               const car = item?.vehicle || {};
+              const vehicleId = car._id;                                          // ← grab the ID
               const firstPhoto = car.photos && car.photos.length > 0 ? car.photos[0].url : '';
               
-              // Skip rendering if no photo exists
-              if (!firstPhoto) {
-                return null;
-              }
+              if (!firstPhoto) return null;
               
               const imageUrl = `http://localhost:8090${firstPhoto}`;
               
               return (
                 <div 
-                  key={car._id || index}
+                  key={vehicleId || index}
                   className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer relative flex flex-col"
                 >
                   <div className="absolute inset-0 bg-linear-to-br from-[#0d3778]/10 to-[#1a4d99]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none"></div>
@@ -136,7 +134,11 @@ export const Items = () => {
                         </span>
                         <span className="text-sm text-gray-500">/day</span>
                       </div>
-                      <button onClick={() => navigate("/vehicles")} className="w-full bg-[#0d3778] text-white px-6 py-2.5 rounded-lg hover:bg-[#0d3778] transition font-medium">
+                      {/* ↓ navigates to the vehicle detail page with the correct ID */}
+                      <button
+                        onClick={() => navigate(`/vehicles/${car._id}`)}
+                        className="w-full bg-[#0d3778] text-white px-6 py-2.5 rounded-lg hover:bg-[#1a4d99] transition font-medium"
+                      >
                         View Details
                       </button>
                     </div>
@@ -148,5 +150,5 @@ export const Items = () => {
         </div>
       </section>
     </div>
-  )
+  );
 }
