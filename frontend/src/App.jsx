@@ -11,11 +11,10 @@ import ContactPage from "./pages/ContactPage";
 import { ForgotPasswordPage } from "./pages/login/forgotpassword/ForgotPasswordPage";
 import { VerifyCodePage } from "./pages/login/forgotpassword/VerifyCodePage";
 import { ResetPasswordPage } from "./pages/login/forgotpassword/ResetPasswordPage";
-
 import { OwnerProfileEdit } from "./pages/profilePages/OwnerProfileEdit";
 import { AdminProfileEdit } from "./pages/profilePages/AdminProfileEdit";
 import { CustomerProfileEdit } from "./pages/profilePages/CustomerProfileEdit";
-
+import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import CustomerReviews from "./pages/CustomerRating";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBooking from "./pages/admin/AdminBooking.jsx";
@@ -76,6 +75,15 @@ function App() {
         
         <Route path="/admin/owners" element={<OwnerManagement />} />
         <Route path="/admin/customers" element={<CustomerManagement />} />
+        <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
+        <Route path="/" element={<h1>Home</h1>} />
+        <Route path="/" element={<CustomerVehicleListPage />} />
+        <Route path="/vehicles" element={<CustomerVehicleListPage />} />
+        {/* <Route path="/dashboard" element={<h1>Dashboard</h1>} /> */}
+        <Route path="/contact" element={<ContactPage/>} />
+        <Route path="/customer-reviews" element={<CustomerReviews/>} />
+        <Route path="/admin/booking" element={<AdminBooking/>} />
+        <Route path="/admin/reports" element={<AdminReport/>} />
 
 
         {/* login */}
@@ -87,6 +95,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-code" element={<VerifyCodePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/dashboard" element={<OwnerDashboard />} />
 
         <Route path="/owner-profile" element={<OwnerProfileEdit />} />
         <Route path="/admin-profile" element={<AdminProfileEdit />} />
