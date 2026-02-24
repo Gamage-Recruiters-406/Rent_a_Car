@@ -4,6 +4,9 @@ import logoBlue from "../assets/Rent My Car(Blue).png";
 
 // Import the notification API
 import { getUnreadCount } from "../services/notificationApi";
+import axios from "axios";
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const apiVersion = import.meta.env.VITE_API_VERSION;
 
 const Logo = () => (
 	<div className="flex items-center gap-2">
@@ -83,20 +86,21 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 		}
 	};
 
+	const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/";
 	const AvatarDiv = () => (
-		<div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
-			{user?.avatar || user?.profile_image ? (
-				<img
-					src={user.avatar || user.profile_image}
-					alt={user?.first_name || "User"}
-					className="h-full w-full object-cover"
-				/>
-			) : (
-				<span className="text-sm">
-					{`${user?.first_name?.slice(0, 1) || ""}${user?.last_name?.slice(0, 1) || ""}`.toUpperCase() || "U"}
-				</span>
-			)}
-		</div>
+	       <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
+		       {user?.profilePicture ? (
+			       <img
+				       src={`${BACKEND_URL.replace(/\/$/, "")}/${user.profilePicture.replace(/^\//, "")}`}
+				       alt={user?.first_name || "User"}
+				       className="h-full w-full object-cover"
+			       />
+		       ) : (
+			       <span className="text-sm">
+				       {`${user?.first_name?.slice(0, 1) || ""}${user?.last_name?.slice(0, 1) || ""}`.toUpperCase() || "U"}
+			       </span>
+		       )}
+	       </div>
 	);
 
 	const handleLogoutClick = () => {
@@ -193,15 +197,48 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 
 export default function Header({
 	role = 1,
-	user,
+	user: userProp,
 	isAuthenticated = false,
 	onLogout,
 	notifications: notificationsProp = 0,
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
 	const [unreadCount, setUnreadCount] = useState(notificationsProp);
+	const [user, setUser] = useState(() => {
+		if (userProp) return userProp;
+		const stored = localStorage.getItem("user");
+		return stored ? JSON.parse(stored) : null;
+	});
 	const location = useLocation();
 	const navigate = useNavigate();
+
+	// Sync user with localStorage if not provided as prop
+	useEffect(() => {
+		if (!userProp) {
+			const syncUser = () => {
+				const stored = localStorage.getItem("user");
+				setUser(stored ? JSON.parse(stored) : null);
+			};
+			window.addEventListener("storage", syncUser);
+			// Fetch user profile image from backend (like profile page)
+			const fetchUserData = async () => {
+			       try {
+				       const response = await axios.get(`${BACKEND_URL.replace(/\/$/, "")}/api/v1/authUser/getUserDetails`, {
+					       withCredentials: true
+				       });
+				       if (response.data && response.data.user) {
+					       setUser(prev => ({ ...prev, ...response.data.user }));
+				       }
+			       } catch (error) {
+				       // fallback: do nothing
+			       }
+			};
+			fetchUserData();
+			return () => window.removeEventListener("storage", syncUser);
+		} else {
+			setUser(userProp);
+		}
+	}, [userProp]);
 
 	const normalizedRole = useMemo(() => {
 		if (typeof role === "string") return role.toLowerCase();
