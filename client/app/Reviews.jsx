@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
-// import { useRoute } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import {
   ScrollView,
   View,
@@ -37,10 +37,11 @@ export default function ReviewsScreen() {
   const currentIndex = useRef(0);
   const autoScrollRef = useRef(null);
   const isUserInteracting = useRef(false);
-  // const route = useRoute();
-  // const { vehicleImage, vehicleName } = route.params;
+  const route = useRoute();
+  const {vehicleId, vehicleImage, vehicleName } = route.params || {};
 
   const navigation = useNavigation();
+  console.log("Image:", vehicleImage);
 
 
   const loopedReviews =
@@ -63,10 +64,16 @@ export default function ReviewsScreen() {
   const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
   const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
-  const vehicleId = '696f19b58b0b00033e2af308';
+  // const vehicleId = '696f19b58b0b00033e2af308';
 
   console.log("API_BASE_URL:", API_BASE_URL);
   console.log("API_VERSION:", API_VERSION);
+
+  useEffect(()=>{
+    if (!vehicleId || vehicleId === undefined) {
+      navigation.navigate("Cus_booking-history/booking-history");
+    }
+  },[vehicleId, navigation])
 
   const loadReviewSummary = async () => {
     try {
@@ -164,10 +171,12 @@ export default function ReviewsScreen() {
   };
 
   useEffect(() => {
-    loadReviewSummary();
-    fetchReviewsByVehicleId();
-    checkCanReview();
-  }, []);
+    if (vehicleId) {
+      loadReviewSummary();
+      fetchReviewsByVehicleId();
+      checkCanReview();
+    }
+  }, [vehicleId]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -257,7 +266,7 @@ export default function ReviewsScreen() {
 
             <View className="border-2 border-[#0D3778] rounded-2xl p-4 bg-white mb-5">
               <Text className="text-center text-base text-gray-600 mb-3">
-                  Toyota Prius (ABC-1234)
+                  {vehicleName || "VehicleName"}
               </Text>
 
               <View className="flex-row py-4">
@@ -332,12 +341,21 @@ export default function ReviewsScreen() {
                 <Text className="text-amber-700 font-semibold text-center">
                 {reviewReason || "You've already reviewed this vehicle."}
                 </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("MyReviews")}
+                  className="flex-row items-center gap-1"
+                >
+                  <FontAwesome name="eye" size={16} color="#0D3778" />
+                  <Text className="text-[#0D3778] font-semibold ml-1">
+                    View your review
+                  </Text>
+                </TouchableOpacity>
             </View>
             )}
 
             <Image
             source={{
-                uri: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70',
+                uri: vehicleImage || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70',
             }}
             className="w-full h-[220px] rounded-xl mt-2 mb-3"
             />
@@ -480,7 +498,7 @@ export default function ReviewsScreen() {
               <TouchableOpacity
                 onPress={() => {
                   setShowSuccessModal(false);
-                  navigate.navigate("homepage");
+                  navigation.navigate("Home/homepage");
                 }}
                 className="border-2 border-[#0D3778] rounded-lg px-6 py-2"
               >
