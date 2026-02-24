@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
-// import { useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+import { useRoute } from "@react-navigation/native";
 import {
   ScrollView,
   View,
@@ -27,6 +28,8 @@ export default function ReviewsScreen() {
   const [reviewReason, setReviewReason] = useState('');
   const [checkingPermission, setCheckingPermission] = useState(false);
   const [expandedReviews, setExpandedReviews] = useState([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedRating, setSubmittedRating] = useState(0);
 
 
   const scrollX = useRef(null);
@@ -34,8 +37,11 @@ export default function ReviewsScreen() {
   const currentIndex = useRef(0);
   const autoScrollRef = useRef(null);
   const isUserInteracting = useRef(false);
-  // const route = useRoute();
-  // const { vehicleImage, vehicleName } = route.params;
+  const route = useRoute();
+  const {vehicleId, vehicleImage, vehicleName } = route.params || {};
+
+  const navigation = useNavigation();
+  console.log("Image:", vehicleImage);
 
 
   const loopedReviews =
@@ -58,10 +64,16 @@ export default function ReviewsScreen() {
   const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
   const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
-  const vehicleId = '696f19b58b0b00033e2af308';
+  // const vehicleId = '696f19b58b0b00033e2af308';
 
   console.log("API_BASE_URL:", API_BASE_URL);
   console.log("API_VERSION:", API_VERSION);
+
+  useEffect(()=>{
+    if (!vehicleId || vehicleId === undefined) {
+      navigation.navigate("Cus_booking-history/booking-history");
+    }
+  },[vehicleId, navigation])
 
   const loadReviewSummary = async () => {
     try {
@@ -114,12 +126,14 @@ export default function ReviewsScreen() {
         { withCredentials: true}
       );
 
+      setSubmittedRating(rating);
+
       setRating(0);
       setFeedback("");
 
       await Promise.all([fetchReviewsByVehicleId(vehicleId), loadReviewSummary(vehicleId), checkCanReview()]);
 
-      //setShowSuccessModal(true);
+      setShowSuccessModal(true);
 
     } catch (error) {
       console.error("Failed to submit review", error);
@@ -157,10 +171,12 @@ export default function ReviewsScreen() {
   };
 
   useEffect(() => {
-    loadReviewSummary();
-    fetchReviewsByVehicleId();
-    checkCanReview();
-  }, []);
+    if (vehicleId) {
+      loadReviewSummary();
+      fetchReviewsByVehicleId();
+      checkCanReview();
+    }
+  }, [vehicleId]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -250,7 +266,7 @@ export default function ReviewsScreen() {
 
             <View className="border-2 border-[#0D3778] rounded-2xl p-4 bg-white mb-5">
               <Text className="text-center text-base text-gray-600 mb-3">
-                  Toyota Prius (ABC-1234)
+                  {vehicleName || "VehicleName"}
               </Text>
 
               <View className="flex-row py-4">
@@ -325,12 +341,21 @@ export default function ReviewsScreen() {
                 <Text className="text-amber-700 font-semibold text-center">
                 {reviewReason || "You've already reviewed this vehicle."}
                 </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("MyReviews")}
+                  className="flex-row items-center gap-1"
+                >
+                  <FontAwesome name="eye" size={16} color="#0D3778" />
+                  <Text className="text-[#0D3778] font-semibold ml-1">
+                    View your review
+                  </Text>
+                </TouchableOpacity>
             </View>
             )}
 
             <Image
             source={{
-                uri: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70',
+                uri: vehicleImage || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70',
             }}
             className="w-full h-[220px] rounded-xl mt-2 mb-3"
             />
@@ -430,6 +455,62 @@ export default function ReviewsScreen() {
                 </View>
             </ImageBackground>
         </View>
+        {showSuccessModal && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center z-50 px-4">
+          <View className="bg-white rounded-2xl w-full max-w-[360px] overflow-hidden border-b-4 border-[#0D3778]">
+
+            {/* Header */}
+            <View className="bg-green-500 py-3 px-4 relative">
+              <Text className="text-white font-semibold text-center">
+                Review Submitted Successfully
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  checkCanReview();
+                }}
+                className="absolute right-3 top-3"
+              >
+                <FontAwesome name="close" size={18} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Body */}
+            <View className="p-6 items-center">
+              <Text className="text-base font-semibold mb-3">
+                Thank you for your feedback!
+              </Text>
+
+              <View className="flex-row items-center mb-4">
+                <Text className="mr-2 font-semibold">Your Rating:</Text>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FontAwesome
+                    key={star}
+                    name={star <= submittedRating ? "star" : "star-o"}
+                    size={20}
+                    color="#FFC107"
+                    style={{ marginHorizontal: 2 }}
+                  />
+                ))}
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  navigation.navigate("Home/homepage");
+                }}
+                className="border-2 border-[#0D3778] rounded-lg px-6 py-2"
+              >
+                <Text className="text-[#0D3778] font-semibold">
+                  Back To Home
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      )}
       </ScrollView>
     </SafeAreaView>
   );

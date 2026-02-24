@@ -7,7 +7,7 @@ import { Stats } from "../components/ui/Stats";
 import { Testimonials } from "../components/ui/Testimonials";
 import { NewsLetter } from "../components/ui/NewsLetter";
 import { Items } from "../components/ui/Items";
-import { QuickStats } from "../components/ui/QuickStats";
+//import { QuickStats } from '../components/ui/QuickStats';
 
 export default function HomeScreen() {
   return (
@@ -41,10 +41,35 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
+      <View style={styles.buttonWrapper}>
+        <Link href="/CustomerVehicleList" asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Go to Vehicle List</Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
+
       <Link href="/vehicle_booking" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             VEHICLE BOOKING
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/owner/rental-history" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            owner rental history
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/Cus_booking-history/booking-history" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            {" "}
+            BOOKING History
           </Text>
         </TouchableOpacity>
       </Link>
@@ -65,27 +90,12 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
-      <Link href="/admin/settings" asChild>
-        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center">
-            Admin setting
-          </Text>
-        </TouchableOpacity>
-      </Link>
-      <Link href="/vehicle/69898ca8cf081e71ac4b8bb3" asChild>
-        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center">
-            vehicles
-          </Text>
-        </TouchableOpacity>
-      </Link>
-
-      <Hero />
+      {/*  <Hero />
       <Stats />
       <Items />
       <QuickStats />
       <NewsLetter />
-      <Testimonials />
+      <Testimonials /> */}
     </ScrollView>
   );
 }
@@ -94,5 +104,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  buttonWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  button: {
+    backgroundColor: "#0D3778",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
   },
 });
