@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, Link } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -46,10 +47,18 @@ export default function SignInPage() {
       }
 
       if (data.success) {
+        // Store token logic
+        try {
+          await AsyncStorage.setItem('userToken', data.token);
+          await AsyncStorage.setItem('userId', data.userid);
+          if (data.role) await AsyncStorage.setItem('userRole', String(data.role));
+          if (data.status) await AsyncStorage.setItem('userStatus', data.status);
+        } catch (e) {
+          console.error('Failed to save user data', e);
+        }
+
         Alert.alert('Success', data.message || "Login Successfully");
-        // Store token logic would go here (e.g. AsyncStorage)
-        // For now just navigate
-        router.replace('/vehicles'); // using replace to prevent going back to login
+        router.replace('/vehicle_booking'); 
       } else {
         Alert.alert('Error', data.message || 'Login failed');
       }
