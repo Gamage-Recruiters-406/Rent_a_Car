@@ -52,6 +52,12 @@ export default function HomeScreen() {
       </Link>
 
 
+     <Link href="/Cus_booking-history/booking-history" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center"> BOOKING History</Text>
+        </TouchableOpacity>
+      </Link>
+
       <TouchableOpacity
         onPress={async () => {
           const keys = ['userToken', 'userId', 'userRole'];
