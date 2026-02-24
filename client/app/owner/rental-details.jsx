@@ -6,151 +6,65 @@ import {
   Alert,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { getBookingById } from "../../services/ownerApi";
 
 const { width, height } = Dimensions.get("window");
 const isSmallScreen = width < 360;
 const isMediumScreen = width >= 360 && width < 414;
 const isTablet = width > 600;
 
-// Mock data (same as in rental-history.jsx)
-const RENTALS = [
-  {
-    id: "1",
-    vehicleName: "Mercedes-Benz S-Class",
-    ownerName: "Piyal Siripala Zoysa",
-    registrationNo: "ABC-0001",
-    seats: "4 Seats",
-    transmission: "Automatic",
-    fuelType: "Petrol",
-    renterName: "John Doe",
-    renterPhone: "+94 00 0000 000",
-    renterEmail: "johndoe@gmail.com",
-    licenseNo: "B00000111",
-    pickupDate: "Jan 10, 2026",
-    pickupTime: "10:00 AM",
-    returnDate: "Jan 15, 2026",
-    returnTime: "10:00 AM",
-    baseRent: 40000,
-    insurance: 2000,
-    serviceTax: 3000,
-    totalAmount: 45000,
-    status: "Completed",
-    image:
-      "https://images.unsplash.com/photo-1563720223185-11003d516935?w=400&h=250&fit=crop",
-  },
-  {
-    id: "2",
-    vehicleName: "Toyota Fortuner",
-    ownerName: "Sunil Siriwardhana",
-    registrationNo: "XYZ-0002",
-    seats: "7 Seats",
-    transmission: "Manual",
-    fuelType: "Diesel",
-    renterName: "Jane Smith",
-    renterPhone: "+94 00 1111 111",
-    renterEmail: "jane.smith@gmail.com",
-    licenseNo: "B00000222",
-    pickupDate: "Jan 08, 2026",
-    pickupTime: "09:00 AM",
-    returnDate: "Jan 12, 2026",
-    returnTime: "09:00 AM",
-    baseRent: 25000,
-    insurance: 1500,
-    serviceTax: 500,
-    totalAmount: 27000,
-    status: "Canceled",
-    image:
-      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop",
-  },
-  {
-    id: "3",
-    vehicleName: "BMW M4",
-    ownerName: "Tharindu Sanjeewa",
-    registrationNo: "BMW-0003",
-    seats: "2 Seats",
-    transmission: "Automatic",
-    fuelType: "Petrol",
-    renterName: "Mike Wilson",
-    renterPhone: "+94 00 2222 222",
-    renterEmail: "mike.wilson@gmail.com",
-    licenseNo: "B00000333",
-    pickupDate: "Feb 01, 2026",
-    pickupTime: "08:00 AM",
-    returnDate: "Feb 05, 2026",
-    returnTime: "08:00 AM",
-    baseRent: 35000,
-    insurance: 2500,
-    serviceTax: 500,
-    totalAmount: 38000,
-    status: "Ongoing",
-    image:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=250&fit=crop",
-  },
-  {
-    id: "4",
-    vehicleName: "Maruti Suzuki",
-    ownerName: "Somasiri Udawalaththa",
-    registrationNo: "CAR-0004",
-    seats: "5 Seats",
-    transmission: "Manual",
-    fuelType: "Petrol",
-    renterName: "Sarah Davis",
-    renterPhone: "+94 00 3333 333",
-    renterEmail: "sarah.davis@gmail.com",
-    licenseNo: "B00000444",
-    pickupDate: "Jan 20, 2026",
-    pickupTime: "11:00 AM",
-    returnDate: "Jan 25, 2026",
-    returnTime: "11:00 AM",
-    baseRent: 15000,
-    insurance: 1000,
-    serviceTax: 2000,
-    totalAmount: 18000,
-    status: "Completed",
-    image:
-      "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=250&fit=crop",
-  },
-  {
-    id: "5",
-    vehicleName: "Toyota NOAH Old Model",
-    ownerName: "Asiri Dahansala",
-    registrationNo: "OLD-0005",
-    seats: "8 Seats",
-    transmission: "Automatic",
-    fuelType: "Hybrid",
-    renterName: "Tom Brown",
-    renterPhone: "+94 00 4444 444",
-    renterEmail: "tom.brown@gmail.com",
-    licenseNo: "B00000555",
-    pickupDate: "Jan 28, 2026",
-    pickupTime: "02:00 PM",
-    returnDate: "Feb 02, 2026",
-    returnTime: "02:00 PM",
-    baseRent: 22000,
-    insurance: 1500,
-    serviceTax: 1500,
-    totalAmount: 25000,
-    status: "Completed",
-    image:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop",
-  },
-];
-
 export default function RentalDetailsScreen() {
   const { rentalId } = useLocalSearchParams();
   const router = useRouter();
 
-  const rental = RENTALS.find((r) => r.id === rentalId);
+  const [rental, setRental] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
-  if (!rental) {
+  useEffect(() => {
+    if (!rentalId) return;
+    let isMounted = true;
+    const loadBooking = async () => {
+      try {
+        setLoading(true);
+        setFetchError(null);
+        const data = await getBookingById(rentalId);
+        if (isMounted) setRental(data);
+      } catch (err) {
+        if (isMounted) setFetchError(err.message || "Failed to load booking");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    loadBooking();
+    return () => {
+      isMounted = false;
+    };
+  }, [rentalId]);
+
+  if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-white justify-center items-center">
-        <Text className="text-lg text-gray-600">Rental not found</Text>
+        <ActivityIndicator size="large" color="#0A2E5C" />
+        <Text className="text-gray-500 mt-4">Loading booking details…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (fetchError || !rental) {
+    return (
+      <SafeAreaView className="flex-1 bg-white justify-center items-center px-8">
+        <Ionicons name="alert-circle" size={48} color="#EF4444" />
+        <Text className="text-red-500 text-center mt-4">
+          {fetchError || "Rental not found"}
+        </Text>
       </SafeAreaView>
     );
   }

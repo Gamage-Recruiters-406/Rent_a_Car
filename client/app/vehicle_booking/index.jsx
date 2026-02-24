@@ -20,12 +20,12 @@ import {
     X
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Header } from './BookingPageHeader';
+import { Header } from '../../components/vehicle_booking/BookingPageHeader';
 import { searchVehicles, createBooking } from '../../services/bookingApi';
 import { getAllReviews } from '../../services/reviewApi';
-import { AnalogTimePicker } from './components/AnalogTimePicker';
-import { DatePicker } from './components/DatePicker';
-import { ProcessStep } from './components/ProcessStep';
+import { AnalogTimePicker } from '../../components/vehicle_booking/AnalogTimePicker';
+import { DatePicker } from '../../components/vehicle_booking/DatePicker';
+import { ProcessStep } from '../../components/vehicle_booking/ProcessStep';
 
 // --- Main Page Component ---
 export default function VehicleBookingPage() {

@@ -1,10 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  Animated,
+  Easing,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 export const QuickStats = () => {
-  const [dimensions, setDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768,
-  });
+  const translateX = useRef(new Animated.Value(0)).current;
 
   const quickStats = [
     { icon: '⚡', number: 'Instant', label: 'Booking Confirmation' },
@@ -16,92 +24,107 @@ export const QuickStats = () => {
   // Triple the stats for seamless infinite scroll
   const duplicatedStats = [...quickStats, ...quickStats, ...quickStats];
 
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   // Responsive sizing
   const getStatWidth = () => {
-    if (dimensions.width < 375) return 60; // Smaller phones
-    if (dimensions.width < 414) return 55; // Medium phones
-    return 50; // Larger phones & tablets
+    if (width < 375) return width * 0.6;
+    if (width < 414) return width * 0.55;
+    return width * 0.5;
   };
 
   const getFontSizes = () => {
-    if (dimensions.width < 375) {
-      return { number: '1.5rem', label: '0.6875rem', icon: '1.5rem' };
-    } else if (dimensions.width < 414) {
-      return { number: '1.625rem', label: '0.75rem', icon: '1.625rem' };
-    } else {
-      return { number: '1.75rem', label: '0.8125rem', icon: '1.75rem' };
-    }
+    if (width < 375) return { number: 24, label: 11, icon: 24 };
+    if (width < 414) return { number: 26, label: 12, icon: 26 };
+    return { number: 28, label: 13, icon: 28 };
   };
 
   const statWidth = getStatWidth();
   const fontSizes = getFontSizes();
 
-  return (
-    <div className="bg-gradient-to-br from-[#0d3778] to-[#1a4d99] py-4 mb-4 overflow-hidden">
-      <div className="relative overflow-hidden">
-        <div className="flex animate-marquee">
-          {duplicatedStats.map((stat, index) => (
-            <div
-              key={index}
-              className="flex-shrink-0 flex justify-center items-center px-6"
-              style={{ width: `${statWidth}%` }}
-            >
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span
-                    className="text-white"
-                    style={{ fontSize: fontSizes.icon }}
-                  >
-                    {stat.icon}
-                  </span>
-                  <span
-                    className="font-bold text-white"
-                    style={{ fontSize: fontSizes.number }}
-                  >
-                    {stat.number}
-                  </span>
-                </div>
-                <p
-                  className="text-white/90 text-center leading-[1.125rem] line-clamp-2"
-                  style={{ fontSize: fontSizes.label }}
-                >
-                  {stat.label}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+  // Total width of one set (1/3 of duplicated)
+  const totalOneSetWidth = quickStats.length * (statWidth + 48); // 48 = px-6 * 2
 
-      <style jsx>{`
-        @keyframes marquee {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-33.333%);
-          }
-        }
-        .animate-marquee {
-          animation: marquee 20s linear infinite;
-        }
-        .animate-marquee:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
-    </div>
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.timing(translateX, {
+        toValue: -totalOneSetWidth,
+        duration: 20000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [totalOneSetWidth]);
+
+  return (
+    <LinearGradient
+      colors={['#0d3778', '#1a4d99']}
+      style={styles.container}
+    >
+      <View style={styles.overflow}>
+        <Animated.View
+          style={[styles.row, { transform: [{ translateX }] }]}
+        >
+          {duplicatedStats.map((stat, index) => (
+            <View
+              key={index}
+              style={[styles.statItem, { width: statWidth }]}
+            >
+              <View style={styles.topRow}>
+                <Text style={[styles.icon, { fontSize: fontSizes.icon }]}>
+                  {stat.icon}
+                </Text>
+                <Text style={[styles.number, { fontSize: fontSizes.number }]}>
+                  {stat.number}
+                </Text>
+              </View>
+              <Text
+                style={[styles.label, { fontSize: fontSizes.label }]}
+                numberOfLines={2}
+              >
+                {stat.label}
+              </Text>
+            </View>
+          ))}
+        </Animated.View>
+      </View>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: 16,
+    marginBottom: 16,
+  },
+  overflow: {
+    overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statItem: {
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  icon: {
+    color: '#fff',
+  },
+  number: {
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  label: {
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+});
