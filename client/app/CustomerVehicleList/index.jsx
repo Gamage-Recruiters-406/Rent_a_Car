@@ -50,12 +50,60 @@ const formatPrice = (value) => {
   return num.toLocaleString();
 };
 
+// Helper function to get rating value
+const getRatingValue = (vehicle) => {
+  if (vehicle?.rating) return vehicle.rating;
+  if (vehicle?.averageRating) return vehicle.averageRating;
+  return 0;
+};
+
+// Helper function to get review count
+const getReviewCount = (vehicle) => {
+  if (vehicle?.reviewCount) return vehicle.reviewCount;
+  if (vehicle?.totalReviews) return vehicle.totalReviews;
+  if (Array.isArray(vehicle?.reviews)) return vehicle.reviews.length;
+  return 0;
+};
+
+// Helper to convert photo URLs
+const toFullImageUrl = (url, baseApiUrl) => {
+  if (!url || typeof url !== 'string') return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const path = url.startsWith('/') ? url : `/${url}`;
+  return `${baseApiUrl}${path}`;
+};
+
+const getPhotoUrls = (vehicle, baseApiUrl) => {
+  const out = [];
+  if (Array.isArray(vehicle?.photos) && vehicle.photos.length > 0) {
+    vehicle.photos.forEach((p) => {
+      const u = p && (typeof p === 'string' ? p : p.url);
+      const full = toFullImageUrl(u, baseApiUrl);
+      if (full) out.push(full);
+    });
+  }
+  if (out.length) return out;
+  if (vehicle?.image && typeof vehicle.image === 'string') {
+    const full = toFullImageUrl(vehicle.image, baseApiUrl);
+    if (full) return [full];
+  }
+  if (Array.isArray(vehicle?.images)) {
+    vehicle.images.forEach((u) => {
+      const full = typeof u === 'string' ? toFullImageUrl(u, baseApiUrl) : (u?.url ? toFullImageUrl(u.url, baseApiUrl) : null);
+      if (full) out.push(full);
+    });
+  }
+  return out;
+};
+
 export default function CustomerVehicleList() {
   const router = useRouter();
   const [vehicles, setVehicles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [selectedReviewCount, setSelectedReviewCount] = useState(0);
   const [filters, setFilters] = useState(defaultFilters);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -72,6 +120,7 @@ export default function CustomerVehicleList() {
       const url = `${baseUrl}${apiVersion}/vehicle/get-all`;
       const response = await fetch(url, {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -88,7 +137,14 @@ export default function CustomerVehicleList() {
 
       const data = await response.json();
       const vehicleList = data.vehicles || data.data || [];
-      setVehicles(Array.isArray(vehicleList) ? vehicleList : []);
+      
+      // Normalize vehicles with photos
+      const normalizedVehicles = (Array.isArray(vehicleList) ? vehicleList : []).map((vehicle) => ({
+        ...vehicle,
+        photos: getPhotoUrls(vehicle, baseUrl),
+      }));
+      
+      setVehicles(normalizedVehicles);
     } catch (error) {
       console.error('Error fetching vehicles:', error);
       setVehicles([]);
@@ -122,14 +178,18 @@ export default function CustomerVehicleList() {
     // Filtering happens locally via memoized list
   };
 
-  const openModal = (vehicle) => {
-    setSelectedVehicle(vehicle);
-    setIsModalOpen(true);
-  };
-
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedVehicle(null);
+    setSelectedRating(0);
+    setSelectedReviewCount(0);
+  };
+
+  const openModal = (vehicle) => {
+    setSelectedVehicle(vehicle);
+    setSelectedRating(getRatingValue(vehicle));
+    setSelectedReviewCount(getReviewCount(vehicle));
+    setIsModalOpen(true);
   };
 
   const filteredVehicles = useMemo(() => {
@@ -159,90 +219,100 @@ export default function CustomerVehicleList() {
     });
   }, [vehicles, filters]);
 
-  const renderVehicleCard = ({ item }) => (
-    <View className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-5">
-      <View className="relative h-44 bg-gray-200">
-        {item.photos?.length ? (
-          <Image
-            source={{ uri: item.photos[0] }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="w-full h-full items-center justify-center bg-gray-300">
-            <Text className="text-4xl">🚗</Text>
-            <Text className="text-sm text-gray-600 mt-2">No Image</Text>
-          </View>
-        )}
-        <View className="absolute top-3 right-3 bg-white/95 rounded-lg px-3 py-1.5 flex-row items-center gap-1 shadow-md">
-          <Star size={16} color="#FACC15" fill="#FACC15" />
-          <Text className="text-sm font-bold text-gray-800">4.2</Text>
-        </View>
-      </View>
+  const renderVehicleCard = ({ item }) => {
+    const ratingValue = getRatingValue(item);
+    const reviewCount = getReviewCount(item);
 
-      <View className="p-4">
-        <View className="mb-2">
-          <Text className="text-base font-bold text-gray-900" numberOfLines={1}>
-            {item.title || 'Vehicle'}
-          </Text>
-          <Text className="text-sm text-gray-500 mt-1">
-            {item.year ? `${item.year} • ` : ''}
-            {item.vehicleType || ''}
-          </Text>
-        </View>
-
-        <View className="bg-gray-50 rounded-lg p-3 mb-4 flex-row justify-between">
-          <View className="flex-row items-center gap-2">
-            <Fuel size={16} color="#2563EB" />
-            <View>
-              <Text className="text-xs text-gray-600">Fuel</Text>
-              <Text className="text-sm font-semibold text-gray-900">{item.fuelType || 'N/A'}</Text>
+    return (
+      <View className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-5">
+        <View className="relative h-44 bg-gray-200">
+          {item.photos?.length ? (
+            <Image
+              source={{ uri: item.photos[0] }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="w-full h-full items-center justify-center bg-gray-300">
+              <Text className="text-4xl">🚗</Text>
+              <Text className="text-sm text-gray-600 mt-2">No Image</Text>
             </View>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <Zap size={16} color="#2563EB" />
-            <View>
-              <Text className="text-xs text-gray-600">Transmission</Text>
-              <Text className="text-sm font-semibold text-gray-900">{item.transmission || 'N/A'}</Text>
-            </View>
+          )}
+          <View className="absolute top-3 right-3 bg-white/95 rounded-lg px-3 py-1.5 flex-row items-center gap-1 shadow-md">
+            <Star size={16} color="#FACC15" fill="#FACC15" />
+            <Text className="text-sm font-bold text-gray-800">
+              {(ratingValue ?? 0).toFixed(1)}
+            </Text>
+            {reviewCount > 0 && (
+              <Text className="text-xs text-gray-600">({reviewCount})</Text>
+            )}
           </View>
         </View>
 
-        <View className="flex-row items-start gap-2 mb-4">
-          <MapPin size={16} color="#EF4444" />
-          <Text className="text-sm text-gray-600 flex-1" numberOfLines={1}>
-            {item.address || 'Location not specified'}
-          </Text>
-        </View>
-
-        <View className="border-t border-gray-200 my-3" />
-
-        <View className="flex-row justify-between mb-4">
-          <View>
-            <Text className="text-xs text-gray-600 font-medium">Per Day</Text>
-            <Text className="text-xl font-bold text-gray-900">
-              <Text className="text-sm text-gray-600">LKR </Text>
-              {formatPrice(item.pricePerDay)}
+        <View className="p-4">
+          <View className="mb-2">
+            <Text className="text-base font-bold text-gray-900" numberOfLines={1}>
+              {item.title || 'Vehicle'}
+            </Text>
+            <Text className="text-sm text-gray-500 mt-1">
+              {item.year ? `${item.year} • ` : ''}
+              {item.vehicleType || ''}
             </Text>
           </View>
-          <View className="items-end">
-            <Text className="text-xs text-gray-600 font-medium">Per KM</Text>
-            <Text className="text-lg font-bold text-gray-900">
-              <Text className="text-sm text-gray-600">LKR </Text>
-              {formatPrice(item.pricePerKm)}
+
+          <View className="bg-gray-50 rounded-lg p-3 mb-4 flex-row justify-between">
+            <View className="flex-row items-center gap-2">
+              <Fuel size={16} color="#2563EB" />
+              <View>
+                <Text className="text-xs text-gray-600">Fuel</Text>
+                <Text className="text-sm font-semibold text-gray-900">{item.fuelType || 'N/A'}</Text>
+              </View>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <Zap size={16} color="#2563EB" />
+              <View>
+                <Text className="text-xs text-gray-600">Transmission</Text>
+                <Text className="text-sm font-semibold text-gray-900">{item.transmission || 'N/A'}</Text>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex-row items-start gap-2 mb-4">
+            <MapPin size={16} color="#EF4444" />
+            <Text className="text-sm text-gray-600 flex-1" numberOfLines={1}>
+              {item.location?.address || item.address || 'Location not specified'}
             </Text>
           </View>
-        </View>
 
-        <TouchableOpacity
-          onPress={() => openModal(item)}
-          className="w-full bg-[#0D3778] py-2.5 rounded-lg"
-        >
-          <Text className="text-white font-semibold text-center">View Details</Text>
-        </TouchableOpacity>
+          <View className="border-t border-gray-200 my-3" />
+
+          <View className="flex-row justify-between mb-4">
+            <View>
+              <Text className="text-xs text-gray-600 font-medium">Per Day</Text>
+              <Text className="text-xl font-bold text-gray-900">
+                <Text className="text-sm text-gray-600">LKR </Text>
+                {formatPrice(item.pricePerDay)}
+              </Text>
+            </View>
+            <View className="items-end">
+              <Text className="text-xs text-gray-600 font-medium">Per KM</Text>
+              <Text className="text-lg font-bold text-gray-900">
+                <Text className="text-sm text-gray-600">LKR </Text>
+                {formatPrice(item.pricePerKm)}
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => openModal(item)}
+            className="w-full bg-[#0D3778] py-2.5 rounded-lg"
+          >
+            <Text className="text-white font-semibold text-center">View Details</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -563,7 +633,12 @@ export default function CustomerVehicleList() {
               </Pressable>
               <View className="absolute top-3 left-3 bg-white/95 rounded-lg px-3 py-1.5 flex-row items-center gap-1">
                 <Star size={16} color="#FACC15" fill="#FACC15" />
-                <Text className="text-sm font-bold text-gray-800">4.2</Text>
+                <Text className="text-sm font-bold text-gray-800">
+                  {(selectedRating ?? 0).toFixed(1)}
+                </Text>
+                {selectedReviewCount > 0 && (
+                  <Text className="text-xs text-gray-600">({selectedReviewCount})</Text>
+                )}
               </View>
             </View>
 
@@ -582,7 +657,7 @@ export default function CustomerVehicleList() {
                 <View>
                   <Text className="text-xs text-gray-600 font-medium">Location</Text>
                   <Text className="text-base text-gray-900">
-                    {selectedVehicle?.address || 'Location not specified'}
+                    {selectedVehicle?.location?.address || selectedVehicle?.address || 'Location not specified'}
                   </Text>
                 </View>
               </View>
