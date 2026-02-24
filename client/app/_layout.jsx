@@ -35,6 +35,15 @@ export default function Layout() {
           },
         }}
       />
+
+      <Stack.Screen
+        name="profilepages/CustomerProfileEdit"
+        options={{ title: "Customer Profile", headerStyle: { backgroundColor: "#0A2E5C" }, headerTintColor: "#fff" }}
+      />
+      <Stack.Screen
+        name="profilepages/OwnerProfileEdit"
+        options={{ title: "Owner Profile", headerStyle: { backgroundColor: "#0A2E5C" }, headerTintColor: "#fff" }}
+      />
     </Stack>
   );
 }

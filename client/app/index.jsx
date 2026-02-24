@@ -50,6 +50,22 @@ export default function HomeScreen() {
 
            
 
+            <View className="bg-gray-100 p-6 rounded-2xl mt-6 shadow-sm w-72 items-center">
+              <Text className="text-[#0A2E5C] font-bold text-lg mb-4">Profiles</Text>
+              
+              <Link href="/profilepages/CustomerProfileEdit" asChild>
+                <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full mb-3 shadow-sm">
+                  <Text className="text-white font-semibold text-center">Customer Profile</Text>
+                </TouchableOpacity>
+              </Link>
+
+              <Link href="/profilepages/OwnerProfileEdit" asChild>
+                <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full shadow-sm">
+                  <Text className="text-white font-semibold text-center">Owner Profile</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
+
             {/* <Hero />
             <Stats />
           <Items />
