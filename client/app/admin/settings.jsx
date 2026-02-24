@@ -126,7 +126,7 @@ export default function AdminSettingsMobile() {
 
   const onSaveUIOnly = () => {
     console.log("FORM:", form);
-    Alert.alert("Saved", "Updated ✅ (UI only)");
+    Alert.alert("Saved", "Updated");
   };
 
   return (
