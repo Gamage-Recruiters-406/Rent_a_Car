@@ -19,7 +19,7 @@ export default function Layout({
 		const fetchUser = async () => {
 			try {
 				const response = await fetch(
-					`${API_BASE_URL}${API_VERSION}/user/getUserDetails`,
+					`${API_BASE_URL}${API_VERSION}/authUser/getUserDetails`,
 					{
 						method: "GET",
 						credentials: "include",
@@ -44,7 +44,6 @@ export default function Layout({
 					setIsAuthenticated(false);
 				}
 			} catch (error) {
-				console.error("Failed to fetch user details", error);
 				setUser(null);
 				setRole(1);
 				setIsAuthenticated(false);
@@ -52,11 +51,11 @@ export default function Layout({
 		};
 
 		fetchUser();
-	}, [API_BASE_URL, location.pathname]);
+	}, [API_BASE_URL, API_VERSION, location.pathname]);
 
 	const handleLogout = async () => {
 		try {
-			await fetch(`${API_BASE_URL}${API_VERSION}/user/logout`, {
+			await fetch(`${API_BASE_URL}${API_VERSION}/authUser/logout`, {
 				method: "POST",
 				credentials: "include",
 			});

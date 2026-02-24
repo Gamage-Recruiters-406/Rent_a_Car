@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getVehicleById } from "../services/vehicleApi";
 
 import DropdownCard from "../components/vehicle/DropdownCard";
 import MiniCalendar from "../components/vehicle/MiniCalendar";
 import { SimpleRow, BulletRow, LegendItem } from "../components/vehicle/Rows";
+import ReviewCards from "../components/Reviews/ReviewCards";
 
 import {
   SettingsIcon,
@@ -15,8 +16,9 @@ import {
   WorldIcon,
 } from "../components/vehicle/Icons";
 
-import Header from "../layouts/Header";
-import Footer from "../layouts/Footer";
+import Layout from "../layouts/Layout";
+
+import { getVehicleAvailability } from "../services/bookingApi";
 
 // helpers
 function toYYYYMM(date = new Date()) {
@@ -37,6 +39,7 @@ function formatMonthLabel(yyyyMm) {
 
 export default function VehicleDetailsPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [vehicle, setVehicle] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
@@ -44,6 +47,8 @@ export default function VehicleDetailsPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [bookings, setBookings] = useState([]);
 
   // dropdown states
   const [open, setOpen] = useState({
@@ -68,6 +73,10 @@ export default function VehicleDetailsPage() {
         console.log(data);
         setVehicle(data?.vehicle || null);
         setActiveImg(0);
+
+        const avail = await getVehicleAvailability(id); // { success, data: bookings[] }
+        if (!mounted) return;
+        setBookings(avail?.data || []);
       } catch (e) {
         if (!mounted) return;
         setError(
@@ -119,6 +128,35 @@ export default function VehicleDetailsPage() {
     { label: "Fuel Type", value: vehicle?.fuelType || "—" },
   ];
 
+  // MiniCalendar will use this to mark blocked days
+  const blockedSet = useMemo(() => {
+    const s = new Set();
+
+    (bookings || []).forEach((b) => {
+      const start = new Date(b.startingDate);
+      const end = new Date(b.endDate);
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
+
+      // block each day in the range
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        s.add(d.toISOString().slice(0, 10)); // YYYY-MM-DD
+      }
+    });
+
+    return s;
+  }, [bookings]);
+
+  // OPTIONAL: month-specific bookings count (small info)
+  const blockedCountInMonth = useMemo(() => {
+    const prefix = `${month}-`; // e.g. "2026-01-"
+    let c = 0;
+    blockedSet.forEach((d) => {
+      if (d.startsWith(prefix)) c += 1;
+    });
+    return c;
+  }, [blockedSet, month]);
+
   if (loading) {
     return (
       <div className="w-full px-3 sm:px-6 lg:px-10 py-6 font-nunito">
@@ -147,8 +185,7 @@ export default function VehicleDetailsPage() {
   }
 
   return (
-    <>
-      <Header />
+    <Layout>
       <div className="w-full px-3 sm:px-6 lg:px-10 py-6 font-nunito bg-white">
         {/* Title */}
         <h1 className="text-[24px] font-bold text-[#0d3778] mb-4">
@@ -186,7 +223,7 @@ export default function VehicleDetailsPage() {
               </div>
 
               {/* thumbs */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {photoUrls.slice(0, 4).map((img, idx) => (
                   <button
                     key={idx}
@@ -290,14 +327,25 @@ export default function VehicleDetailsPage() {
                 </button>
               </div>
 
-              <MiniCalendar month={month} />
+              {/* ✅ NEW: pass blockedSet to calendar */}
+              <MiniCalendar month={month} blockedSet={blockedSet} />
 
-              <div className="flex gap-4 items-center mt-3 text-[12px] text-slate-700">
-                <LegendItem
-                  color="bg-emerald-100 border-emerald-300"
-                  label="Available"
-                />
-                <LegendItem color="bg-red-100 border-red-300" label="Blocked" />
+              <div className="flex justify-between items-center mt-3">
+                <div className="flex gap-4 items-center text-[12px] text-slate-700">
+                  <LegendItem
+                    color="bg-emerald-100 border-emerald-300"
+                    label="Available"
+                  />
+                  <LegendItem
+                    color="bg-red-100 border-red-300"
+                    label="Blocked"
+                  />
+                </div>
+
+                {/* small info */}
+                <div className="text-[12px] text-slate-500">
+                  Blocked days: {blockedCountInMonth}
+                </div>
               </div>
             </DropdownCard>
 
@@ -339,7 +387,11 @@ export default function VehicleDetailsPage() {
             <div className="flex justify-stretch">
               <button
                 className="w-full h-[48px] rounded-xl bg-[#0d3778] text-white font-semibold text-[14px] hover:opacity-95"
-                onClick={() => alert("Book Now ")}
+                onClick={() =>
+                  navigate(`/booking/${id}`, {
+                    state: { vehicleId: id, vehicle },
+                  })
+                }
               >
                 Book Now
               </button>
@@ -347,7 +399,7 @@ export default function VehicleDetailsPage() {
           </div>
         </div>
       </div>
-      <Footer />
-    </>
+      <ReviewCards vehicleId= {id}/>
+    </Layout>
   );
 }
