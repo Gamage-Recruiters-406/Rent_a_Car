@@ -141,12 +141,6 @@ const VehicleBookingModal = ({
     }
   };
 
-  const handleCallOwner = () => {
-    if (booking?.ownerContact && booking.ownerContact !== 'N/A') {
-      Linking.openURL(`tel:${booking.ownerContact}`);
-    }
-  };
-
   const handleAddReview = () => {
     if (!booking?.vehicleId) return;
 
@@ -442,7 +436,7 @@ const VehicleBookingModal = ({
               </View>
             </View>
 
-            {/* Owner Contact */}
+            {/* Owner Contact  */}
             <View className="bg-white p-4 mx-4 mb-4 rounded-xl border border-gray-200">
               <View className="flex-row items-center mb-3">
                 <View className="w-12 h-12 rounded-full bg-gray-100 justify-center items-center mr-3">
@@ -455,23 +449,14 @@ const VehicleBookingModal = ({
                   <Text className="text-sm text-gray-500">Owner</Text>
                 </View>
               </View>
-              <TouchableOpacity
-                className={`flex-row items-center justify-center gap-2 py-3 px-4 rounded-lg ${
-                  booking.ownerContact && booking.ownerContact !== 'N/A'
-                    ? 'bg-[#0D3778]'
-                    : 'bg-gray-300'
-                }`}
-                onPress={handleCallOwner}
-                disabled={
-                  !booking.ownerContact || booking.ownerContact === 'N/A'
-                }
-                activeOpacity={0.8}
-              >
-                <Phone size={16} color="#FFFFFF" />
-                <Text className="text-white text-sm font-medium">
-                  Call {booking.ownerContact || 'N/A'}
+              
+              {/* Phone Number Display */}
+              <View className="flex-row items-center py-3 px-4 bg-gray-50 rounded-lg">
+                <Phone size={16} color="#4B5563" style={{ marginRight: 8 }} />
+                <Text className="text-gray-700 text-sm font-medium">
+                  {booking.ownerContact || 'N/A'}
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
 
             {/* Reviews Section */}
