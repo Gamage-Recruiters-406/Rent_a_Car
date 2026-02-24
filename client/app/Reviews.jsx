@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation } from "@react-navigation/native";
 // import { useRoute } from "@react-navigation/native";
 import {
   ScrollView,
@@ -27,6 +28,8 @@ export default function ReviewsScreen() {
   const [reviewReason, setReviewReason] = useState('');
   const [checkingPermission, setCheckingPermission] = useState(false);
   const [expandedReviews, setExpandedReviews] = useState([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedRating, setSubmittedRating] = useState(0);
 
 
   const scrollX = useRef(null);
@@ -36,6 +39,8 @@ export default function ReviewsScreen() {
   const isUserInteracting = useRef(false);
   // const route = useRoute();
   // const { vehicleImage, vehicleName } = route.params;
+
+  const navigation = useNavigation();
 
 
   const loopedReviews =
@@ -114,12 +119,14 @@ export default function ReviewsScreen() {
         { withCredentials: true}
       );
 
+      setSubmittedRating(rating);
+
       setRating(0);
       setFeedback("");
 
       await Promise.all([fetchReviewsByVehicleId(vehicleId), loadReviewSummary(vehicleId), checkCanReview()]);
 
-      //setShowSuccessModal(true);
+      setShowSuccessModal(true);
 
     } catch (error) {
       console.error("Failed to submit review", error);
@@ -430,6 +437,62 @@ export default function ReviewsScreen() {
                 </View>
             </ImageBackground>
         </View>
+        {showSuccessModal && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center z-50 px-4">
+          <View className="bg-white rounded-2xl w-full max-w-[360px] overflow-hidden border-b-4 border-[#0D3778]">
+
+            {/* Header */}
+            <View className="bg-green-500 py-3 px-4 relative">
+              <Text className="text-white font-semibold text-center">
+                Review Submitted Successfully
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  checkCanReview();
+                }}
+                className="absolute right-3 top-3"
+              >
+                <FontAwesome name="close" size={18} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Body */}
+            <View className="p-6 items-center">
+              <Text className="text-base font-semibold mb-3">
+                Thank you for your feedback!
+              </Text>
+
+              <View className="flex-row items-center mb-4">
+                <Text className="mr-2 font-semibold">Your Rating:</Text>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FontAwesome
+                    key={star}
+                    name={star <= submittedRating ? "star" : "star-o"}
+                    size={20}
+                    color="#FFC107"
+                    style={{ marginHorizontal: 2 }}
+                  />
+                ))}
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  navigate.navigate("homepage");
+                }}
+                className="border-2 border-[#0D3778] rounded-lg px-6 py-2"
+              >
+                <Text className="text-[#0D3778] font-semibold">
+                  Back To Home
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      )}
       </ScrollView>
     </SafeAreaView>
   );
