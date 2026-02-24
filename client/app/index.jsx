@@ -4,10 +4,10 @@ import { Link } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 import { Hero } from "../components/ui/Hero";
 import { Stats } from "../components/ui/Stats";
-import { Items } from "../components/ui/Items";
-import { QuickStats } from "../components/ui/Quickstats";
+import { Testimonials } from "../components/ui/Testimonials";
 import { NewsLetter } from "../components/ui/NewsLetter";
-import { Testimonials } from "../components/ui/Testimornials";
+import { Items } from "../components/ui/Items";
+import { QuickStats } from "../components/ui/QuickStats";
 
 export default function HomeScreen() {
   return (
@@ -30,6 +30,13 @@ export default function HomeScreen() {
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Reviews
+          </Text>
+        </TouchableOpacity>
+      </Link>
+      <Link href="/MyReviews" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            My Reviews
           </Text>
         </TouchableOpacity>
       </Link>
@@ -73,12 +80,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
-      {/* <Hero />
-            <Stats />
-          <Items />
-            <QuickStats/>
-            <NewsLetter />
-          <Testimonials/> */}
+      <Hero />
+      <Stats />
+      <Items />
+      <QuickStats />
+      <NewsLetter />
+      <Testimonials />
     </ScrollView>
   );
 }
