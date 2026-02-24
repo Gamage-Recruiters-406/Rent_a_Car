@@ -19,27 +19,29 @@ export default function HomeScreen() {
           and demonstration purposes of navigation flow.
           pleas donot delet this buttons. after connect every part then delet this buttons*/}
 
-      <Link href="/login/SignInPage" asChild>
-        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center">
-            Login
-          </Text>
-        </TouchableOpacity>
-      </Link>
-      <Link href="/Reviews" asChild>
-        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center">
-            Reviews
-          </Text>
-        </TouchableOpacity>
-      </Link>
-      <Link href="/MyReviews" asChild>
-        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center">
-            My Reviews
-          </Text>
-        </TouchableOpacity>
-      </Link>
+            <Link href="/login/SignInPage" asChild>
+              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+                <Text className="text-white font-semibold text-lg text-center">Login</Text>
+              </TouchableOpacity>
+            </Link>
+            <Link href="/Reviews" asChild>
+              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+                <Text className="text-white font-semibold text-lg text-center">Reviews</Text>
+              </TouchableOpacity>
+            </Link>
+            <Link href="/MyReviews" asChild>
+              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+                <Text className="text-white font-semibold text-lg text-center">My Reviews</Text>
+              </TouchableOpacity>
+            </Link>
+
+                        <View style={styles.buttonWrapper}>
+              <Link href="/CustomerVehicleList" asChild>
+                <TouchableOpacity style={styles.button}>
+                  <Text style={styles.buttonText}>Go to Vehicle List</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
 
       <Link href="/vehicle_booking" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -54,6 +56,12 @@ export default function HomeScreen() {
           <Text className="text-white font-semibold text-lg text-center">
             owner rental history
           </Text>
+        </TouchableOpacity>
+      </Link>
+
+     <Link href="/Cus_booking-history/booking-history" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center"> BOOKING History</Text>
         </TouchableOpacity>
       </Link>
 
@@ -88,4 +96,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+    buttonWrapper: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
+    button: {
+      backgroundColor: '#0D3778',
+      paddingVertical: 12,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: '#fff',
+      fontWeight: '600',
+    },
 });
