@@ -12,10 +12,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Picker,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Calendar } from 'react-native-calendars';
 import {
-  Calendar,
+  Calendar as CalendarIconLucide,
   DollarSign,
   Fuel,
   Info,
@@ -36,6 +39,7 @@ const defaultFilters = {
   vehicleType: '',
   transmission: '',
   fuelType: '',
+  minPrice: '',
   maxPrice: '',
 };
 
@@ -53,6 +57,10 @@ export default function CustomerVehicleList() {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filters, setFilters] = useState(defaultFilters);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
 
   useEffect(() => {
     fetchVehicles();
@@ -96,6 +104,20 @@ export default function CustomerVehicleList() {
     }));
   };
 
+  const handleStartDateChange = (date) => {
+    const dateString = date;
+    setStartDate(new Date(date));
+    handleFilterChange('startDate', dateString);
+    setShowStartDatePicker(false);
+  };
+
+  const handleEndDateChange = (date) => {
+    const dateString = date;
+    setEndDate(new Date(date));
+    handleFilterChange('endDate', dateString);
+    setShowEndDatePicker(false);
+  };
+
   const handleSearch = () => {
     // Filtering happens locally via memoized list
   };
@@ -128,6 +150,9 @@ export default function CustomerVehicleList() {
         return false;
       }
       if (filters.maxPrice && Number(vehicle.pricePerDay) > Number(filters.maxPrice)) {
+        return false;
+      }
+      if (filters.minPrice && Number(vehicle.pricePerDay) < Number(filters.minPrice)) {
         return false;
       }
       return true;
@@ -232,26 +257,40 @@ export default function CustomerVehicleList() {
         <View className="bg-white px-4 py-5 shadow">
           <Text className="text-base font-semibold text-gray-800 mb-3">Search Filters</Text>
           <View className="gap-3">
-            <TextInput
-              value={filters.location}
-              onChangeText={(value) => handleFilterChange('location', value)}
-              placeholder="Enter location"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <View className="flex-row gap-3">
-              <TextInput
-                value={filters.startDate}
-                onChangeText={(value) => handleFilterChange('startDate', value)}
-                placeholder="Start date"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
-              />
-              <TextInput
-                value={filters.endDate}
-                onChangeText={(value) => handleFilterChange('endDate', value)}
-                placeholder="End date"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
-              />
+            <View className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+              <Picker
+                selectedValue={filters.location}
+                onValueChange={(value) => handleFilterChange('location', value)}
+              >
+                <Picker.Item label="Select Location" value="" />
+                <Picker.Item label="Colombo" value="Colombo" />
+                <Picker.Item label="Kandy" value="Kandy" />
+                <Picker.Item label="Galle" value="Galle" />
+                <Picker.Item label="Negombo" value="Negombo" />
+                <Picker.Item label="Jaffna" value="Jaffna" />
+                <Picker.Item label="Matara" value="Matara" />
+              </Picker>
             </View>
+
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={() => setShowStartDatePicker(true)}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-white justify-center"
+              >
+                <Text className="text-gray-700 font-medium">
+                  {filters.startDate ? filters.startDate : 'Start date'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setShowEndDatePicker(true)}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-white justify-center"
+              >
+                <Text className="text-gray-700 font-medium">
+                  {filters.endDate ? filters.endDate : 'End date'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
               onPress={handleSearch}
               className="bg-[#0D3778] py-3 rounded-lg"
@@ -264,31 +303,116 @@ export default function CustomerVehicleList() {
         <View className="bg-white px-4 py-5 border-t border-gray-100">
           <Text className="text-base font-semibold text-gray-800 mb-3">Advanced Filters</Text>
           <View className="gap-3">
-            <TextInput
-              value={filters.vehicleType}
-              onChangeText={(value) => handleFilterChange('vehicleType', value)}
-              placeholder="Vehicle type (e.g. SUV)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <TextInput
-              value={filters.transmission}
-              onChangeText={(value) => handleFilterChange('transmission', value)}
-              placeholder="Transmission (Manual/Automatic)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <TextInput
-              value={filters.fuelType}
-              onChangeText={(value) => handleFilterChange('fuelType', value)}
-              placeholder="Fuel type (Petrol/Diesel)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <TextInput
-              value={filters.maxPrice}
-              onChangeText={(value) => handleFilterChange('maxPrice', value)}
-              placeholder="Max price (LKR/day)"
-              keyboardType="numeric"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
+            <View className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+              <Picker
+                selectedValue={filters.vehicleType}
+                onValueChange={(value) => handleFilterChange('vehicleType', value)}
+              >
+                <Picker.Item label="Select Vehicle Type" value="" />
+                <Picker.Item label="Car" value="Car" />
+                <Picker.Item label="SUV" value="SUV" />
+                <Picker.Item label="Van" value="Van" />
+                <Picker.Item label="Truck" value="Truck" />
+                <Picker.Item label="Sedan" value="Sedan" />
+              </Picker>
+            </View>
+
+            <View className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+              <Picker
+                selectedValue={filters.transmission}
+                onValueChange={(value) => handleFilterChange('transmission', value)}
+              >
+                <Picker.Item label="Select Transmission" value="" />
+                <Picker.Item label="Manual" value="Manual" />
+                <Picker.Item label="Automatic" value="Automatic" />
+              </Picker>
+            </View>
+
+            <View className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+              <Picker
+                selectedValue={filters.fuelType}
+                onValueChange={(value) => handleFilterChange('fuelType', value)}
+              >
+                <Picker.Item label="Select Fuel Type" value="" />
+                <Picker.Item label="Petrol" value="Petrol" />
+                <Picker.Item label="Diesel" value="Diesel" />
+                <Picker.Item label="Hybrid" value="Hybrid" />
+                <Picker.Item label="Electric" value="Electric" />
+              </Picker>
+            </View>
+
+            <View className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+              <View className="flex-row items-center justify-between px-4 py-3 gap-2">
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentPrice = Number(filters.minPrice) || 0;
+                    const newPrice = Math.max(0, currentPrice - 5000);
+                    handleFilterChange('minPrice', String(newPrice));
+                  }}
+                  className="p-2 bg-gray-100 rounded-lg"
+                >
+                  <Text className="text-xl font-bold text-[#0D3778]">−</Text>
+                </TouchableOpacity>
+                
+                <TextInput
+                  value={filters.minPrice}
+                  onChangeText={(value) => {
+                    const numValue = value.replace(/[^0-9]/g, '');
+                    handleFilterChange('minPrice', numValue);
+                  }}
+                  placeholder="Min price (LKR/day)"
+                  keyboardType="numeric"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
+                />
+
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentPrice = Number(filters.minPrice) || 0;
+                    const newPrice = currentPrice + 5000;
+                    handleFilterChange('minPrice', String(newPrice));
+                  }}
+                  className="p-2 bg-gray-100 rounded-lg"
+                >
+                  <Text className="text-xl font-bold text-[#0D3778]">+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+              <View className="flex-row items-center justify-between px-4 py-3 gap-2">
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentPrice = Number(filters.maxPrice) || 0;
+                    const newPrice = Math.max(0, currentPrice - 5000);
+                    handleFilterChange('maxPrice', String(newPrice));
+                  }}
+                  className="p-2 bg-gray-100 rounded-lg"
+                >
+                  <Text className="text-xl font-bold text-[#0D3778]">−</Text>
+                </TouchableOpacity>
+                
+                <TextInput
+                  value={filters.maxPrice}
+                  onChangeText={(value) => {
+                    const numValue = value.replace(/[^0-9]/g, '');
+                    handleFilterChange('maxPrice', numValue);
+                  }}
+                  placeholder="Max price (LKR/day)"
+                  keyboardType="numeric"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    const currentPrice = Number(filters.maxPrice) || 0;
+                    const newPrice = currentPrice + 5000;
+                    handleFilterChange('maxPrice', String(newPrice));
+                  }}
+                  className="p-2 bg-gray-100 rounded-lg"
+                >
+                  <Text className="text-xl font-bold text-[#0D3778]">+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -328,6 +452,92 @@ export default function CustomerVehicleList() {
           )}
         </View>
       </ScrollView>
+
+      {/* Start Date Picker Modal */}
+      <Modal visible={showStartDatePicker} animationType="slide" transparent>
+        <View className="flex-1 bg-black/60 justify-end">
+          <View className="bg-white rounded-t-3xl p-4">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-lg font-bold text-gray-900">Select Start Date</Text>
+              <TouchableOpacity onPress={() => setShowStartDatePicker(false)}>
+                <Text className="text-blue-600 font-semibold text-base">Done</Text>
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={(day) => handleStartDateChange(day.dateString)}
+              markedDates={{
+                [filters.startDate]: { selected: true, selectedColor: '#0D3778' },
+              }}
+              theme={{
+                backgroundColor: '#ffffff',
+                calendarBackground: '#ffffff',
+                textSectionTitleColor: '#666666',
+                textSectionTitleDisabledColor: '#d9d9d9',
+                selectedDayBackgroundColor: '#0D3778',
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: '#0D3778',
+                dayTextColor: '#2d3436',
+                textDisabledColor: '#d9d9d9',
+                dotColor: '#0D3778',
+                selectedDotColor: '#ffffff',
+                arrowColor: '#0D3778',
+                disabledArrowColor: '#d9d9d9',
+                monthTextColor: '#2d3436',
+                indicatorColor: '#0D3778',
+                textDayFontFamily: 'System',
+                textMonthFontFamily: 'System',
+                textDayHeaderFontFamily: 'System',
+                textDayFontSize: 14,
+                textMonthFontSize: 16,
+                textDayHeaderFontSize: 13,
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* End Date Picker Modal */}
+      <Modal visible={showEndDatePicker} animationType="slide" transparent>
+        <View className="flex-1 bg-black/60 justify-end">
+          <View className="bg-white rounded-t-3xl p-4">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-lg font-bold text-gray-900">Select End Date</Text>
+              <TouchableOpacity onPress={() => setShowEndDatePicker(false)}>
+                <Text className="text-blue-600 font-semibold text-base">Done</Text>
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={(day) => handleEndDateChange(day.dateString)}
+              markedDates={{
+                [filters.endDate]: { selected: true, selectedColor: '#0D3778' },
+              }}
+              theme={{
+                backgroundColor: '#ffffff',
+                calendarBackground: '#ffffff',
+                textSectionTitleColor: '#666666',
+                textSectionTitleDisabledColor: '#d9d9d9',
+                selectedDayBackgroundColor: '#0D3778',
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: '#0D3778',
+                dayTextColor: '#2d3436',
+                textDisabledColor: '#d9d9d9',
+                dotColor: '#0D3778',
+                selectedDotColor: '#ffffff',
+                arrowColor: '#0D3778',
+                disabledArrowColor: '#d9d9d9',
+                monthTextColor: '#2d3436',
+                indicatorColor: '#0D3778',
+                textDayFontFamily: 'System',
+                textMonthFontFamily: 'System',
+                textDayHeaderFontFamily: 'System',
+                textDayFontSize: 14,
+                textMonthFontSize: 16,
+                textDayHeaderFontSize: 13,
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={isModalOpen} animationType="slide" transparent>
         <View className="flex-1 bg-black/60 justify-center px-4">

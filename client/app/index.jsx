@@ -14,14 +14,11 @@ export default function HomeScreen() {
   return (
    
           <ScrollView
-            style={styles.container}
-            showsVerticalScrollIndicator={false}
-          >
-
             // style={styles.container}
             // showsVerticalScrollIndicator={false}
+          >
            
-             
+    
           {/*The temporary buttons shown in the mobile view cannot navigate to actual URLs. These buttons are only added for testing 
           and demonstration purposes of navigation flow.
           pleas donot delet this buttons. after connect every part then delet this buttons*/}
