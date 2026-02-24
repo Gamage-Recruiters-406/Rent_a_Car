@@ -12,9 +12,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Picker,
   Platform,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker/js';
 import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import {
