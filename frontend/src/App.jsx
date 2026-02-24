@@ -51,7 +51,6 @@ function App() {
         <Route path="/owner/booking-requests" element={<OwnerBookingRequests />} />
 
         {/* public */}
-        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
         <Route path="/" element={<Homepage />} />
