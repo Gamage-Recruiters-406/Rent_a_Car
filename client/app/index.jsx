@@ -90,6 +90,14 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
+      <Link href="/booking" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Owner Booking Request
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
       <TouchableOpacity
         onPress={async () => {
           const keys = ["userToken", "userId", "userRole"];
