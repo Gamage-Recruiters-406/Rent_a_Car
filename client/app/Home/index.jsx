@@ -8,7 +8,7 @@ export default function HomeIndex() {
   useEffect(() => {
     // Automatically redirect to homepage
     // This makes /Home route go to /Home/homepage
-    router.replace('/Home/homepage');
+    router.replace('/Home');
   }, []);
 
   return (
