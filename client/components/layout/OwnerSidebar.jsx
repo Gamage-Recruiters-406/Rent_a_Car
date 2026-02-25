@@ -149,7 +149,7 @@ export default function OwnerSidebar({
       id: 9,
       icon: 'settings-outline',
       label: 'Settings',
-      route: '/settings',
+      route: '/admin/settings',
       iconType: 'Ionicons',
     },
     {
@@ -179,125 +179,55 @@ export default function OwnerSidebar({
     return <Ionicons name={item.icon} {...iconProps} />;
   };
 
+  // Sidebar animation state
+  const [sidebarAnim] = useState(new Animated.Value(-300)); // Sidebar starts off-screen
+
+  useEffect(() => {
+    if (isVisible) {
+      Animated.timing(sidebarAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(sidebarAnim, {
+        toValue: -300,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isVisible]);
+
   return (
     <Modal
       visible={isVisible}
       transparent={true}
-      animationType="slide"
       onRequestClose={onClose}
     >
       <View className="flex-1 flex-row">
-        {/* Main Sidebar - 85% width */}
-        <View className="bg-[#0D3778]" style={{ width: '70%' }}>
-
+        {/* Animated Sidebar - slides from left */}
+        <Animated.View
+          className="bg-[#0D3778]"
+          style={{
+            width: '70%',
+            transform: [{ translateX: sidebarAnim }],
+            shadowColor: '#000',
+            shadowOffset: { width: 2, height: 0 },
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 8,
+          }}
+        >
           <ScrollView className="flex-1">
             {/* Sidebar Header with Logo and Owner Info */}
-            <View className="bg-[#0D3778] pt-12 pb-8 px-6">
-              <View className="flex-row items-center mb-6">
-                <Image
-                  source={whiteLogo}
-                  className="w-10 h-10 mr-3"
-                  resizeMode="contain"
-                />
-                <Text className="text-xl font-bold text-white">Rent My Car</Text>
-              </View>
-              <View className="flex-row items-center mb-4">
-                <View className="w-12 h-12 rounded-full bg-blue-300 items-center justify-center mr-3">
-                  <Text className="text-xl font-bold text-white">
-                    {user?.first_name?.charAt(0)?.toUpperCase() || 'U'}
-                  </Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-white text-lg font-bold">
-                    {user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Owner'}
-                  </Text>
-                  <View className="flex-row items-center mt-1">
-                    <View className="w-2 h-2 bg-green-400 rounded-full mr-2" />
-                    <Text className="text-blue-100 text-sm">Online</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-
+            {/* ...existing code... */}
             {/* Menu Items */}
-            <View className="pt-4">
-              {menuItems.map((item) => (
-                <View key={item.id}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (item.expandable) {
-                        setExpandedBookings(!expandedBookings);
-                      } else {
-                        setActiveItemId(item.id);
-                        handleNavigation(item.route);
-                      }
-                    }}
-                    className={`flex-row items-center px-6 py-4 mx-3 rounded-lg mb-1 ${
-                      activeItemId === item.id ? 'bg-white' : ''
-                    }`}
-                    activeOpacity={0.7}
-                  >
-                    {renderIcon(item, activeItemId === item.id ? '#0D3778' : 'white')}
-                    <Text className={`text-base flex-1 ${
-                      activeItemId === item.id ? 'font-bold' : ''
-                    }`} style={{ color: activeItemId === item.id ? '#0D3778' : 'white' }}>{item.label}</Text>
-
-                    {item.expandable && (
-                      <MaterialCommunityIcons
-                        name={expandedBookings ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color="white"
-                      />
-                    )}
-
-                    {item.badge && (
-                      <View className="bg-red-500 px-2 py-1 rounded-full">
-                        <Text className="text-white text-xs font-bold">
-                          {item.badge}
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-
-                  {/* Sub Items for Bookings */}
-                  {item.expandable && expandedBookings && item.subItems && (
-                    <View className="bg-[#1a2f70]">
-                      {item.subItems.map((subItem, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          className="flex-row items-center px-12 py-3 border-b border-blue-600"
-                          onPress={() => handleNavigation(item.route)}
-                          activeOpacity={0.7}
-                        >
-                          <Text className="text-blue-200 text-sm flex-1">
-                            {subItem.label}
-                          </Text>
-                          <Text className="text-blue-300 text-xs font-semibold">
-                            {subItem.count}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              ))}
-
-              {/* Total Earnings Section */}
-              <View className="mx-6 mt-6 p-4 bg-[#1a2f70] rounded-lg border border-blue-600">
-                <Text className="text-blue-200 text-sm mb-2">Total Earnings</Text>
-                {loadingData ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-white text-2xl font-bold">
-                    Rs. {totalEarnings.toLocaleString()}
-                  </Text>
-                )}
-              </View>
-            </View>
-
+            {/* ...existing code... */}
+            {/* Total Earnings Section */}
+            {/* ...existing code... */}
             <View className="h-6" />
           </ScrollView>
-        </View>
+        </Animated.View>
 
         {/* Overlay - Close on tap */}
         <TouchableOpacity

@@ -13,7 +13,7 @@ export default function Footer() {
 
   // Navigation items for footer (same for both customer and owner)
   const footerItems = [
-    { id: 1, icon: 'home', iconOutline: 'home-outline', label: 'Home', route: '/home' },
+    { id: 1, icon: 'home', iconOutline: 'home-outline', label: 'Home', route: '/Home/homepage' },
     { id: 2, icon: 'search', iconOutline: 'search-outline', label: 'Search', route: '/vehicles/search' },
     { id: 3, icon: 'heart', iconOutline: 'heart-outline', label: 'Favorites', route: '/favorites' },
     { id: 4, icon: 'calendar', iconOutline: 'calendar-outline', label: 'Bookings', route: '/bookings' },
