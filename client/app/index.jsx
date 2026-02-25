@@ -7,7 +7,8 @@ import { Stats } from "../components/ui/Stats";
 import { Testimonials } from "../components/ui/Testimonials";
 import { NewsLetter } from "../components/ui/NewsLetter";
 import { Items } from "../components/ui/Items";
-//import { QuickStats } from '../components/ui/QuickStats';
+import { QuickStats } from '../components/ui/QuickStats';
+import AppLayout from "../components/layout/Layout";
 
 export default function HomeScreen() {
   return (
@@ -113,13 +114,14 @@ export default function HomeScreen() {
           Check Stored Data
         </Text>
       </TouchableOpacity>
-
-      {/*  <Hero />
+<AppLayout>
+      <Hero />
       <Stats />
       <Items />
       <QuickStats />
       <NewsLetter />
-      <Testimonials /> */}
+      <Testimonials /> 
+      </AppLayout>
     </ScrollView>
   );
 }

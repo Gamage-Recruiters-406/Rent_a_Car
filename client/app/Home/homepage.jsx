@@ -13,7 +13,9 @@ import { Hero } from "../../components/ui/Hero";
 import { Stats } from "../../components/ui/Stats";
 import { Items } from "../../components/ui/Items";
 import { NewsLetter } from "../../components/ui/NewsLetter";
-//import { QuickStats } from "../../components/ui/QuickStats";
+import { QuickStats } from "../../components/ui/QuickStats";
+import { Testimonials } from "../../components/ui/Testimonials";
+import Layout from "../login/_layout";
 
 // Import your UI components
 
@@ -26,11 +28,14 @@ export default function HomePage() {
 
       {/* Scrollable Content */}
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+       <Layout/>
         <Hero />
         <Stats />
         <Items />
         <QuickStats />
         <NewsLetter />
+        <Testimonials />
+
 
         {/* Add some bottom padding for better scrolling */}
         <View style={styles.bottomPadding} />
