@@ -74,6 +74,22 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
+      <Link href="/admin/settings" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            admin setting
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/vehicle/6981d6ae24ec9900bf582a54" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            vehicle details
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
       <TouchableOpacity
         onPress={async () => {
           const keys = ["userToken", "userId", "userRole"];
