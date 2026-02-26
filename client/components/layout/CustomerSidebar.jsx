@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { Animated } from 'react-native';
 import {
   View,
   Text,
@@ -9,8 +10,9 @@ import {
 } from 'react-native';
 
 const whiteLogo = require('../../assets/images/Rent My Car.png');
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * CustomerSidebar Component - Sidebar menu for customer/user
@@ -24,26 +26,42 @@ export default function CustomerSidebar({
   const router = useRouter();
   const [activeItemId, setActiveItemId] = useState(1);
 
+  // ✅ FIX: Logout now properly clears token and redirects — previously routed to '/logout' which doesn't exist
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('userToken');
+      onClose();
+      router.replace('/login'); // adjust to your actual login route
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   const menuItems = [
     { id: 1, icon: 'home-outline', label: 'Home', route: '/Home/homepage' },
     { id: 2, icon: 'car-outline', label: 'Browse Cars', route: '/vehicles/search' },
     { id: 3, icon: 'help-circle-outline', label: 'How it works', route: '/how-it-works' },
     { id: 4, icon: 'person-add-outline', label: 'Become a host', route: '/become-host' },
     { id: 5, icon: 'calendar-outline', label: 'My Bookings', route: '/bookings' },
-    { id: 6, icon: 'notifications-outline', label: 'Notifications', route: '/notifications', badge: 3 },
+    { id: 6, icon: 'notifications-outline', label: 'Notifications', route: '/Notifications/notifications', badge: 3 },
     { id: 7, icon: 'person-outline', label: 'Profile', route: '/profile' },
-    { id: 8, icon: 'settings-outline', label: 'Settings', route: '/settings' },
-    { id: 9, icon: 'log-out-outline', label: 'Logout', route: '/logout' },
+    { id: 8, icon: 'settings-outline', label: 'Settings', route: '/admin/settings' },
+    // ✅ FIX: Logout item no longer uses a route — uses onPress with handleLogout directly
+    { id: 9, icon: 'log-out-outline', label: 'Logout', isLogout: true },
   ];
 
   const handleNavigation = (item) => {
+    if (item.isLogout) {
+      handleLogout();
+      return;
+    }
     setActiveItemId(item.id);
     onClose();
     router.push(item.route);
   };
 
   // Sidebar animation state
-  const [sidebarAnim] = useState(new Animated.Value(-300)); // Sidebar starts off-screen
+  const [sidebarAnim] = useState(new Animated.Value(-300));
 
   React.useEffect(() => {
     if (isVisible) {
@@ -67,12 +85,12 @@ export default function CustomerSidebar({
       transparent={true}
       onRequestClose={onClose}
     >
-      <View className="flex-1 flex-row">
+      <View style={{ flex: 1, flexDirection: 'row' }}>
         {/* Animated Sidebar - slides from left */}
         <Animated.View
-          className="bg-[#0D3778]"
           style={{
             width: '70%',
+            backgroundColor: '#0D3778',
             transform: [{ translateX: sidebarAnim }],
             shadowColor: '#000',
             shadowOffset: { width: 2, height: 0 },
@@ -81,18 +99,92 @@ export default function CustomerSidebar({
             elevation: 8,
           }}
         >
-          <ScrollView className="flex-1">
+          <ScrollView style={{ flex: 1 }}>
             {/* Sidebar Header with Logo and User Info */}
-            {/* ...existing code... */}
+            <View style={{ paddingTop: 32, paddingBottom: 16, paddingHorizontal: 20, backgroundColor: '#0D3778' }}>
+              {/* Logo and App Name Row */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 28 }}>
+                <Image
+                  source={whiteLogo}
+                  style={{ width: 36, height: 36, marginRight: 10 }}
+                  resizeMode="contain"
+                />
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 20 }}>Rent My Car</Text>
+              </View>
+              {/* User Avatar, Name, Online */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
+                    {user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'U'}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                    {user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'User'}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e', marginRight: 5 }} />
+                    <Text style={{ color: '#bae6fd', fontSize: 13 }}>Online</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
             {/* Menu Items */}
-            {/* ...existing code... */}
+            <View style={{ marginTop: 15 }}>
+              {menuItems.map((item) => {
+                const isActive = activeItemId === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 16, // more vertical space
+                      paddingHorizontal: 24,
+                      backgroundColor: isActive ? '#fff' : 'transparent',
+                      borderRadius: 8,
+                      marginVertical: 2,
+                    }}
+                    onPress={() => handleNavigation(item)}
+                  >
+                    <Ionicons
+                      name={item.icon}
+                      size={20}
+                      color={isActive ? '#0D3778' : '#cbd5e1'}
+                      style={{ marginRight: 16 }}
+                    />
+                    <Text style={{
+                      color: isActive ? '#0D3778' : '#cbd5e1',
+                      fontSize: 17, // increased size
+                      flex: 1,
+                      fontWeight: isActive ? '600' : '400',
+                      letterSpacing: 0.1,
+                    }}>
+                      {item.label}
+                    </Text>
+                    {item.badge && (
+                      <View style={{
+                        backgroundColor: 'red',
+                        borderRadius: 8,
+                        paddingHorizontal: 6,
+                        paddingVertical: 2,
+                        marginLeft: 8,
+                      }}>
+                        <Text style={{ color: '#fff', fontSize: 12 }}>{item.badge}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </ScrollView>
         </Animated.View>
 
         {/* Overlay - Close on tap */}
         <TouchableOpacity
           onPress={onClose}
-          className="flex-1 bg-black/40"
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
           activeOpacity={1}
         />
       </View>
