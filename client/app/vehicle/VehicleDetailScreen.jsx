@@ -132,7 +132,7 @@ export default function VehicleDetailScreen() {
   }, [id]);
 
   const photoUrls = useMemo(() => {
-    const base = "http://localhost:8090"; // change for real phone later
+    const base = process.env.EXPO_PUBLIC_API_BASE_URL; // change for real phone later
     const photos = vehicle?.photos || [];
 
     return photos

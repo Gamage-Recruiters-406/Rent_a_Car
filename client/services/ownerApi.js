@@ -139,6 +139,27 @@ export const getOwnerBookings = async (status) => {
 };
 
 /**
+ * GET /api/v1/bookings/owner
+ * Returns RAW bookings data (without normalization) for dashboard
+ */
+export const getRawOwnerBookings = async (status) => {
+  const token = await getToken();
+  if (!token) throw new Error("Not authenticated");
+
+  const query = status ? `?status=${status}` : "";
+  const url = `${BASE_URL}${API_VERSION}/bookings/owner${query}`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || "Failed to fetch bookings");
+
+  return data;
+};
+
+/**
  * GET /api/v1/bookings/get/:id
  * Returns a single booking by ID (owner or customer can access their own).
  */
@@ -198,4 +219,89 @@ export const rejectBooking = async (bookingId) => {
   if (!res.ok) throw new Error(data.message || "Failed to reject booking");
 
   return data;
+};
+
+/**
+ * GET /api/v1/bookings/owner/earnings/:ownerId
+ * Get owner earnings data
+ */
+export const getOwnerEarnings = async (ownerId, startDate, endDate) => {
+  const token = await getToken();
+  if (!token) throw new Error("Not authenticated");
+
+  const queryParams = new URLSearchParams();
+  if (startDate) queryParams.append('startDate', startDate);
+  if (endDate) queryParams.append('endDate', endDate);
+  
+  const url = `${BASE_URL}${API_VERSION}/bookings/owner/earnings/${ownerId}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || "Failed to fetch earnings");
+
+  return data;
+};
+
+/**
+ * GET /api/v1/vehicle/get-my-all
+ * Get all vehicles owned by the logged-in owner
+ */
+export const getMyVehicleListings = async () => {
+  const token = await getToken();
+  if (!token) throw new Error("Not authenticated");
+
+  const url = `${BASE_URL}${API_VERSION}/vehicle/get-my-all`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || "Failed to fetch vehicles");
+
+  return data;
+};
+
+/**
+ * GET /api/v1/reviews/my-vehicles
+ * Get all reviews for the owner's vehicles
+ */
+export const getMyVehicleReviews = async () => {
+  const token = await getToken();
+  if (!token) throw new Error("Not authenticated");
+
+  const url = `${BASE_URL}${API_VERSION}/reviews/my-vehicles`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || "Failed to fetch reviews");
+
+  return data;
+};
+
+/**
+ * API helper object for making generic requests (like notifications)
+ */
+export const api = {
+  get: async (endpoint) => {
+    const token = await getToken();
+    if (!token) throw new Error("Not authenticated");
+
+    const url = `${BASE_URL}${API_VERSION}${endpoint}`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || "Request failed");
+
+    return { data };
+  },
 };

@@ -12,8 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
-const BASE_URL = 'http://localhost:8090';
-const API_VERSION = '/api/v1';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
 export const Testimonials = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -36,7 +36,7 @@ export const Testimonials = () => {
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${BASE_URL}${API_VERSION}/reviews/home`);
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/reviews/home`);
       if (!response.ok) throw new Error('Failed to fetch testimonials');
       const data = await response.json();
       setTestimonials(data.success && Array.isArray(data.reviews) ? data.reviews : []);

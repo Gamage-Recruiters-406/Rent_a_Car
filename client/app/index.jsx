@@ -7,7 +7,8 @@ import { Stats } from "../components/ui/Stats";
 import { Testimonials } from "../components/ui/Testimonials";
 import { NewsLetter } from "../components/ui/NewsLetter";
 import { Items } from "../components/ui/Items";
-//import { QuickStats } from '../components/ui/QuickStats';
+import { QuickStats } from '../components/ui/QuickStats';
+import AppLayout from "../components/layout/Layout";
 
 export default function HomeScreen() {
   return (
@@ -19,29 +20,35 @@ export default function HomeScreen() {
           and demonstration purposes of navigation flow.
           pleas donot delet this buttons. after connect every part then delet this buttons*/}
 
-            <Link href="/login/SignInPage" asChild>
-              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-                <Text className="text-white font-semibold text-lg text-center">Login</Text>
-              </TouchableOpacity>
-            </Link>
-            <Link href="/Reviews" asChild>
-              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-                <Text className="text-white font-semibold text-lg text-center">Reviews</Text>
-              </TouchableOpacity>
-            </Link>
-            <Link href="/MyReviews" asChild>
-              <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-                <Text className="text-white font-semibold text-lg text-center">My Reviews</Text>
-              </TouchableOpacity>
-            </Link>
+      <Link href="/login/SignInPage" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Login
+          </Text>
+        </TouchableOpacity>
+      </Link>
+      <Link href="/Reviews" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Reviews
+          </Text>
+        </TouchableOpacity>
+      </Link>
+      <Link href="/MyReviews" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            My Reviews
+          </Text>
+        </TouchableOpacity>
+      </Link>
 
-                        <View style={styles.buttonWrapper}>
-              <Link href="/CustomerVehicleList" asChild>
-                <TouchableOpacity style={styles.button}>
-                  <Text style={styles.buttonText}>Go to Vehicle List</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
+      <View style={styles.buttonWrapper}>
+        <Link href="/CustomerVehicleList" asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Go to Vehicle List</Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
 
       <Link href="/vehicle_booking" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -59,9 +66,48 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
-     <Link href="/Cus_booking-history/booking-history" asChild>
+      <Link href="/Cus_booking-history/booking-history" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center"> BOOKING History</Text>
+          <Text className="text-white font-semibold text-lg text-center">
+            {" "}
+            BOOKING History
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/admin/settings" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            admin setting
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/vehicle/6981d6ae24ec9900bf582a54" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            vehicle details
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/booking" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Owner Booking Request
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/owner/owner-dashboard" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center"> Owner Dashboard</Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/contact" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center"> Contact</Text>
         </TouchableOpacity>
       </Link>
 
@@ -80,13 +126,14 @@ export default function HomeScreen() {
           Check Stored Data
         </Text>
       </TouchableOpacity>
-
-      {/*  <Hero />
+<AppLayout>
+      <Hero />
       <Stats />
       <Items />
       <QuickStats />
       <NewsLetter />
-      <Testimonials /> */}
+      <Testimonials /> 
+      </AppLayout>
     </ScrollView>
   );
 }
@@ -96,18 +143,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-    buttonWrapper: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
-    },
-    button: {
-      backgroundColor: '#0D3778',
-      paddingVertical: 12,
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-    buttonText: {
-      color: '#fff',
-      fontWeight: '600',
-    },
+  buttonWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  button: {
+    backgroundColor: "#0D3778",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
 });
