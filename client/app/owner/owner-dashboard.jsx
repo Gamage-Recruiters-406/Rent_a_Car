@@ -292,15 +292,15 @@ const OwnerDashboard = () => {
       try {
         const userToken = await AsyncStorage.getItem('userToken');
         if (!userToken) {
-          // User is not logged in, redirect to login page
-          router.replace('/login/SignInPage');
+          // User is not logged in
+          setIsLoggedIn(false);
           return false;
         }
         setIsLoggedIn(true);
         return true;
       } catch (error) {
         console.error('Error checking login status:', error);
-        router.replace('/login/SignInPage');
+        setIsLoggedIn(false);
         return false;
       }
     };
@@ -310,7 +310,10 @@ const OwnerDashboard = () => {
         setLoading(true);
         
         const isUserLoggedIn = await checkLoginStatus();
-        if (!isUserLoggedIn) return;
+        if (!isUserLoggedIn) {
+          setLoading(false);
+          return;
+        }
 
         const userStr = await AsyncStorage.getItem('user');
         const user = (userStr && userStr !== 'undefined' && userStr !== 'null') ? JSON.parse(userStr) : {};
