@@ -85,7 +85,7 @@ export default function MyReviewsMobile() {
         // Re-fetch latest reviews
         await fetchMyReviews();
 
-        alert('Review updated successfully');
+        // alert('Review updated successfully');
 
 
         
@@ -114,7 +114,7 @@ export default function MyReviewsMobile() {
         );
 
         await fetchMyReviews();
-        alert('Review deleted successfully');
+        // alert('Review deleted successfully');
 
         setDeleteTargetId(null); // colse modal
     } catch (error) {
