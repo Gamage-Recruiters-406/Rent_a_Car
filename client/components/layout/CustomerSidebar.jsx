@@ -39,12 +39,12 @@ export default function CustomerSidebar({
 
   const menuItems = [
     { id: 1, icon: 'home-outline', label: 'Home', route: '/Home/homepage' },
-    { id: 2, icon: 'car-outline', label: 'Browse Cars', route: '/vehicles/search' },
-    { id: 3, icon: 'help-circle-outline', label: 'How it works', route: '/how-it-works' },
-    { id: 4, icon: 'person-add-outline', label: 'Become a host', route: '/become-host' },
-    { id: 5, icon: 'calendar-outline', label: 'My Bookings', route: '/bookings' },
+    { id: 2, icon: 'car-outline', label: 'Browse Cars', route: '/CustomerVehicleList' },
+    { id: 3, icon: 'calendar-outline', label: 'My Bookings', route: '/Cus_booking-history/booking-history' },
+    { id: 4, icon: 'star-outline', label: 'My Reviews', route: '/MyReviews' },
+    { id: 5, icon: 'call-outline', label: 'Contact Us', route: '/contact' },
     { id: 6, icon: 'notifications-outline', label: 'Notifications', route: '/Notifications/notifications', badge: 3 },
-    { id: 7, icon: 'person-outline', label: 'Profile', route: '/profile' },
+    { id: 7, icon: 'person-outline', label: 'Profile', route: '/CoustomerProfileEdit' },
     { id: 8, icon: 'settings-outline', label: 'Settings', route: '/admin/settings' },
     // ✅ FIX: Logout item no longer uses a route — uses onPress with handleLogout directly
     { id: 9, icon: 'log-out-outline', label: 'Logout', isLogout: true },

@@ -31,9 +31,12 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
   const [loadingData, setLoadingData] = useState(false);
   const [sidebarAnim] = useState(new Animated.Value(-300));
 
+  // Resolve owner ID — handles _id, id, or userid fields from JWT/user object
+  const ownerId = user?._id || user?.id || user?.userid;
+
   // Fetch booking counts and earnings when sidebar opens
   useEffect(() => {
-    if (!isVisible || !user?._id) return;
+    if (!isVisible || !ownerId) return;
 
     const fetchOwnerData = async () => {
       setLoadingData(true);
@@ -46,40 +49,39 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
           'Authorization': `Bearer ${token}`,
         };
 
-        // ✅ FIXED: Correct routes matching backend
-        // Backend: GET /bookings/owner           → getOwnerBookings (uses req.user.userid internally)
-        // Backend: GET /bookings/owner/earnings/:ownerId → getOwnerEarnings
+        // Fetch all owner bookings + earnings in parallel
         const [bookingsRes, earningsRes] = await Promise.all([
           fetch(`${baseUrl}${apiVersion}/bookings/owner`, { headers }),
-          fetch(`${baseUrl}${apiVersion}/bookings/owner/earnings/${user._id}`, { headers }),
+          fetch(`${baseUrl}${apiVersion}/bookings/owner/earnings/${ownerId}`, { headers }),
         ]);
 
-        if (!bookingsRes.ok) {
-          console.error('Bookings fetch failed:', bookingsRes.status);
-        }
-        if (!earningsRes.ok) {
-          console.error('Earnings fetch failed:', earningsRes.status);
-        }
+        if (!bookingsRes.ok) console.error('Bookings fetch failed:', bookingsRes.status);
+        if (!earningsRes.ok) console.error('Earnings fetch failed:', earningsRes.status);
 
         const bookingsData = await bookingsRes.json();
         const earningsData = await earningsRes.json();
 
-        // Count bookings by status
+        // Count bookings by status + calculate earnings from fetched data directly
         if (bookingsData.success && Array.isArray(bookingsData.data)) {
           const counts = { approved: 0, pending: 0, rejected: 0 };
-          bookingsData.data.forEach((b) => {
-            if (counts[b.status] !== undefined) counts[b.status]++;
-          });
-          setBookingCounts(counts);
-        } else {
-          console.warn('Bookings response:', bookingsData);
-        }
+          let earnings = 0;
 
-        // Set total earnings
-        if (earningsData.success && earningsData.data) {
-          setTotalEarnings(earningsData.data.totalEarnings || 0);
+          bookingsData.data.forEach((b) => {
+            const status = b.status?.toLowerCase().trim();
+
+            // Count by status
+            if (counts[status] !== undefined) counts[status]++;
+
+            // Earnings from approved + paid bookings with totalAmount > 0
+            if ((status === 'approved' || status === 'paid') && b.totalAmount > 0) {
+              earnings += b.totalAmount;
+            }
+          });
+
+          setBookingCounts(counts);
+          setTotalEarnings(earnings);
         } else {
-          console.warn('Earnings response:', earningsData);
+          console.warn('Unexpected bookings response:', bookingsData);
         }
       } catch (error) {
         console.error('Failed to fetch owner data:', error);
@@ -89,7 +91,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
     };
 
     fetchOwnerData();
-  }, [isVisible, user?._id]);
+  }, [isVisible, ownerId]);
 
   // Sidebar slide animation
   useEffect(() => {
@@ -108,30 +110,37 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
   const menuItems = [
     {
       id: 1,
+      icon: 'home-outline',
+      label: 'Home',
+      route: '/Home/homepage',
+      iconType: 'Ionicons',
+    },
+    {
+      id: 2,
       icon: 'view-dashboard-outline',
       label: 'Dashboard',
       route: '/dashboard',
       iconType: 'MaterialCommunityIcons',
     },
     {
-      id: 2,
+      id: 3,
       icon: 'car-outline',
       label: 'My Vehicles',
-      route: '/vehicles',
-      iconType: 'Ionicons',
-    },
-    {
-      id: 3,
-      icon: 'add-circle-outline',
-      label: 'Add Vehicle',
-      route: '/vehicles/add',
+      route: '/owner/my-vehicle',
       iconType: 'Ionicons',
     },
     {
       id: 4,
+      icon: 'add-circle-outline',
+      label: 'Add Vehicle',
+      route: '/owner/AddVehicle',
+      iconType: 'Ionicons',
+    },
+    {
+      id: 5,
       icon: 'calendar-outline',
       label: 'Bookings',
-      route: '/bookings',
+      route: '/booking',
       iconType: 'Ionicons',
       expandable: true,
       subItems: [
@@ -141,17 +150,10 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       ],
     },
     {
-      id: 5,
+      id: 6,
       icon: 'cash-outline',
       label: 'Earnings',
-      route: '/earnings',
-      iconType: 'Ionicons',
-    },
-    {
-      id: 6,
-      icon: 'star-outline',
-      label: 'Reviews',
-      route: '/reviews',
+      route: '/owner/rental-history',
       iconType: 'Ionicons',
     },
     {
@@ -166,14 +168,14 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       id: 8,
       icon: 'person-outline',
       label: 'Profile',
-      route: '/profile',
+      route: '/OwnerProfileEdit',
       iconType: 'Ionicons',
     },
     {
       id: 9,
       icon: 'settings-outline',
       label: 'Settings',
-      route: '/settings',
+      route: '/admin/settings',
       iconType: 'Ionicons',
     },
     {
@@ -213,25 +215,38 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
           <ScrollView className="flex-1">
             {/* Header */}
             <View className="bg-[#0D3778] pt-12 pb-8 px-6">
-              <View className="flex-row items-center mb-6">
-                <Image source={whiteLogo} className="w-10 h-10 mr-3" resizeMode="contain" />
-                <Text className="text-xl font-bold text-white">Rent My Car</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
+                <Image
+                  source={whiteLogo}
+                  style={{ width: 40, height: 40, marginRight: 10 }}
+                  resizeMode="contain"
+                />
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 20 }}>Rent My Car</Text>
               </View>
-              <View className="flex-row items-center mb-4">
-                <View className="w-12 h-12 rounded-full bg-blue-300 items-center justify-center mr-4">
-                  <Text className="text-xl font-bold text-white">
-                    {user?.first_name?.charAt(0)?.toUpperCase() || 'U'}
-                  </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <View style={{ alignItems: 'center', marginRight: 12 }}>
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: '#3b82f6',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ color: 'white', fontSize: 22, fontWeight: 'bold' }}>
+                      {user?.first_name?.charAt(0)?.toUpperCase() || 'U'}
+                    </Text>
+                  </View>
                 </View>
-                <View className="flex-1">
-                  <Text className="text-white text-lg font-bold">
-                    {user?.first_name && user?.last_name
-                      ? `${user.first_name} ${user.last_name}`
-                      : 'User'}
+                <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
+                  <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+                    {user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'User'}
                   </Text>
-                  <View className="flex-row items-center mt-1">
-                    <View className="w-2 h-2 bg-green-400 rounded-full mr-2" />
-                    <Text className="text-blue-100 text-sm">Online</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e', marginRight: 4 }} />
+                    <Text style={{ color: '#b6cdfd', fontSize: 12 }}>Online</Text>
                   </View>
                 </View>
               </View>
@@ -251,6 +266,12 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
                         onClose();
                         router.replace('/login');
                       } else {
+                        setActiveItemId(item.id);
+                        handleNavigation(item.route);
+                      }
+                    }}
+                    onLongPress={() => {
+                      if (item.expandable) {
                         setActiveItemId(item.id);
                         handleNavigation(item.route);
                       }
