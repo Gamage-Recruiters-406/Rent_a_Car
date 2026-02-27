@@ -4,12 +4,12 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Dimensions,
   Platform,
   Modal,
   ScrollView,
   Alert,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -18,12 +18,14 @@ import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { getOwnerBookings } from "../../services/ownerApi";
 
-const { width } = Dimensions.get("window");
-const isSmallScreen = width < 360;
-const isMediumScreen = width >= 360 && width < 414;
-const numColumns = width > 600 ? 2 : 1; // For tablet support
-
-const RentalCard = ({ rental, onPress }) => {
+const RentalCard = ({
+  rental,
+  onPress,
+  width,
+  isSmallScreen,
+  isMediumScreen,
+  numColumns,
+}) => {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Completed":
@@ -188,6 +190,11 @@ const RentalCard = ({ rental, onPress }) => {
 };
 
 export default function RentalHistoryScreen() {
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 360;
+  const isMediumScreen = width >= 360 && width < 414;
+  const numColumns = width > 600 ? 2 : 1;
+
   const [searchText, setSearchText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -526,7 +533,14 @@ export default function RentalHistoryScreen() {
   );
 
   const renderRental = ({ item }) => (
-    <RentalCard rental={item} onPress={openRentalDetails} />
+    <RentalCard
+      rental={item}
+      onPress={openRentalDetails}
+      width={width}
+      isSmallScreen={isSmallScreen}
+      isMediumScreen={isMediumScreen}
+      numColumns={numColumns}
+    />
   );
 
   return (
