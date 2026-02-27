@@ -7,7 +7,8 @@ import { Stats } from "../components/ui/Stats";
 import { Testimonials } from "../components/ui/Testimonials";
 import { NewsLetter } from "../components/ui/NewsLetter";
 import { Items } from "../components/ui/Items";
-//import { QuickStats } from '../components/ui/QuickStats';
+import { QuickStats } from '../components/ui/QuickStats';
+import AppLayout from "../components/layout/Layout";
 
 export default function HomeScreen() {
   return (
@@ -98,6 +99,18 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
+      <Link href="/owner/owner-dashboard" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center"> Owner Dashboard</Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/contact" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center"> Contact</Text>
+        </TouchableOpacity>
+      </Link>
+
       <TouchableOpacity
         onPress={async () => {
           const keys = ["userToken", "userId", "userRole"];
@@ -113,13 +126,14 @@ export default function HomeScreen() {
           Check Stored Data
         </Text>
       </TouchableOpacity>
-
-      {/*  <Hero />
+<AppLayout>
+      <Hero />
       <Stats />
       <Items />
       <QuickStats />
       <NewsLetter />
-      <Testimonials /> */}
+      <Testimonials /> 
+      </AppLayout>
     </ScrollView>
   );
 }

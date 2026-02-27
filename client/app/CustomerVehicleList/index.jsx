@@ -360,13 +360,6 @@ export default function CustomerVehicleList() {
                 </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              onPress={handleSearch}
-              className="bg-[#0D3778] py-3 rounded-lg"
-            >
-              <Text className="text-white font-semibold text-center">Search</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -484,6 +477,13 @@ export default function CustomerVehicleList() {
               </View>
             </View>
           </View>
+
+          <TouchableOpacity
+            onPress={handleSearch}
+            className="bg-[#0D3778] py-3 rounded-lg mt-4"
+          >
+            <Text className="text-white font-semibold text-center">Search</Text>
+          </TouchableOpacity>
         </View>
 
         <View className="px-4 py-5">

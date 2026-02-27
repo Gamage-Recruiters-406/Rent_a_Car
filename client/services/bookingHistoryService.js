@@ -228,7 +228,7 @@ export const fetchBookingDetails = async (
   }
 };
 
-// Fetch vehicle details by ID
+// Fetch vehicle details by ID -  also handle 404 gracefully without logging errors
 export const fetchVehicleDetails = async (
   vehicleId,
   API_BASE_URL,
@@ -262,7 +262,38 @@ export const fetchVehicleDetails = async (
       status: response.status,
     };
   } catch (error) {
+    // Don't log 404 errors - they're expected for deleted vehicles
+    if (error.response?.status === 404) {
+      // Silent handling , no console error
+      return {
+        success: false,
+        data: {
+          _id: vehicleId,
+          title: 'Vehicle Deleted',
+          isDeleted: true,
+          photos: [],
+          averageRating: 0,
+          reviewCount: 0,
+          model: 'N/A',
+          year: 'N/A',
+          numberPlate: 'N/A',
+          fuelType: 'N/A',
+          amount: 0,
+          pricePerDay: 0,
+          vehicleType: 'N/A',
+          transmission: 'N/A',
+          km: 0,
+          pricePerKm: 0,
+          description: 'This vehicle has been removed from our fleet',
+        },
+        message: 'Vehicle not found or has been deleted',
+        status: 404,
+      };
+    }
+
+    // Only log other types of errors
     console.error('Error fetching vehicle details:', error);
+
     return {
       success: false,
       data: null,
@@ -271,6 +302,21 @@ export const fetchVehicleDetails = async (
       status: error.response?.status,
     };
   }
+};
+
+// Check if vehicle is deleted or unavailable
+export const isVehicleDeleted = (vehicleDetails) => {
+  if (!vehicleDetails) return true;
+  if (vehicleDetails === null) return true;
+  if (
+    typeof vehicleDetails === 'object' &&
+    Object.keys(vehicleDetails).length === 0
+  )
+    return true;
+  if (vehicleDetails.isDeleted === true) return true;
+  if (vehicleDetails.title === 'Vehicle Deleted') return true;
+  if (vehicleDetails.title === 'Unknown Vehicle') return true;
+  return false;
 };
 
 // Enrich booking data for BookingHistory component
@@ -282,12 +328,13 @@ export const enrichBookingForHistory = async (
   try {
     const ownerInfo = extractOwnerInfo(booking.ownerId, true);
 
-    // Vehicle details
+    // Vehicle details with better handling for deleted vehicles
     let vehicleDetails = {
       title: 'Unknown Vehicle',
       photos: [],
       rating: 0,
       reviewCount: 0,
+      isDeleted: true,
     };
 
     if (booking.vehicleId) {
@@ -309,37 +356,55 @@ export const enrichBookingForHistory = async (
           km: booking.vehicleId.km,
           pricePerKm: booking.vehicleId.pricePerKm,
           description: booking.vehicleId.description,
+          isDeleted: booking.vehicleId.isDeleted || false,
         };
       } else {
-        // If it's just an ID, fetch the vehicle details
-        try {
-          const vehicleRes = await fetchVehicleDetails(
-            booking.vehicleId,
-            API_BASE_URL,
-            API_VERSION,
-          );
+        // If it's just an ID, try to fetch the vehicle details
+        const vehicleRes = await fetchVehicleDetails(
+          booking.vehicleId,
+          API_BASE_URL,
+          API_VERSION,
+        );
 
-          if (vehicleRes.success && vehicleRes.data) {
-            vehicleDetails = {
-              title: vehicleRes.data.title || 'Unknown Vehicle',
-              photos: vehicleRes.data.photos || [],
-              rating: vehicleRes.data.averageRating || 0,
-              reviewCount: vehicleRes.data.reviewCount || 0,
-              model: vehicleRes.data.model,
-              year: vehicleRes.data.year,
-              numberPlate: vehicleRes.data.numberPlate,
-              fuelType: vehicleRes.data.fuelType,
-              amount: vehicleRes.data.amount,
-              pricePerDay: vehicleRes.data.pricePerDay,
-              vehicleType: vehicleRes.data.vehicleType,
-              transmission: vehicleRes.data.transmission,
-              km: vehicleRes.data.km,
-              pricePerKm: vehicleRes.data.pricePerKm,
-              description: vehicleRes.data.description,
-            };
-          }
-        } catch (vehicleError) {
-          console.error('Error fetching vehicle details:', vehicleError);
+        if (vehicleRes.success && vehicleRes.data) {
+          vehicleDetails = {
+            title: vehicleRes.data.title || 'Unknown Vehicle',
+            photos: vehicleRes.data.photos || [],
+            rating: vehicleRes.data.averageRating || 0,
+            reviewCount: vehicleRes.data.reviewCount || 0,
+            model: vehicleRes.data.model,
+            year: vehicleRes.data.year,
+            numberPlate: vehicleRes.data.numberPlate,
+            fuelType: vehicleRes.data.fuelType,
+            amount: vehicleRes.data.amount,
+            pricePerDay: vehicleRes.data.pricePerDay,
+            vehicleType: vehicleRes.data.vehicleType,
+            transmission: vehicleRes.data.transmission,
+            km: vehicleRes.data.km,
+            pricePerKm: vehicleRes.data.pricePerKm,
+            description: vehicleRes.data.description,
+            isDeleted: vehicleRes.data.isDeleted || false,
+          };
+        } else if (vehicleRes.status === 404) {
+          // Vehicle was deleted
+          vehicleDetails = {
+            title: 'Vehicle Deleted',
+            photos: [],
+            rating: 0,
+            reviewCount: 0,
+            model: 'N/A',
+            year: 'N/A',
+            numberPlate: 'N/A',
+            fuelType: 'N/A',
+            amount: 0,
+            pricePerDay: 0,
+            vehicleType: 'N/A',
+            transmission: 'N/A',
+            km: 0,
+            pricePerKm: 0,
+            description: 'This vehicle has been removed from our fleet',
+            isDeleted: true,
+          };
         }
       }
     }
@@ -370,6 +435,7 @@ export const enrichBookingForHistory = async (
         photos: [],
         rating: 0,
         reviewCount: 0,
+        isDeleted: true,
       },
       days: 1,
     };
@@ -402,6 +468,7 @@ export const enrichBookingData = async (
       description: '',
       rating: 0,
       reviewCount: 0,
+      isDeleted: true,
     };
 
     if (bookingData.vehicleId) {
@@ -430,6 +497,15 @@ export const enrichBookingData = async (
             vehicleData = vehicleRes.data;
             vehicleRating = vehicleData.averageRating || 0;
             reviewCount = vehicleData.reviewCount || 0;
+          } else if (vehicleRes.status === 404) {
+            // Vehicle was deleted - use placeholder
+            vehicleData = {
+              title: 'Vehicle Deleted',
+              photos: [],
+              averageRating: 0,
+              reviewCount: 0,
+              isDeleted: true,
+            };
           }
         }
 
@@ -449,6 +525,7 @@ export const enrichBookingData = async (
             description: vehicleData.description || '',
             rating: vehicleRating,
             reviewCount: reviewCount,
+            isDeleted: vehicleData.isDeleted || false,
           };
         }
       } catch (vehicleError) {
@@ -466,6 +543,7 @@ export const enrichBookingData = async (
           vehicleDetails.rating = bookingData.vehicleId.averageRating || 0;
           vehicleDetails.reviewCount = bookingData.vehicleId.reviewCount || 0;
           vehicleDetails.photos = bookingData.vehicleId.photos || [];
+          vehicleDetails.isDeleted = bookingData.vehicleId.isDeleted || false;
         }
       }
     }
@@ -509,6 +587,7 @@ export const enrichBookingData = async (
         description: '',
         rating: 0,
         reviewCount: 0,
+        isDeleted: true,
       },
       days: 1,
       subtotal: bookingData.totalAmount || 0,
@@ -559,6 +638,7 @@ export const fetchAndEnrichCustomerBookings = async (
               photos: [],
               rating: 0,
               reviewCount: 0,
+              isDeleted: true,
             },
             days: 1,
           };
@@ -649,6 +729,11 @@ export const formatCurrency = (amount, currency = 'LKR') => {
 // Get vehicle image URL
 export const getVehicleImageUrl = (vehicle, index = 0, API_BASE_URL = '') => {
   if (!vehicle) return null;
+
+  // Don't show images for deleted vehicles
+  if (vehicle.isDeleted === true || vehicle.title === 'Vehicle Deleted') {
+    return null;
+  }
 
   // Get photos array from vehicle object
   const photosArray = vehicle?.photos || vehicle?.images || [];

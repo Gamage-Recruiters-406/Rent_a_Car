@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '../../components/themed-text';
-import { IconSymbol } from '../../components/ui/icon-symbol';
+import { Ionicons } from '@expo/vector-icons';
 
 // Responsive scaling helpers
 const { width: BASE_WIDTH, height: BASE_HEIGHT } = Dimensions.get('window');
@@ -37,25 +37,25 @@ export default function ContactScreen() {
   const contactCards = [
     {
       title: 'Address',
-      iconName: 'location.fill',
+      iconName: 'location',
       lines: ['Colombo,', 'Sri Lanka'],
       type: 'address',
     },
     {
       title: 'Mail Us',
-      iconName: 'envelope.fill',
-      lines: ['info@rentmycar.lk', 'sales@rentmycar.lk'],
+      iconName: 'mail',
+      lines: ['dev.gamagerecruiters@gmail.com'],
       type: 'email',
     },
     {
       title: 'Telephone',
-      iconName: 'phone.fill',
+      iconName: 'call',
       lines: ['0773342567', '0777642250'],
       type: 'phone',
     },
     {
       title: 'Hot Line',
-      iconName: 'headphones',
+      iconName: 'headset',
       lines: ['0777315095', '0777443552'],
       type: 'phone',
     },
@@ -156,21 +156,21 @@ export default function ContactScreen() {
         style={[styles.infoBar, { paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(8) }]}
       >
         <TouchableOpacity style={styles.infoItem} onPress={handleLocation}>
-          <IconSymbol name="location.fill" size={responsiveStyles.infoIconSize} color="#fff" />
+          <Ionicons name="location" size={responsiveStyles.infoIconSize} color="#fff" />
           <ThemedText style={[styles.infoText, { fontSize: responsiveStyles.infoTextSize }]}>
             Find A Location
           </ThemedText>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.infoItem} onPress={() => handlePhone('0777764224')}>
-          <IconSymbol name="phone.fill" size={responsiveStyles.infoIconSize} color="#fff" />
+          <Ionicons name="call" size={responsiveStyles.infoIconSize} color="#fff" />
           <ThemedText style={[styles.infoText, { fontSize: responsiveStyles.infoTextSize }]}>
             0777764224
           </ThemedText>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.infoItem} onPress={() => handleEmail('rentmycar@gmail.com')}>
-          <IconSymbol name="envelope.fill" size={responsiveStyles.infoIconSize} color="#fff" />
+          <Ionicons name="mail" size={responsiveStyles.infoIconSize} color="#fff" />
           <ThemedText style={[styles.infoText, { fontSize: responsiveStyles.infoTextSize }]}>
             rentmycar@gmail.com
           </ThemedText>
@@ -231,7 +231,7 @@ export default function ContactScreen() {
                     height: moderateScale(40),
                     borderRadius: moderateScale(10),
                   }]}>
-                    <IconSymbol name={card.iconName} size={moderateScale(20)} color="#fff" />
+                    <Ionicons name={card.iconName} size={moderateScale(20)} color="#fff" />
                   </View>
                   
                   <ThemedText style={[styles.cardTitle, { fontSize: moderateScale(12) }]}>
@@ -276,7 +276,7 @@ export default function ContactScreen() {
                     height: moderateScale(40),
                     borderRadius: moderateScale(10),
                   }]}>
-                    <IconSymbol name={card.iconName} size={moderateScale(20)} color="#fff" />
+                    <Ionicons name={card.iconName} size={moderateScale(20)} color="#fff" />
                   </View>
                   
                   <ThemedText style={[styles.cardTitle, { fontSize: moderateScale(12) }]}>

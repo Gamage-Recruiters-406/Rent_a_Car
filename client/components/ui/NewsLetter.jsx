@@ -10,8 +10,8 @@ import {
   Platform,
 } from 'react-native';
 
-const BASE_URL = 'http://localhost:8090';
-const API_VERSION = '/api/v1';
+ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+  const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
 export const NewsLetter = () => {
   const [email, setEmail] = useState('');
@@ -31,7 +31,7 @@ export const NewsLetter = () => {
 
     try {
       const response = await fetch(
-        `${BASE_URL}${API_VERSION}/subscription/create-subscription`,
+        `${API_BASE_URL}${API_VERSION}/subscription/create-subscription`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
