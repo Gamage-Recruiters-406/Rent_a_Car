@@ -13,7 +13,7 @@ export function CustomerFooter() {
     { id: 2, icon: 'search', iconOutline: 'search-outline', label: 'Search', route: '/vehicles/search' },
     { id: 3, icon: 'heart', iconOutline: 'heart-outline', label: 'Favorites', route: '/favorites' },
     { id: 4, icon: 'calendar', iconOutline: 'calendar-outline', label: 'Bookings', route: '/bookings' },
-    { id: 5, icon: 'person', iconOutline: 'person-outline', label: 'Profile', route: '/CoustomerProfileEdit' },
+    { id: 5, icon: 'person', iconOutline: 'person-outline', label: 'Profile', route: '/profilepages/CustomerProfileEdit' },
   ];
 
   const handleNavigation = (route) => {
@@ -64,7 +64,7 @@ export function OwnerFooter() {
     { id: 2, icon: 'search', iconOutline: 'search-outline', label: 'Search', route: '/vehicles/search' },
     { id: 3, icon: 'heart', iconOutline: 'heart-outline', label: 'Favorites', route: '/favorites' },
     { id: 4, icon: 'calendar', iconOutline: 'calendar-outline', label: 'Bookings', route: '/bookings' },
-    { id: 5, icon: 'person', iconOutline: 'person-outline', label: 'Profile', route: '/OwnerProfileEdit' },
+    { id: 5, icon: 'person', iconOutline: 'person-outline', label: 'Profile', route: '/profilepages/OwnerProfileEdit' },
   ];
 
   const handleNavigation = (route) => {

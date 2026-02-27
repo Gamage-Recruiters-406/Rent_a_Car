@@ -44,7 +44,7 @@ export default function CustomerSidebar({
     { id: 4, icon: 'star-outline', label: 'My Reviews', route: '/MyReviews' },
     { id: 5, icon: 'call-outline', label: 'Contact Us', route: '/contact' },
     { id: 6, icon: 'notifications-outline', label: 'Notifications', route: '/Notifications/notifications', badge: 3 },
-    { id: 7, icon: 'person-outline', label: 'Profile', route: '/CoustomerProfileEdit' },
+    { id: 7, icon: 'person-outline', label: 'Profile', route: '/profilepages/CustomerProfileEdit' },
     { id: 8, icon: 'settings-outline', label: 'Settings', route: '/admin/settings' },
     // ✅ FIX: Logout item no longer uses a route — uses onPress with handleLogout directly
     { id: 9, icon: 'log-out-outline', label: 'Logout', isLogout: true },
@@ -113,10 +113,18 @@ export default function CustomerSidebar({
               </View>
               {/* User Avatar, Name, Online */}
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
-                    {user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'U'}
-                  </Text>
+                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center', marginRight: 10, overflow: 'hidden' }}>
+                  {user?.profilePicture ? (
+                    <Image
+                      source={{ uri: user.profilePicture.startsWith('http') ? user.profilePicture : `${process.env.EXPO_PUBLIC_API_BASE_URL}/${user.profilePicture}` }}
+                      style={{ width: 38, height: 38, borderRadius: 19 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
+                      {user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'U'}
+                    </Text>
+                  )}
                 </View>
                 <View>
                   <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>

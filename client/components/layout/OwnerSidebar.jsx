@@ -168,7 +168,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       id: 8,
       icon: 'person-outline',
       label: 'Profile',
-      route: '/OwnerProfileEdit',
+      route: '/profilepages/OwnerProfileEdit',
       iconType: 'Ionicons',
     },
     {
@@ -225,20 +225,28 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                 <View style={{ alignItems: 'center', marginRight: 12 }}>
-                  <View
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 24,
-                      backgroundColor: '#3b82f6',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Text style={{ color: 'white', fontSize: 22, fontWeight: 'bold' }}>
-                      {user?.first_name?.charAt(0)?.toUpperCase() || 'U'}
-                    </Text>
-                  </View>
+                  {user?.profilePicture ? (
+                    <Image
+                      source={{ uri: user.profilePicture.startsWith('http') ? user.profilePicture : `${baseUrl}/${user.profilePicture}` }}
+                      style={{ width: 48, height: 48, borderRadius: 24 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        backgroundColor: '#3b82f6',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ color: 'white', fontSize: 22, fontWeight: 'bold' }}>
+                        {user?.first_name?.charAt(0)?.toUpperCase() || 'U'}
+                      </Text>
+                    </View>
+                  )}
                 </View>
                 <View style={{ flex: 1, alignItems: 'flex-start', justifyContent: 'center' }}>
                   <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
