@@ -119,7 +119,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       id: 2,
       icon: 'view-dashboard-outline',
       label: 'Dashboard',
-      route: '/dashboard',
+      route: '/owner/owner-dashboard',
       iconType: 'MaterialCommunityIcons',
     },
     {

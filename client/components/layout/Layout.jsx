@@ -23,7 +23,7 @@ import { View, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from './Header';
-import Footer from './Footer';
+import { CustomerFooter, OwnerFooter } from './Footer';
 import CustomerSidebar from './CustomerSidebar';
 import OwnerSidebar from './OwnerSidebar';
 
@@ -119,8 +119,8 @@ export default function AppLayout({
         </ScrollView>
       </View>
 
-      {/* Footer — same for both roles */}
-      <Footer />
+      {/* Footer — different for customer and owner */}
+      {userRole === 'owner' ? <OwnerFooter /> : <CustomerFooter />}
     </SafeAreaView>
   );
 }
