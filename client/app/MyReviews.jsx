@@ -13,6 +13,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatDistanceToNow } from 'date-fns';
 import axios from 'axios';
+import AppLayout from '../components/layout/Layout';
 
 const stars = [1, 2, 3, 4, 5];
 
@@ -303,12 +304,14 @@ export default function MyReviewsMobile() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <FlatList
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-        data={reviews}
-        keyExtractor={(item) => item._id}
-        renderItem={renderReview}
-      />
+      <AppLayout>
+        <FlatList
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          data={reviews}
+          keyExtractor={(item) => item._id}
+          renderItem={renderReview}
+        />
+      </AppLayout>
 
       {/* Delete Confirmation Modal */}
       <Modal visible={!!deleteTargetId} transparent animationType="fade">
