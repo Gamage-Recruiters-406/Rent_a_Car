@@ -83,6 +83,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
+
       <Link href="/vehicle/6981d6ae24ec9900bf582a54" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
@@ -126,6 +127,22 @@ export default function HomeScreen() {
           Check Stored Data
         </Text>
       </TouchableOpacity>
+
+            <View className="bg-gray-100 p-6 rounded-2xl mt-6 shadow-sm w-72 items-center">
+              <Text className="text-[#0A2E5C] font-bold text-lg mb-4">Profiles</Text>
+              <Link href="/profilepages/CustomerProfileEdit" asChild>
+                <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full mb-3 shadow-sm">
+                  <Text className="text-white font-semibold text-center">Customer Profile</Text>
+                </TouchableOpacity>
+              </Link>
+
+              <Link href="/profilepages/OwnerProfileEdit" asChild>
+                <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full shadow-sm">
+                  <Text className="text-white font-semibold text-center">Owner Profile</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
+
 <AppLayout>
       <Hero />
       <Stats />
@@ -135,6 +152,10 @@ export default function HomeScreen() {
       <Testimonials /> 
       </AppLayout>
     </ScrollView>
+
+
+
+
   );
 }
 
