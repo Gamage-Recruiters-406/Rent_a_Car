@@ -1,71 +1,56 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
-import { API_BASE_URL } from "../config/apiConfig";
 
-// ─── Helper: get auth token from secure storage ───────────────────────────────
-const getAuthHeader = async () => {
-  const token = await SecureStore.getItemAsync("authToken");
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-};
+const BASE_URL = "http://localhost:8090";
+const API_VERSION = "/api/v1";
 
-// ─── GET /get-my-all ──────────────────────────────────────────────────────────
+/** Use this to build full photo URLs: getImageBaseUrl() + photo.url */
+export const getImageBaseUrl = () => BASE_URL;
+
+// ─── Axios instance ───────────────────────────────────────────────────────────
+export const api = axios.create({
+  baseURL: `${BASE_URL}${API_VERSION}`,
+  withCredentials: true,
+});
+
+// ─── GET /vehicle/get-all (PUBLIC - no auth required) ─────────────────────────
+// Controller returns: { success, count, vehicles: [...] }
+// Only returns Approved vehicles with verified owners
 export const getMyVehicleListings = async () => {
-  const config = await getAuthHeader();
-  const response = await axios.get(
-    `${API_BASE_URL}/vehicle/get-my-all`,
-    config
-  );
-  return response.data;
+  const res = await api.get("/vehicle/get-all");
+  return res.data;
 };
 
-// ─── GET /get/:id ─────────────────────────────────────────────────────────────
+// ─── GET /vehicle/get/:id (PUBLIC - no auth required) ─────────────────────────
+// Controller returns: { success, vehicle }
 export const getSingleVehicleListing = async (id) => {
-  const response = await axios.get(`${API_BASE_URL}/vehicle/get/${id}`);
-  return response.data;
+  const res = await api.get(`/vehicle/get/${id}`);
+  return res.data;
 };
 
-// ─── POST /create ─────────────────────────────────────────────────────────────
+// ─── POST /vehicle/create (requires auth - add later) ────────────────────────
 export const createVehicleListing = async (formData) => {
-  const token = await SecureStore.getItemAsync("authToken");
-  const response = await axios.post(
-    `${API_BASE_URL}/vehicle/create`,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
-  return response.data;
+  const res = await api.post("/vehicle/create", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
 };
 
-// ─── PUT /update/:id ──────────────────────────────────────────────────────────
+// ─── PUT /vehicle/update/:id (requires auth - add later) ─────────────────────
 export const updateVehicleListing = async (id, formData) => {
-  const token = await SecureStore.getItemAsync("authToken");
-  const response = await axios.put(
-    `${API_BASE_URL}/vehicle/update/${id}`,
-    formData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
-  return response.data;
+  const res = await api.put(`/vehicle/update/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
 };
 
-// ─── DELETE /delete/:id ───────────────────────────────────────────────────────
+// ─── DELETE /vehicle/delete/:id (requires auth - add later) ──────────────────
 export const deleteVehicleListing = async (id) => {
-  const config = await getAuthHeader();
-  const response = await axios.delete(
-    `${API_BASE_URL}/vehicle/delete/${id}`,
-    config
-  );
-  return response.data;
+  const res = await api.delete(`/vehicle/delete/${id}`);
+  return res.data;
+};
+
+// ─── GET /vehicle/vehicle-count (PUBLIC) ─────────────────────────────────────
+export const getApprovedVehicleCount = async () => {
+  const res = await api.get("/vehicle/vehicle-count");
+  return res.data;
 };

@@ -7,7 +7,7 @@ import { Stats } from "../components/ui/Stats";
 import { Testimonials } from "../components/ui/Testimonials";
 import { NewsLetter } from "../components/ui/NewsLetter";
 import { Items } from "../components/ui/Items";
-import { QuickStats } from '../components/ui/QuickStats';
+import { QuickStats } from '../components/ui/Quickstats';
 import AppLayout from "../components/layout/Layout";
 
 export default function HomeScreen() {
@@ -95,6 +95,14 @@ export default function HomeScreen() {
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Owner Booking Request
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/owner/my-vehicle" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Owner My Vehicles
           </Text>
         </TouchableOpacity>
       </Link>

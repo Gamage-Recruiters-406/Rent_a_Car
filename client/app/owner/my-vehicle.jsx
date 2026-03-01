@@ -23,25 +23,52 @@ export default function MyVehicleScreen() {
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [errorDetail, setErrorDetail] = useState(null);
 
   // ─── Fetch from backend ───────────────────────────────────────────────────────
+  // Controller response: { success: true, count: N, vehicles: [...] }
   const fetchVehicles = async () => {
     try {
       setLoading(true);
       setError(null);
+      setErrorDetail(null);
+
       const data = await getMyVehicleListings();
-      const list = Array.isArray(data) ? data : data.vehicles ?? [];
+
+      // Controller always returns { success, count, vehicles }
+      if (!data.success) {
+        throw new Error(data.message || "API returned success: false");
+      }
+
+      const list = data.vehicles ?? [];
       setVehicles(list);
       setFilteredVehicles(list);
+
     } catch (err) {
-      console.error("Failed to fetch vehicles:", err);
-      setError("Failed to load vehicles. Please try again.");
+      const status  = err?.response?.status;
+      const message = err?.response?.data?.message || err?.message || "Unknown error";
+
+      if (status === 401) {
+        setError("Session expired. Please log in again.");
+        setErrorDetail("401 Unauthorized — token missing or expired");
+      } else if (status === 403) {
+        setError("Access denied. Owner account required.");
+        setErrorDetail("403 Forbidden — your account may not have the Owner role");
+      } else if (status === 404) {
+        setError("API endpoint not found.");
+        setErrorDetail("404 — ensure backend is running on port 8090");
+      } else if (status === 500) {
+        setError("Server error. Please try again.");
+        setErrorDetail(`500 — ${message}`);
+      } else {
+        setError("Failed to load vehicles. Please try again.");
+        setErrorDetail(message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Refetch every time the screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchVehicles();
@@ -49,18 +76,18 @@ export default function MyVehicleScreen() {
   );
 
   // ─── Client-side filter ───────────────────────────────────────────────────────
+  // Field names from controller: numberPlate, vehicleType, transmission
   const handleSearch = ({ numberPlate, type, transmission }) => {
     let results = vehicles;
 
     if (numberPlate.trim()) {
-      results = results.filter((v) => {
-        const plate = v.plate || v.numberPlate || v.registrationNo || "";
-        return plate.toLowerCase().includes(numberPlate.toLowerCase());
-      });
+      results = results.filter((v) =>
+        (v.numberPlate || "").toLowerCase().includes(numberPlate.toLowerCase())
+      );
     }
     if (type !== "All") {
       results = results.filter(
-        (v) => (v.vehicleType || v.type || "").toLowerCase() === type.toLowerCase()
+        (v) => (v.vehicleType || "").toLowerCase() === type.toLowerCase()
       );
     }
     if (transmission !== "All") {
@@ -73,8 +100,8 @@ export default function MyVehicleScreen() {
   };
 
   // ─── Navigation ───────────────────────────────────────────────────────────────
-  const handleAddVehicle = () => router.push("/owner/add-vehicle");
-  const handleViewRenter = (id) => router.push(`/owner/vehicle-renter/${id}`);
+  const handleAddVehicle  = ()   => router.push("/owner/add-vehicle");
+  const handleViewRenter  = (id) => router.push(`/owner/vehicle-renter/${id}`);
   const handleViewDetails = (id) => router.push(`/owner/vehicle-details/${id}`);
 
   // ─── Render states ────────────────────────────────────────────────────────────
@@ -92,11 +119,16 @@ export default function MyVehicleScreen() {
 
     if (error) {
       return (
-        <View className="items-center py-16">
+        <View className="items-center py-16 px-4">
           <Ionicons name="cloud-offline-outline" size={48} color="#9CA3AF" />
-          <Text className="text-gray-500 mt-3 text-base text-center px-6">
+          <Text className="text-gray-700 mt-3 text-base text-center font-semibold">
             {error}
           </Text>
+          {errorDetail && (
+            <Text className="text-red-400 mt-2 text-xs text-center px-4">
+              {errorDetail}
+            </Text>
+          )}
           <TouchableOpacity
             className="bg-[#0A2E5C] rounded-lg mt-4 px-6 py-3"
             onPress={fetchVehicles}
@@ -121,10 +153,10 @@ export default function MyVehicleScreen() {
 
     return filteredVehicles.map((vehicle) => (
       <VehicleCard
-        key={vehicle._id || vehicle.id}
+        key={vehicle._id}
         vehicle={vehicle}
-        onViewRenter={() => handleViewRenter(vehicle._id || vehicle.id)}
-        onViewDetails={() => handleViewDetails(vehicle._id || vehicle.id)}
+        onViewRenter={() => handleViewRenter(vehicle._id)}
+        onViewDetails={() => handleViewDetails(vehicle._id)}
       />
     ));
   };
@@ -181,12 +213,16 @@ export default function MyVehicleScreen() {
         </View>
 
         {/* Search / Filter Card */}
-        <View style={{ paddingHorizontal: horizontalPadding, paddingBottom: 20 }}>
+        <View
+          style={{ paddingHorizontal: horizontalPadding, paddingBottom: 20 }}
+        >
           <VehicleSearchFilter onSearch={handleSearch} />
         </View>
 
         {/* Vehicle List */}
-        <View style={{ paddingHorizontal: horizontalPadding, paddingBottom: 24 }}>
+        <View
+          style={{ paddingHorizontal: horizontalPadding, paddingBottom: 24 }}
+        >
           {renderContent()}
         </View>
       </ScrollView>
