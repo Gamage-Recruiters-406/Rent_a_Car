@@ -36,6 +36,7 @@ import {
   handleLogout,
 } from '../../services/bookingHistoryService';
 import VehicleBookingModal from './VehicleBookingModal';
+import AppLayout from '../../components/layout/Layout'; 
 
 const { width } = Dimensions.get('window');
 
@@ -677,10 +678,12 @@ const BookingHistory = () => {
   if (loading && !refreshing) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0D3778" />
-          <Text className="mt-4 text-gray-600">Loading bookings...</Text>
-        </View>
+        <AppLayout>
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#0D3778" />
+            <Text className="mt-4 text-gray-600">Loading bookings...</Text>
+          </View>
+        </AppLayout>
       </SafeAreaView>
     );
   }
@@ -689,93 +692,97 @@ const BookingHistory = () => {
   if (!isAuthenticated) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 justify-center items-center p-6">
-          <Text className="text-4xl mb-4">🔒</Text>
-          <Text className="text-xl font-bold text-gray-800 mb-3">
-            Authentication Required
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.push('/login')}
-            className="px-6 py-3 bg-[#0D3778] rounded-lg"
-          >
-            <Text className="text-white font-medium">Sign In</Text>
-          </TouchableOpacity>
-        </View>
+        <AppLayout>
+          <View className="flex-1 justify-center items-center p-6">
+            <Text className="text-4xl mb-4">🔒</Text>
+            <Text className="text-xl font-bold text-gray-800 mb-3">
+              Authentication Required
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push('/login')}
+              className="px-6 py-3 bg-[#0D3778] rounded-lg"
+            >
+              <Text className="text-white font-medium">Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </AppLayout>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView
-        className="flex-1 bg-gray-50"
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#0D3778']}
-          />
-        }
-      >
-        <View className="p-4">
-          {/* Header */}
-          <View className="mb-6">
-            <Text className="text-2xl font-bold text-gray-900">
-              Your Vehicle Booking History
-            </Text>
-            <Text className="text-gray-600 mt-1">
-              {bookings.length} booking{bookings.length !== 1 ? 's' : ''} found
-            </Text>
-          </View>
+      <AppLayout>
+        <ScrollView
+          className="flex-1 bg-gray-50"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#0D3778']}
+            />
+          }
+        >
+          <View className="p-4">
+            {/* Header */}
+            <View className="mb-6">
+              <Text className="text-2xl font-bold text-gray-900">
+                Your Vehicle Booking History
+              </Text>
+              <Text className="text-gray-600 mt-1">
+                {bookings.length} booking{bookings.length !== 1 ? 's' : ''} found
+              </Text>
+            </View>
 
-          {/* Bookings List */}
-          {bookings.length === 0 ? (
-            <View className="bg-white rounded-xl p-6 items-center border border-gray-200">
-              <Text className="text-4xl mb-4">🚗</Text>
-              <Text className="text-lg font-bold text-gray-800 mb-3">
-                No Bookings Yet
-              </Text>
-              <Text className="text-gray-600 mb-6 text-center">
-                You haven't booked any vehicles yet.
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/vehicles')}
-                className="px-6 py-3 bg-[#0D3778] rounded-lg"
-              >
-                <Text className="text-white font-medium">
-                  Browse Available Vehicles
+            {/* Bookings List */}
+            {bookings.length === 0 ? (
+              <View className="bg-white rounded-xl p-6 items-center border border-gray-200">
+                <Text className="text-4xl mb-4">🚗</Text>
+                <Text className="text-lg font-bold text-gray-800 mb-3">
+                  No Bookings Yet
                 </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View>
-              {bookings.map((booking) => (
-                <View key={booking._id}>
-                  {/* Mobile View */}
-                  <View className="block md:hidden">
-                    <MobileBookingCard booking={booking} />
+                <Text className="text-gray-600 mb-6 text-center">
+                  You havent booked any vehicles yet.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => router.push('/vehicles')}
+                  className="px-6 py-3 bg-[#0D3778] rounded-lg"
+                >
+                  <Text className="text-white font-medium">
+                    Browse Available Vehicles
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View>
+                {bookings.map((booking) => (
+                  <View key={booking._id}>
+                    {/* Mobile View */}
+                    <View className="block md:hidden">
+                      <MobileBookingCard booking={booking} />
+                    </View>
+                    {/* Desktop View */}
+                    <View className="hidden md:block">
+                      <DesktopBookingCard booking={booking} />
+                    </View>
                   </View>
-                  {/* Desktop View */}
-                  <View className="hidden md:block">
-                    <DesktopBookingCard booking={booking} />
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
 
-      {/* Modal for viewing booking details */}
-      {showModal && selectedBookingId && (
-        <VehicleBookingModal
-          bookingId={selectedBookingId}
-          booking={selectedBooking}
-          onClose={handleCloseModal}
-          API_BASE_URL={API_BASE_URL}
-          API_VERSION={API_VERSION}
-        />
-      )}
+        {/* Modal for viewing booking details */}
+        {showModal && selectedBookingId && (
+          <VehicleBookingModal
+            bookingId={selectedBookingId}
+            booking={selectedBooking}
+            onClose={handleCloseModal}
+            API_BASE_URL={API_BASE_URL}
+            API_VERSION={API_VERSION}
+          />
+        )}
+      </AppLayout>
     </SafeAreaView>
   );
 };
