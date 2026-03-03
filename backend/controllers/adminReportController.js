@@ -235,7 +235,7 @@ export const getVehicleReportStats = async (req, res) => {
   }
 };
 
-// BOOKING REPORT STATS (approved only)
+// BOOKING REPORT STATS (approved only - based on booking month)
 export const getBookingReportStats = async (req, res) => {
   try {
     const totalBookings = await Booking.countDocuments({
@@ -243,31 +243,32 @@ export const getBookingReportStats = async (req, res) => {
     });
 
     const now = new Date();
-    const startOfMonth = new Date(Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      1,
-      0, 0, 0, 0
-    ));
 
-    const startOfNextMonth = new Date(Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth() + 1,
-      1,
-      0, 0, 0, 0
-    ));
+    const startOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1
+    );
 
+    const startOfNextMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1
+    );
+
+    // 🔥 Count bookings happening THIS month (startingDate)
     const thisMonthBookings = await Booking.countDocuments({
       status: "approved",
-      createdAt: {
+      startingDate: {
         $gte: startOfMonth,
         $lt: startOfNextMonth,
       },
     });
 
-    const percentage = totalBookings === 0
-      ? 0
-      : Number(((thisMonthBookings / totalBookings) * 100).toFixed(2));
+    const percentage =
+      totalBookings === 0
+        ? 0
+        : Number(((thisMonthBookings / totalBookings) * 100).toFixed(2));
 
     return res.status(200).json({
       success: true,
@@ -289,23 +290,21 @@ export const getMonthlyApprovedBookingChart = async (req, res) => {
   try {
     const data = await Booking.aggregate([
       {
-        // only approved bookings
         $match: {
           status: "approved"
         }
       },
       {
-        // group by year & month
+        // 🔥 Group by BOOKING startingDate (NOT createdAt)
         $group: {
           _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" }
+            year: { $year: "$startingDate" },
+            month: { $month: "$startingDate" }
           },
           bookingCount: { $sum: 1 }
         }
       },
       {
-        // ⬆sort chronologically
         $sort: {
           "_id.year": 1,
           "_id.month": 1
@@ -313,7 +312,6 @@ export const getMonthlyApprovedBookingChart = async (req, res) => {
       }
     ]);
 
-    // format for frontend chart
     const formattedData = data.map(item => ({
       month: `${item._id.year}-${String(item._id.month).padStart(2, "0")}`,
       bookings: item.bookingCount
