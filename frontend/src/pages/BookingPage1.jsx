@@ -16,7 +16,8 @@ import { searchVehicles, createBooking } from '../services/bookingApi';
 // import { ContactPage } from './ContactPage';
 // import { PaymentModal } from './PaymentModal';
 import { getAllReviews } from '../services/reviewApi';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 // Analog Clock Time Picker Component
 function AnalogTimePicker({
@@ -467,13 +468,15 @@ export function LandingPage({ onBookNow }) {
     return (days * rate).toFixed(2);
   };
 
+  const navigate = useNavigate();
+
   const handleBookingCreate = async () => {
-    if (!selectedVehicleId) return alert("Please select a vehicle.");
+    if (!selectedVehicleId) return toast.error("Please select a vehicle.");
     const start = combineDateTime(pickupDate, pickupTime);
     const end = combineDateTime(dropoffDate, dropoffTime);
-
-    if (!start || !end) return alert("Please select pickup and dropoff dates.");
-    if (end <= start) return alert("End date must be after pickup date.");
+    
+    if (!start || !end) return toast.error("Please select pickup and dropoff dates.");
+    if (end <= start) return toast.error("End date must be after pickup date.");
 
     setIsLoading(true);
     try {
@@ -485,14 +488,15 @@ export function LandingPage({ onBookNow }) {
       // documents are currently empty for initial booking from landing page
 
       const res = await createBooking(formData);
-
+      
       if (res.success) {
-        alert("Booking request sent successfully!");
+        toast.success("Booking request sent successfully!");
         if (onBookNow) onBookNow();
+        navigate('/booking-history');
       }
     } catch (err) {
       console.error(err);
-      alert(err.message || "Failed to create booking. Please ensure you are logged in.");
+      toast.error(err.message || "Failed to create booking. Please ensure you are logged in.");
     } finally {
       setIsLoading(false);
     }
