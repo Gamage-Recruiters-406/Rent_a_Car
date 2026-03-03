@@ -1,0 +1,2 @@
+EXPO_PUBLIC_API_BASE_URL= "http://localhost:8090"
+EXPO_PUBLIC_API_VERSION="/api/v1"

@@ -24,6 +24,7 @@ import {
   ChevronRight,
   Star,
   X,
+  CreditCard,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -35,6 +36,7 @@ import {
   handleLogout,
 } from '../../services/bookingHistoryService';
 import VehicleBookingModal from './VehicleBookingModal';
+import AppLayout from '../../components/layout/Layout'; 
 
 const { width } = Dimensions.get('window');
 
@@ -254,21 +256,59 @@ const BookingHistory = () => {
     setSelectedBooking(null);
   };
 
+  //  pay button handler 
+  const handlePayPress = (booking) => {
+    // Only allow payment for approved bookings
+    if (booking.status?.toLowerCase() !== 'approved') {
+      Alert.alert(
+        'Payment Not Available',
+        'You can only pay for approved bookings.',
+      );
+      return;
+    }
+    
+    //  alert 
+    Alert.alert(
+      'Payment',
+      `Payment for ${formatCurrency(booking.totalAmount, 'LKR')} will be implemented soon.`,
+      [{ text: 'OK' }]
+    );
+  };
+
   // Mobile booking card
   const MobileBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
-    const imageUrl = getVehicleImageUrl(
+    
+    // Check for deleted vehicle
+    const isVehicleDeleted =
+      !booking.vehicleDetails ||
+      booking.vehicleDetails === null ||
+      (typeof booking.vehicleDetails === 'object' && Object.keys(booking.vehicleDetails).length === 0) ||
+      booking.vehicleDetails?.isDeleted === true ||
+      booking.vehicleDetails?.title === 'Unknown Vehicle';
+
+    // Check if payment is allowed
+    const canPay = booking.status?.toLowerCase() === 'approved' && !isVehicleDeleted;
+    
+    const imageUrl = !isVehicleDeleted && booking.vehicleDetails ? getVehicleImageUrl(
       booking.vehicleDetails,
       0,
       API_BASE_URL,
-    );
+    ) : null;
 
     return (
       <View className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-4">
         {/* Image and Status */}
         <View className="relative h-48">
-          {imageUrl ? (
+          {isVehicleDeleted ? (
+            <View className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 items-center justify-center">
+              <Car size={48} color="#9CA3AF" />
+              <Text className="text-sm font-medium text-gray-500 mt-2">
+                This vehicle has been deleted
+              </Text>
+            </View>
+          ) : imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
               className="w-full h-full"
@@ -297,15 +337,23 @@ const BookingHistory = () => {
             </View>
           </View>
 
-          {/* Stars */}
+          {/* Stars or Deleted Indicator */}
           <View className="absolute top-2 right-2">
-            <View className="bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
-              <StarRating
-                rating={booking.vehicleDetails?.rating}
-                size="sm"
-                showNumber={true}
-              />
-            </View>
+            {isVehicleDeleted ? (
+              <View className="bg-red-100 px-2 py-1 rounded">
+                <Text className="text-xs text-red-600 font-medium">
+                  Vehicle Deleted
+                </Text>
+              </View>
+            ) : (
+              <View className="bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                <StarRating
+                  rating={booking.vehicleDetails?.rating}
+                  size="sm"
+                  showNumber={true}
+                />
+              </View>
+            )}
           </View>
 
           {/* Days badge */}
@@ -323,12 +371,16 @@ const BookingHistory = () => {
           {/* Vehicle Title and Price */}
           <View className="flex-row justify-between items-start mb-2">
             <Text
-              className="font-bold text-base text-[#0D3778] flex-1 pr-2"
-              numberOfLines={1}
+              className={`font-bold text-base flex-1 pr-2 ${
+                isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
+              }`}
+              numberOfLines={2}
             >
-              {booking.vehicleDetails?.title}
+              {isVehicleDeleted ? 'This vehicle has been deleted' : (booking.vehicleDetails?.title || 'Unknown Vehicle')}
             </Text>
-            <Text className="text-base font-bold text-[#0D3778]">
+            <Text className={`text-base font-bold ${
+              isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
+            }`}>
               {formatCurrency(booking.totalAmount, 'LKR')}
             </Text>
           </View>
@@ -354,13 +406,15 @@ const BookingHistory = () => {
             <View className="flex-row items-start">
               <User
                 size={14}
-                color="#9333EA"
+                color={isVehicleDeleted ? "#9CA3AF" : "#9333EA"}
                 style={{ marginTop: 2, marginRight: 8 }}
               />
               <View className="flex-1">
                 <Text className="text-xs text-gray-500">Owner</Text>
-                <Text className="text-xs font-medium" numberOfLines={1}>
-                  {booking.ownerName}
+                <Text className={`text-xs font-medium ${
+                  isVehicleDeleted ? 'text-gray-400' : ''
+                }`} numberOfLines={1}>
+                  {isVehicleDeleted ? 'Vehicle owner unavailable' : booking.ownerName}
                 </Text>
               </View>
             </View>
@@ -381,16 +435,42 @@ const BookingHistory = () => {
             </View>
           </View>
 
-          {/* Bottom Actions  */}
-          <View className="flex-row justify-end items-center pt-2 border-t border-gray-100">
+          {/* Bottom Actions */}
+          <View className="flex-row justify-end items-center pt-2 border-t border-gray-100 space-x-2">
+            {/* Pay Button  */}
             <TouchableOpacity
-              onPress={() => handleViewDetails(booking._id)}
-              className="flex-row items-center px-4 py-2 bg-[#0D3778] rounded-lg"
+              onPress={() => handlePayPress(booking)}
+              disabled={!canPay}
+              className={`flex-row items-center px-4 py-2 rounded-lg ${
+                canPay ? 'bg-[#0D3778]' : 'bg-gray-300'
+              }`}
             >
-              <Text className="text-white text-xs font-semibold mr-1">
-                View Details
+              <CreditCard size={14} color={canPay ? '#FFFFFF' : '#9CA3AF'} />
+              <Text
+                className={`text-xs font-semibold ml-1 ${
+                  canPay ? 'text-white' : 'text-gray-500'
+                }`}
+              >
+                Pay
               </Text>
-              <ChevronRight size={14} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            {/* View Details Button */}
+            <TouchableOpacity
+              onPress={() => !isVehicleDeleted && handleViewDetails(booking._id)}
+              disabled={isVehicleDeleted}
+              className={`flex-row items-center px-4 py-2 rounded-lg ${
+                isVehicleDeleted ? 'bg-gray-300' : 'bg-[#0D3778]'
+              }`}
+            >
+              <Text
+                className={`text-xs font-semibold mr-1 ${
+                  isVehicleDeleted ? 'text-gray-500' : 'text-white'
+                }`}
+              >
+                {isVehicleDeleted ? 'Unavailable' : 'Details'}
+              </Text>
+              {!isVehicleDeleted && <ChevronRight size={14} color="#FFFFFF" />}
             </TouchableOpacity>
           </View>
         </View>
@@ -402,18 +482,37 @@ const BookingHistory = () => {
   const DesktopBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
-    const imageUrl = getVehicleImageUrl(
+    
+    // Check for deleted vehicle
+    const isVehicleDeleted =
+      !booking.vehicleDetails ||
+      booking.vehicleDetails === null ||
+      (typeof booking.vehicleDetails === 'object' && Object.keys(booking.vehicleDetails).length === 0) ||
+      booking.vehicleDetails?.isDeleted === true ||
+      booking.vehicleDetails?.title === 'Unknown Vehicle';
+
+    // Check if payment is allowed 
+    const canPay = booking.status?.toLowerCase() === 'approved' && !isVehicleDeleted;
+    
+    const imageUrl = !isVehicleDeleted && booking.vehicleDetails ? getVehicleImageUrl(
       booking.vehicleDetails,
       0,
       API_BASE_URL,
-    );
+    ) : null;
 
     return (
       <View className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-4">
         <View className="flex-row h-64">
           {/* Image container */}
           <View className="w-80 h-full relative">
-            {imageUrl ? (
+            {isVehicleDeleted ? (
+              <View className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 items-center justify-center">
+                <Car size={40} color="#9CA3AF" />
+                <Text className="text-sm font-medium text-gray-500 mt-2">
+                  This vehicle has been deleted
+                </Text>
+              </View>
+            ) : imageUrl ? (
               <Image
                 source={{ uri: imageUrl }}
                 className="w-full h-full"
@@ -435,10 +534,12 @@ const BookingHistory = () => {
               <View className="flex-1 pr-3">
                 <View className="flex-row items-center gap-2 mb-1">
                   <Text
-                    className="text-lg font-bold text-[#0D3778] flex-1"
-                    numberOfLines={1}
+                    className={`text-lg font-bold flex-1 ${
+                      isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
+                    }`}
+                    numberOfLines={2}
                   >
-                    {booking.vehicleDetails?.title}
+                    {isVehicleDeleted ? 'This vehicle has been deleted' : (booking.vehicleDetails?.title || 'Unknown Vehicle')}
                   </Text>
                   <View
                     className={`flex-row items-center px-2 py-0.5 rounded-full ${statusStyle.bg}`}
@@ -458,13 +559,21 @@ const BookingHistory = () => {
 
               <View className="items-end">
                 <View className="flex-row items-center mb-0.5">
-                  <StarRating
-                    rating={booking.vehicleDetails?.rating}
-                    size="sm"
-                    showNumber={true}
-                  />
+                  {isVehicleDeleted ? (
+                    <View className="bg-gray-100 px-2 py-1 rounded">
+                      <Text className="text-xs text-gray-500">Unavailable</Text>
+                    </View>
+                  ) : (
+                    <StarRating
+                      rating={booking.vehicleDetails?.rating}
+                      size="sm"
+                      showNumber={true}
+                    />
+                  )}
                 </View>
-                <Text className="text-xl font-bold text-[#0D3778]">
+                <Text className={`text-xl font-bold ${
+                  isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
+                }`}>
                   {formatCurrency(booking.totalAmount, 'LKR')}
                 </Text>
                 <Text className="text-xs text-gray-500">
@@ -490,13 +599,17 @@ const BookingHistory = () => {
 
                 {/* Owner information */}
                 <View className="flex-row items-start mt-3">
-                  <View className="bg-purple-50 p-1.5 rounded-lg mr-2">
-                    <User size={16} color="#9333EA" />
+                  <View className={`p-1.5 rounded-lg mr-2 ${
+                    isVehicleDeleted ? 'bg-gray-100' : 'bg-purple-50'
+                  }`}>
+                    <User size={16} color={isVehicleDeleted ? "#9CA3AF" : "#9333EA"} />
                   </View>
                   <View className="flex-1">
                     <Text className="text-xs text-gray-500">Owner</Text>
-                    <Text className="text-sm font-medium" numberOfLines={1}>
-                      {booking.ownerName}
+                    <Text className={`text-sm font-medium ${
+                      isVehicleDeleted ? 'text-gray-400' : ''
+                    }`} numberOfLines={1}>
+                      {isVehicleDeleted ? 'Vehicle owner unavailable' : booking.ownerName}
                     </Text>
                   </View>
                 </View>
@@ -518,13 +631,40 @@ const BookingHistory = () => {
               </View>
             </View>
 
-            <View className="flex-row justify-end items-center pt-3 border-t border-gray-100">
+            {/* Bottom Actions */}
+            <View className="flex-row justify-end items-center pt-3 border-t border-gray-100 space-x-3">
+              {/* Pay Button  */}
               <TouchableOpacity
-                onPress={() => handleViewDetails(booking._id)}
-                className="px-6 py-2 bg-[#0D3778] rounded-lg"
+                onPress={() => handlePayPress(booking)}
+                disabled={!canPay}
+                className={`px-6 py-2 rounded-lg flex-row items-center ${
+                  canPay ? 'bg-[#0D3778]' : 'bg-gray-300'
+                }`}
               >
-                <Text className="text-white text-sm font-semibold">
-                  View Details
+                <CreditCard size={16} color={canPay ? '#FFFFFF' : '#9CA3AF'} />
+                <Text
+                  className={`text-sm font-semibold ml-2 ${
+                    canPay ? 'text-white' : 'text-gray-500'
+                  }`}
+                >
+                  Pay
+                </Text>
+              </TouchableOpacity>
+
+              {/* View Details Button */}
+              <TouchableOpacity
+                onPress={() => !isVehicleDeleted && handleViewDetails(booking._id)}
+                disabled={isVehicleDeleted}
+                className={`px-6 py-2 rounded-lg ${
+                  isVehicleDeleted ? 'bg-gray-300' : 'bg-[#0D3778]'
+                }`}
+              >
+                <Text
+                  className={`text-sm font-semibold ${
+                    isVehicleDeleted ? 'text-gray-500' : 'text-white'
+                  }`}
+                >
+                  {isVehicleDeleted ? 'Unavailable' : 'Details'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -538,10 +678,12 @@ const BookingHistory = () => {
   if (loading && !refreshing) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0D3778" />
-          <Text className="mt-4 text-gray-600">Loading bookings...</Text>
-        </View>
+        <AppLayout>
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#0D3778" />
+            <Text className="mt-4 text-gray-600">Loading bookings...</Text>
+          </View>
+        </AppLayout>
       </SafeAreaView>
     );
   }
@@ -550,93 +692,97 @@ const BookingHistory = () => {
   if (!isAuthenticated) {
     return (
       <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 justify-center items-center p-6">
-          <Text className="text-4xl mb-4">🔒</Text>
-          <Text className="text-xl font-bold text-gray-800 mb-3">
-            Authentication Required
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.push('/login')}
-            className="px-6 py-3 bg-[#0D3778] rounded-lg"
-          >
-            <Text className="text-white font-medium">Sign In</Text>
-          </TouchableOpacity>
-        </View>
+        <AppLayout>
+          <View className="flex-1 justify-center items-center p-6">
+            <Text className="text-4xl mb-4">🔒</Text>
+            <Text className="text-xl font-bold text-gray-800 mb-3">
+              Authentication Required
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push('/login')}
+              className="px-6 py-3 bg-[#0D3778] rounded-lg"
+            >
+              <Text className="text-white font-medium">Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </AppLayout>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView
-        className="flex-1 bg-gray-50"
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#0D3778']}
-          />
-        }
-      >
-        <View className="p-4">
-          {/* Header */}
-          <View className="mb-6">
-            <Text className="text-2xl font-bold text-gray-900">
-              Your Vehicle Booking History
-            </Text>
-            <Text className="text-gray-600 mt-1">
-              {bookings.length} booking{bookings.length !== 1 ? 's' : ''} found
-            </Text>
-          </View>
+      <AppLayout>
+        <ScrollView
+          className="flex-1 bg-gray-50"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#0D3778']}
+            />
+          }
+        >
+          <View className="p-4">
+            {/* Header */}
+            <View className="mb-6">
+              <Text className="text-2xl font-bold text-gray-900">
+                Your Vehicle Booking History
+              </Text>
+              <Text className="text-gray-600 mt-1">
+                {bookings.length} booking{bookings.length !== 1 ? 's' : ''} found
+              </Text>
+            </View>
 
-          {/* Bookings List */}
-          {bookings.length === 0 ? (
-            <View className="bg-white rounded-xl p-6 items-center border border-gray-200">
-              <Text className="text-4xl mb-4">🚗</Text>
-              <Text className="text-lg font-bold text-gray-800 mb-3">
-                No Bookings Yet
-              </Text>
-              <Text className="text-gray-600 mb-6 text-center">
-                You haven't booked any vehicles yet.
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/vehicles')}
-                className="px-6 py-3 bg-[#0D3778] rounded-lg"
-              >
-                <Text className="text-white font-medium">
-                  Browse Available Vehicles
+            {/* Bookings List */}
+            {bookings.length === 0 ? (
+              <View className="bg-white rounded-xl p-6 items-center border border-gray-200">
+                <Text className="text-4xl mb-4">🚗</Text>
+                <Text className="text-lg font-bold text-gray-800 mb-3">
+                  No Bookings Yet
                 </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View>
-              {bookings.map((booking) => (
-                <View key={booking._id}>
-                  {/* Mobile View */}
-                  <View className="block md:hidden">
-                    <MobileBookingCard booking={booking} />
+                <Text className="text-gray-600 mb-6 text-center">
+                  You havent booked any vehicles yet.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => router.push('/vehicles')}
+                  className="px-6 py-3 bg-[#0D3778] rounded-lg"
+                >
+                  <Text className="text-white font-medium">
+                    Browse Available Vehicles
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View>
+                {bookings.map((booking) => (
+                  <View key={booking._id}>
+                    {/* Mobile View */}
+                    <View className="block md:hidden">
+                      <MobileBookingCard booking={booking} />
+                    </View>
+                    {/* Desktop View */}
+                    <View className="hidden md:block">
+                      <DesktopBookingCard booking={booking} />
+                    </View>
                   </View>
-                  {/* Desktop View */}
-                  <View className="hidden md:block">
-                    <DesktopBookingCard booking={booking} />
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
 
-      {/* Modal for viewing booking details */}
-      {showModal && selectedBookingId && (
-        <VehicleBookingModal
-          bookingId={selectedBookingId}
-          booking={selectedBooking}
-          onClose={handleCloseModal}
-          API_BASE_URL={API_BASE_URL}
-          API_VERSION={API_VERSION}
-        />
-      )}
+        {/* Modal for viewing booking details */}
+        {showModal && selectedBookingId && (
+          <VehicleBookingModal
+            bookingId={selectedBookingId}
+            booking={selectedBooking}
+            onClose={handleCloseModal}
+            API_BASE_URL={API_BASE_URL}
+            API_VERSION={API_VERSION}
+          />
+        )}
+      </AppLayout>
     </SafeAreaView>
   );
 };

@@ -10,10 +10,12 @@ import {
   TextInput,
   Image,
   ImageBackground,
+  Modal,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
+import AppLayout from '../components/layout/Layout';
 
 export default function ReviewsScreen() {
   const [reviews, setReviews] = useState([]);
@@ -255,6 +257,7 @@ export default function ReviewsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <AppLayout>
       <ScrollView contentContainerClassName="p-4 pb-8">
         <View className="p-6">
             <Text className="text-2xl font-bold text-center text-[#0D3778] mt-2">
@@ -455,63 +458,64 @@ export default function ReviewsScreen() {
                 </View>
             </ImageBackground>
         </View>
-        {showSuccessModal && (
-        <View className="absolute inset-0 bg-black/50 items-center justify-center z-50 px-4">
-          <View className="bg-white rounded-2xl w-full max-w-[360px] overflow-hidden border-b-4 border-[#0D3778]">
+        <Modal visible={showSuccessModal} transparent animationType="fade">
+          <View className="flex-1 bg-black/50 items-center justify-center px-4">
+            <View className="bg-white rounded-2xl w-full max-w-[360px] overflow-hidden border-b-4 border-[#0D3778]">
 
-            {/* Header */}
-            <View className="bg-green-500 py-3 px-4 relative">
-              <Text className="text-white font-semibold text-center">
-                Review Submitted Successfully
-              </Text>
+              {/* Header */}
+              <View className="bg-green-500 py-3 px-4 relative">
+                <Text className="text-white font-semibold text-center">
+                  Review Submitted Successfully
+                </Text>
 
-              <TouchableOpacity
-                onPress={() => {
-                  setShowSuccessModal(false);
-                  checkCanReview();
-                }}
-                className="absolute right-3 top-3"
-              >
-                <FontAwesome name="close" size={18} color="white" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Body */}
-            <View className="p-6 items-center">
-              <Text className="text-base font-semibold mb-3">
-                Thank you for your feedback!
-              </Text>
-
-              <View className="flex-row items-center mb-4">
-                <Text className="mr-2 font-semibold">Your Rating:</Text>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <FontAwesome
-                    key={star}
-                    name={star <= submittedRating ? "star" : "star-o"}
-                    size={20}
-                    color="#FFC107"
-                    style={{ marginHorizontal: 2 }}
-                  />
-                ))}
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowSuccessModal(false);
+                    checkCanReview();
+                  }}
+                  className="absolute right-3 top-3"
+                >
+                  <FontAwesome name="close" size={18} color="white" />
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                onPress={() => {
-                  setShowSuccessModal(false);
-                  navigation.navigate("Home/homepage");
-                }}
-                className="border-2 border-[#0D3778] rounded-lg px-6 py-2"
-              >
-                <Text className="text-[#0D3778] font-semibold">
-                  Back To Home
+              {/* Body */}
+              <View className="p-6 items-center">
+                <Text className="text-base font-semibold mb-3">
+                  Thank you for your feedback!
                 </Text>
-              </TouchableOpacity>
-            </View>
 
+                <View className="flex-row items-center mb-4">
+                  <Text className="mr-2 font-semibold">Your Rating:</Text>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FontAwesome
+                      key={star}
+                      name={star <= submittedRating ? "star" : "star-o"}
+                      size={20}
+                      color="#FFC107"
+                      style={{ marginHorizontal: 2 }}
+                    />
+                  ))}
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowSuccessModal(false);
+                    navigation.navigate("Cus_booking-history/booking-history");
+                  }}
+                  className="border-2 border-[#0D3778] rounded-lg px-6 py-2"
+                >
+                  <Text className="text-[#0D3778] font-semibold">
+                    Back To Home
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+            </View>
           </View>
-        </View>
-      )}
+        </Modal>
       </ScrollView>
+      </AppLayout>
     </SafeAreaView>
   );
 }
