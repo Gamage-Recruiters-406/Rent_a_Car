@@ -1,6 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logoBlue from "../assets/Rent My Car(Blue).png";
+
+// Import the notification API
+import { getUnreadCount } from "../services/notificationApi";
+import axios from "axios";
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const apiVersion = import.meta.env.VITE_API_VERSION;
 
 const Logo = () => (
 	<div className="flex items-center gap-2">
@@ -80,20 +86,21 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 		}
 	};
 
+	const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8090/";
 	const AvatarDiv = () => (
-		<div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
-			{user?.avatar || user?.profile_image ? (
-				<img
-					src={user.avatar || user.profile_image}
-					alt={user?.first_name || "User"}
-					className="h-full w-full object-cover"
-				/>
-			) : (
-				<span className="text-sm">
-					{`${user?.first_name?.slice(0, 1) || ""}${user?.last_name?.slice(0, 1) || ""}`.toUpperCase() || "U"}
-				</span>
-			)}
-		</div>
+	       <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[#0D3778] text-white font-semibold shrink-0">
+		       {user?.profilePicture ? (
+			       <img
+				       src={`${BACKEND_URL.replace(/\/$/, "")}/${user.profilePicture.replace(/^\//, "")}`}
+				       alt={user?.first_name || "User"}
+				       className="h-full w-full object-cover"
+			       />
+		       ) : (
+			       <span className="text-sm">
+				       {`${user?.first_name?.slice(0, 1) || ""}${user?.last_name?.slice(0, 1) || ""}`.toUpperCase() || "U"}
+			       </span>
+		       )}
+	       </div>
 	);
 
 	const handleLogoutClick = () => {
@@ -190,14 +197,48 @@ const ProfileMenu = ({ user, roleLabel, onLogout, avatarAfterName = false }) => 
 
 export default function Header({
 	role = 1,
-	user,
+	user: userProp,
 	isAuthenticated = false,
 	onLogout,
-	notifications = 0,
+	notifications: notificationsProp = 0,
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [unreadCount, setUnreadCount] = useState(notificationsProp);
+	const [user, setUser] = useState(() => {
+		if (userProp) return userProp;
+		const stored = localStorage.getItem("user");
+		return stored ? JSON.parse(stored) : null;
+	});
 	const location = useLocation();
 	const navigate = useNavigate();
+
+	// Sync user with localStorage if not provided as prop
+	useEffect(() => {
+		if (!userProp) {
+			const syncUser = () => {
+				const stored = localStorage.getItem("user");
+				setUser(stored ? JSON.parse(stored) : null);
+			};
+			window.addEventListener("storage", syncUser);
+			// Fetch user profile image from backend (like profile page)
+			const fetchUserData = async () => {
+			       try {
+				       const response = await axios.get(`${BACKEND_URL.replace(/\/$/, "")}/api/v1/authUser/getUserDetails`, {
+					       withCredentials: true
+				       });
+				       if (response.data && response.data.user) {
+					       setUser(prev => ({ ...prev, ...response.data.user }));
+				       }
+			       } catch (error) {
+				       // fallback: do nothing
+			       }
+			};
+			fetchUserData();
+			return () => window.removeEventListener("storage", syncUser);
+		} else {
+			setUser(userProp);
+		}
+	}, [userProp]);
 
 	const normalizedRole = useMemo(() => {
 		if (typeof role === "string") return role.toLowerCase();
@@ -214,6 +255,21 @@ export default function Header({
 		if (normalizedRole === "owner") return "Owner";
 		return "Customer";
 	}, [normalizedRole]);
+
+	// Fetch unread notification count on mount and when authenticated changes
+	useEffect(() => {
+		if (isAuthenticated) {
+			getUnreadCount().then(res => {
+				if (res.success) {
+					setUnreadCount(res.unreadCount || res.count || 0);
+				} else {
+					setUnreadCount(0);
+				}
+			}).catch(() => setUnreadCount(0));
+		} else {
+			setUnreadCount(0);
+		}
+	}, [isAuthenticated]);
 
 	return (
 		<header className="sticky top-0 z-50 w-full bg-white shadow-sm">
@@ -232,7 +288,7 @@ export default function Header({
 							</div>
 							{isAuthenticated ? (
 								<div className="hidden items-center gap-4 md:flex">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -263,14 +319,14 @@ export default function Header({
 						<nav className="flex items-center gap-4">
 							<div className="hidden items-center gap-2 lg:flex">
 								<NavLink to="/" active={location.pathname === "/"}>Home</NavLink>
-								<NavLink to="/owner/dashboard" active={location.pathname === "/owner/dashboard"}>Dashboard</NavLink>
+								<NavLink to="/dashboard" active={location.pathname === "/dashboard"}>Dashboard</NavLink>
 								<NavLink to="/owner/vehicles" active={location.pathname === "/owner/vehicles"}>My Vehicles</NavLink>
 								<NavLink to="/owner/vehicles/new" active={location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle"}>Add Vehicle</NavLink>
 								<NavLink to="/owner/booking-requests" active={location.pathname === "/owner/booking-requests"}>Booking Requests</NavLink>
 								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+								<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -293,7 +349,7 @@ export default function Header({
 								<NavLink to="/admin/report" active={location.pathname === "/admin/report"}>Reports</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
-								<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+								<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 								<ProfileMenu
 									user={user}
 									roleLabel={roleLabel}
@@ -339,7 +395,7 @@ export default function Header({
 								</Link>
 								{isAuthenticated ? (
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -371,7 +427,7 @@ export default function Header({
 								<Link to="/" className={`text-sm font-medium ${location.pathname === "/" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Home
 								</Link>
-								<Link to="/owner/dashboard" className={`text-sm font-medium ${location.pathname === "/owner/dashboard" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
+								<Link to="/dashboard" className={`text-sm font-medium ${location.pathname === "/dashboard" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Dashboard
 								</Link>
 								<Link to="/owner/vehicles" className={`text-sm font-medium ${location.pathname === "/owner/vehicles" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
@@ -386,11 +442,9 @@ export default function Header({
 								<Link to="/rental-history" className={`text-sm font-medium ${location.pathname === "/rental-history" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
 									Earnings
 								</Link>
-								<Link to="/owner/reviews" className={`text-sm font-medium ${location.pathname === "/owner/reviews" ? "text-[#0D3778] font-semibold" : "text-slate-700"}`}>
-									Reviews
-								</Link>
+
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}
@@ -422,7 +476,7 @@ export default function Header({
 									Settings
 								</Link>
 								<div className="flex items-center gap-3 pt-2">
-									<NotificationBell count={notifications} onClick={() => navigate('/notifications')} />
+									<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />
 									<ProfileMenu
 										user={user}
 										roleLabel={roleLabel}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Star, Fuel, Zap, Users, X, Calendar, DollarSign, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Layout from '../layouts/Layout';
+import { getImageBaseUrl } from '../services/vehicleService';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -13,6 +14,8 @@ export function CustomerVehicleListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [selectedReviewCount, setSelectedReviewCount] = useState(0);
   const [filters, setFilters] = useState({
     location: '',
     startDate: '',
@@ -22,6 +25,61 @@ export function CustomerVehicleListPage() {
     fuelType: '',
     maxPrice: '',
   });
+
+  const apiBase = getImageBaseUrl();
+  
+  // Helper function to get rating value
+  const getRatingValue = (vehicle) => {
+    if (vehicle?.rating) return vehicle.rating;
+    if (vehicle?.averageRating) return vehicle.averageRating;
+    return 0;
+  };
+
+  // Helper function to get review count
+  const getReviewCount = (vehicle) => {
+    if (vehicle?.reviewCount) return vehicle.reviewCount;
+    if (vehicle?.totalReviews) return vehicle.totalReviews;
+    if (Array.isArray(vehicle?.reviews)) return vehicle.reviews.length;
+    return 0;
+  };
+
+  // Function to close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedVehicle(null);
+    setSelectedRating(0);
+    setSelectedReviewCount(0);
+  };
+
+  const toFullImageUrl = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    const path = url.startsWith('/') ? url : `/${url}`;
+    return `${apiBase}${path}`;
+  };
+
+  const getPhotoUrls = (vehicle) => {
+    const out = [];
+    if (Array.isArray(vehicle?.photos) && vehicle.photos.length > 0) {
+      vehicle.photos.forEach((p) => {
+        const u = p && (typeof p === 'string' ? p : p.url);
+        const full = toFullImageUrl(u);
+        if (full) out.push(full);
+      });
+    }
+    if (out.length) return out;
+    if (vehicle?.image && typeof vehicle.image === 'string') {
+      const full = toFullImageUrl(vehicle.image);
+      if (full) return [full];
+    }
+    if (Array.isArray(vehicle?.images)) {
+      vehicle.images.forEach((u) => {
+        const full = typeof u === 'string' ? toFullImageUrl(u) : (u?.url ? toFullImageUrl(u.url) : null);
+        if (full) out.push(full);
+      });
+    }
+    return out;
+  };
 
   // Fetch vehicles on component mount
   useEffect(() => {
@@ -60,7 +118,11 @@ export function CustomerVehicleListPage() {
       const data = await response.json();
       // Handle different response formats from backend
       const vehicleList = data.vehicles || data.data || [];
-      setVehicles(Array.isArray(vehicleList) ? vehicleList : []);
+      const normalizedVehicles = (Array.isArray(vehicleList) ? vehicleList : []).map((vehicle) => ({
+        ...vehicle,
+        photos: getPhotoUrls(vehicle),
+      }));
+      setVehicles(normalizedVehicles);
       
       if (vehicleList.length === 0) {
         // Don't show toast for empty state
@@ -89,41 +151,18 @@ export function CustomerVehicleListPage() {
   };
 
   const handleViewDetails = (vehicleId) => {
-    const vehicle = vehicles.find(v => (v._id || v.id) === vehicleId);
-    if (vehicle) {
-      setSelectedVehicle(vehicle);
-      setIsModalOpen(true);
-    }
+    navigate(`/vehicles/${vehicleId}`);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedVehicle(null), 300);
+  const handleOpenModal = (vehicle) => {
+    setSelectedVehicle(vehicle);
+    setSelectedRating(getRatingValue(vehicle));
+    setSelectedReviewCount(getReviewCount(vehicle));
+    setIsModalOpen(true);
   };
-
-  const getRatingValue = (vehicle) => {
-    if (!vehicle) return null;
-    const raw = vehicle.averageRating ?? vehicle.rating ?? vehicle.statistics?.averageRating;
-    const num = Number(raw);
-    return Number.isFinite(num) ? num : null;
-  };
-
-  const getReviewCount = (vehicle) => {
-    if (!vehicle) return 0;
-    const raw =
-      vehicle.reviewCount ??
-      vehicle.totalReviews ??
-      vehicle.statistics?.totalReviews ??
-      vehicle.statistics?.reviewCount;
-    const num = Number(raw);
-    return Number.isFinite(num) ? num : 0;
-  };
-
-  const selectedRating = getRatingValue(selectedVehicle);
-  const selectedReviewCount = getReviewCount(selectedVehicle);
 
   const filteredVehicles = vehicles.filter(vehicle => {
-    if (filters.location && !vehicle.location?.address?.toLowerCase().includes(filters.location.toLowerCase())) {
+    if (filters.location && !vehicle.address?.toLowerCase().includes(filters.location.toLowerCase())) {
       return false;
     }
     if (filters.vehicleType && vehicle.vehicleType !== filters.vehicleType) {

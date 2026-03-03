@@ -16,6 +16,8 @@ import { searchVehicles, createBooking } from '../services/bookingApi';
 // import { ContactPage } from './ContactPage';
 // import { PaymentModal } from './PaymentModal';
 import { getAllReviews } from '../services/reviewApi';
+import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 // Analog Clock Time Picker Component
 function AnalogTimePicker({
@@ -265,6 +267,20 @@ function DatePicker({
       today.getFullYear() === currentMonth.getFullYear());
 
   };
+
+  const isPast = (day) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    return checkDate < today;
+  };
+
+  const isPrevMonthDisabled = () => {
+    const today = new Date();
+    return currentMonth.getFullYear() < today.getFullYear() ||
+      (currentMonth.getFullYear() === today.getFullYear() && currentMonth.getMonth() <= today.getMonth());
+  };
+
   return (
     <div
       ref={ref}
@@ -273,9 +289,10 @@ function DatePicker({
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={prevMonth}
-          className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+          disabled={isPrevMonthDisabled()}
+          className={`p-1 rounded-full transition-colors ${isPrevMonthDisabled() ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-gray-100 text-gray-600'}`}>
 
-          <ChevronLeft className="h-5 w-5 text-gray-600" />
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <span className="font-semibold text-gray-800">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
@@ -312,6 +329,7 @@ function DatePicker({
           return (
             <button
               key={day}
+              disabled={isPast(day)}
               onClick={() => {
                 onSelect(
                   new Date(
@@ -323,7 +341,7 @@ function DatePicker({
                 onClose();
               }}
               className={`w-8 h-8 rounded-full text-sm font-medium transition-all
-                ${isSelected(day) ? 'bg-[#1e3a5f] text-white' : isToday(day) ? 'bg-blue-100 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+                ${isPast(day) ? 'text-gray-300 cursor-not-allowed' : isSelected(day) ? 'bg-[#1e3a5f] text-white' : isToday(day) ? 'bg-blue-100 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
 
               {day}
             </button>);
@@ -336,6 +354,7 @@ function DatePicker({
 // Testimonials data - Removed dummy data, now fetched from backend
 
 export function LandingPage({ onBookNow }) {
+  const { id } = useParams();
   // Date & Time State
   const [pickupDate, setPickupDate] = useState(null);
   const [pickupTime, setPickupTime] = useState(null);
@@ -351,16 +370,20 @@ export function LandingPage({ onBookNow }) {
       try {
         const res = await searchVehicles({});
         if (res.success && res.data) {
-           setVehicles(res.data);
-           if (res.data.length > 0) setSelectedVehicleId(res.data[0]._id);
+          setVehicles(res.data);
+          if (id) {
+            setSelectedVehicleId(id);
+          } else if (res.data.length > 0) {
+            setSelectedVehicleId(res.data[0]._id);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch vehicles", error);
       }
     };
     fetchVehicles();
-  }, []);
-  
+  }, [id]);
+
   // Popup State
   const [showPickupCalendar, setShowPickupCalendar] = useState(false);
   const [showPickupTime, setShowPickupTime] = useState(false);
@@ -386,9 +409,9 @@ export function LandingPage({ onBookNow }) {
         }
 
         if (Array.isArray(fetchedReviews)) {
-            setReviews(fetchedReviews);
+          setReviews(fetchedReviews);
         } else {
-            console.warn("Reviews data format not recognized:", response);
+          console.warn("Reviews data format not recognized:", response);
         }
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
@@ -437,7 +460,7 @@ export function LandingPage({ onBookNow }) {
     const start = combineDateTime(pickupDate, pickupTime);
     const end = combineDateTime(dropoffDate, dropoffTime);
     if (!start || !end || end <= start) return "0.00";
-    
+
     const diffMs = end.getTime() - start.getTime();
     const dayMs = 24 * 60 * 60 * 1000;
     const days = Math.max(1, Math.ceil(diffMs / dayMs));
@@ -445,13 +468,15 @@ export function LandingPage({ onBookNow }) {
     return (days * rate).toFixed(2);
   };
 
+  const navigate = useNavigate();
+
   const handleBookingCreate = async () => {
-    if (!selectedVehicleId) return alert("Please select a vehicle.");
+    if (!selectedVehicleId) return toast.error("Please select a vehicle.");
     const start = combineDateTime(pickupDate, pickupTime);
     const end = combineDateTime(dropoffDate, dropoffTime);
     
-    if (!start || !end) return alert("Please select pickup and dropoff dates.");
-    if (end <= start) return alert("End date must be after pickup date.");
+    if (!start || !end) return toast.error("Please select pickup and dropoff dates.");
+    if (end <= start) return toast.error("End date must be after pickup date.");
 
     setIsLoading(true);
     try {
@@ -461,16 +486,17 @@ export function LandingPage({ onBookNow }) {
       formData.append('startingDate', start.toISOString());
       formData.append('endDate', end.toISOString());
       // documents are currently empty for initial booking from landing page
-    
+
       const res = await createBooking(formData);
       
       if (res.success) {
-        alert("Booking request sent successfully!");
+        toast.success("Booking request sent successfully!");
         if (onBookNow) onBookNow();
+        navigate('/booking-history');
       }
     } catch (err) {
       console.error(err);
-      alert(err.message || "Failed to create booking. Please ensure you are logged in.");
+      toast.error(err.message || "Failed to create booking. Please ensure you are logged in.");
     } finally {
       setIsLoading(false);
     }
@@ -507,7 +533,7 @@ export function LandingPage({ onBookNow }) {
                     {vehicles.length > 0 ? (
                       vehicles.map((v) => (
                         <option key={v._id} value={v._id}>
-                           {v.title || `${v.make || 'Car'} ${v.model || ''}`} [{v.licensePlate || v.registrationNumber || 'NA'}]
+                          {v.title || `${v.make || 'Car'} ${v.model || ''}`} [{v.licensePlate || v.registrationNumber || 'NA'}]
                         </option>
                       ))
                     ) : (
@@ -740,46 +766,46 @@ export function LandingPage({ onBookNow }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-8 md:px-0">
               {visibleReviews.length > 0 ? (
                 visibleReviews.map((review) => (
-                <div
-                  key={review.id || review._id}
-                  className="bg-gray-100 rounded-lg p-8 relative transition-all duration-300">
+                  <div
+                    key={review.id || review._id}
+                    className="bg-gray-100 rounded-lg p-8 relative transition-all duration-300">
 
-                  <div className="flex items-center space-x-4 mb-4">
-                    <img
-                      src={review.image || review.User?.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
-                      alt={review.name || review.User?.name || "Customer"}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-[#1e3a5f]" />
+                    <div className="flex items-center space-x-4 mb-4">
+                      <img
+                        src={review.image || review.User?.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"}
+                        alt={review.name || review.User?.name || "Customer"}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-[#1e3a5f]" />
 
-                    <div>
-                      <h4 className="font-bold text-[#1e3a5f]">
-                        {review.name || review.User?.name || "Customer"}
-                      </h4>
-                      <p className="text-xs text-gray-500">
-                        {review.profession || review.User?.role || "Verified Cluster"}
-                      </p>
-                      <div className="flex text-red-700 text-xs mt-1">
-                        {Array.from({
-                          length: 5
-                        }).map((_, i) =>
-                          <Star
-                            key={i}
-                            className={`h-3 w-3 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />
+                      <div>
+                        <h4 className="font-bold text-[#1e3a5f]">
+                          {review.name || review.User?.name || "Customer"}
+                        </h4>
+                        <p className="text-xs text-gray-500">
+                          {review.profession || review.User?.role || "Verified Cluster"}
+                        </p>
+                        <div className="flex text-red-700 text-xs mt-1">
+                          {Array.from({
+                            length: 5
+                          }).map((_, i) =>
+                            <Star
+                              key={i}
+                              className={`h-3 w-3 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />
 
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      "{review.quote || review.feedback}"
+                    </p>
+                    <div className="absolute -top-3 right-8 bg-[#1a1a2e] text-white p-1 rounded-full">
+                      <Quote className="h-4 w-4" />
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    "{review.quote || review.feedback}"
-                  </p>
-                  <div className="absolute -top-3 right-8 bg-[#1a1a2e] text-white p-1 rounded-full">
-                    <Quote className="h-4 w-4" />
-                  </div>
-                </div>
-              ))
+                ))
               ) : (
                 <div className="col-span-2 text-center text-gray-400 py-10">
-                   No reviews available yet.
+                  No reviews available yet.
                 </div>
               )}
             </div>

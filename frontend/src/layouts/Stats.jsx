@@ -10,8 +10,7 @@ import {
   BadgeCheck,
 } from "lucide-react";
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
-const apiVersion = import.meta.env.VITE_API_VERSION;
+
 
 export const Stats = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +20,9 @@ export const Stats = () => {
   const [vehicleCount, setVehicleCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
+ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_VERSION = import.meta.env.VITE_API_VERSION;
 
   const stats = [
     {
@@ -57,7 +59,7 @@ export const Stats = () => {
     const fetchVehicleCount = async () => {
       try {
         setIsLoading(true);
-        const url = `http://localhost:8090/api/v1/vehicle/vehicle-count`;
+        const url = `${API_BASE_URL}${API_VERSION}/vehicle/vehicle-count`;
         const response = await fetch(url, {
           method: "GET",
           headers: {
@@ -93,7 +95,7 @@ export const Stats = () => {
   useEffect(() => {
     const fetchUserCount = async () => {
       try {
-        const url = `http://localhost:8090/api/v1/authUser/getAllCustomersCount`;
+        const url = `${API_BASE_URL}${API_VERSION}/authUser/getAllCustomersCount`;
         const response = await fetch(url, {
           method: "GET",
           headers: {
@@ -107,8 +109,8 @@ export const Stats = () => {
 
         const data = await response.json();
 
-        if (data.success && Array.isArray(data.users)) {
-          setUserCount(data.users.length);
+        if (response.ok) {
+          setUserCount(data.length);
         } else {
           console.error("Invalid response format:", data);
           setUserCount(0);

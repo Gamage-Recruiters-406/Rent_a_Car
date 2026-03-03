@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X, Camera } from 'lucide-react';
+import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X, Camera, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Footer from '../../layouts/Footer';
 
@@ -58,7 +58,7 @@ export const OwnerProfileEdit = ({
             const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/earnings/${userId}`, {
                 withCredentials: true
             });
-            const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/${userId}`, {
+            const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/`, {
                 withCredentials: true
             });
             const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/get-my-all`, {
@@ -195,6 +195,31 @@ export const OwnerProfileEdit = ({
     onProfileChange?.(field, value);
   };
   
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you sure you want to delete your account? This action is permanent and cannot be undone.")) {
+      try {
+        const token = localStorage.getItem('token');
+        document.cookie = `access_token=${token}`;
+        const response = await axios.delete(`${baseUrl}${apiVersion}/authUser/deleteAccount`, {
+          withCredentials: true
+        });
+
+        if (response.data && response.data.success) {
+          toast.success("Account deleted successfully");
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/";
+        } else {
+          toast.error(response.data?.message || "Failed to delete account");
+        }
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        toast.error(error.response?.data?.message || "An error occurred while deleting account");
+      }
+    }
+  };
+  
   const handleVerify = async () => {
     try {
         const response = await axios.patch(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {}, {
@@ -277,13 +302,21 @@ export const OwnerProfileEdit = ({
                   Save Changes
                 </button>
               </> :
-            <button
-              onClick={handleEdit}
-              className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
-
-                <Edit className="w-4 h-4" />
-                Edit Profile
+            <>
+              <button
+                 onClick={handleDeleteAccount}
+                 className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-md font-medium hover:bg-red-500/20 transition-colors mr-2">
+                  <Trash2 className="w-4 h-4" />
+                  Delete Account
               </button>
+              <button
+                onClick={handleEdit}
+                className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
+
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
+                </button>
+            </>
             }
           </div>
         </div>
