@@ -99,6 +99,22 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
+      <Link href="/owner/AddVehicle" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Add Vehicle
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/owner/EditVehicleOwner" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Edit Vehicle
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
       <TouchableOpacity
         onPress={async () => {
           const keys = ["userToken", "userId", "userRole"];
@@ -115,12 +131,12 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 <AppLayout>
-      <Hero />
-      <Stats />
-      <Items />
-      <QuickStats />
-      <NewsLetter />
-      <Testimonials /> 
+      {/*<Hero />*/}
+      {/*<Stats />*/}
+      {/*<Items />*/}
+      {/*<QuickStats />*/}
+      {/*<NewsLetter />*/}
+      {/*<Testimonials />*/} 
       </AppLayout>
     </ScrollView>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -16,8 +16,8 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-// import * as Location from "expo-location";            // MAP: commented out
-// import MapView, { Marker } from "react-native-maps"; // MAP: commented out
+import * as Location from "expo-location";
+import MapView, { Marker } from "react-native-maps";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ENV } from "../../config/env";
 
@@ -98,11 +98,10 @@ const DropdownPicker = ({
                   }}
                 >
                   <Text
-                    className={`text-base ${
-                      value === opt
+                    className={`text-base ${value === opt
                         ? "font-semibold text-blue-700"
                         : "text-gray-700"
-                    }`}
+                      }`}
                   >
                     {opt}
                   </Text>
@@ -121,9 +120,9 @@ const DropdownPicker = ({
 // ────────────────────────────────────────────
 export default function AddVehicleScreen() {
   const router = useRouter();
-  // const mapRef = useRef(null);          // MAP: commented out
+  const mapRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  // const [showMap, setShowMap] = useState(false); // MAP: commented out
+  const [showMap, setShowMap] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -143,12 +142,11 @@ export default function AddVehicleScreen() {
 
   const [photos, setPhotos] = useState([]);
 
-  // MAP: selectedLocation state commented out
-  // const [selectedLocation, setSelectedLocation] = useState({
-  //   lat: 6.9271,
-  //   lng: 79.8612,
-  //   address: "",
-  // });
+  const [selectedLocation, setSelectedLocation] = useState({
+    lat: 6.9271,
+    lng: 79.8612,
+    address: "",
+  });
 
   // ── Load draft on mount ──
   useEffect(() => {
@@ -199,11 +197,85 @@ export default function AddVehicleScreen() {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // MAP: all location/map functions commented out
-  // const updateLocationFromCoordinates = async (lat, lng) => { ... };
-  // const handleMapPress = (e) => { ... };
-  // const handleMarkerDragEnd = (e) => { ... };
-  // const getCurrentLocation = async () => { ... };
+  // ── Location / Map functions ──
+  const updateLocationFromCoordinates = async (lat, lng) => {
+    // Update coordinates immediately so the marker moves right away
+    setSelectedLocation((prev) => ({ ...prev, lat, lng }));
+
+    try {
+      // reverseGeocodeAsync requires location permission on some platforms
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        // Permission denied — just show coordinates as the address fallback
+        const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        setSelectedLocation({ lat, lng, address: fallback });
+        updateField("address", fallback);
+        return;
+      }
+
+      const [result] = await Location.reverseGeocodeAsync({
+        latitude: lat,
+        longitude: lng,
+      });
+
+      if (result) {
+        const parts = [
+          result.street,
+          result.city,
+          result.region,
+          result.country,
+        ].filter(Boolean);
+        const address = parts.join(", ");
+        setSelectedLocation({ lat, lng, address });
+        updateField("address", address);
+      } else {
+        const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        setSelectedLocation({ lat, lng, address: fallback });
+        updateField("address", fallback);
+      }
+    } catch (e) {
+      console.error("Reverse geocode error:", e);
+      // Silently fall back to coordinate string — don't crash or block the user
+      const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      setSelectedLocation({ lat, lng, address: fallback });
+      updateField("address", fallback);
+    }
+  };
+
+  const handleMapPress = (e) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    updateLocationFromCoordinates(latitude, longitude);
+  };
+
+  const handleMarkerDragEnd = (e) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    updateLocationFromCoordinates(latitude, longitude);
+  };
+
+  const getCurrentLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Location permission is required.");
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      const { latitude, longitude } = location.coords;
+      await updateLocationFromCoordinates(latitude, longitude);
+      mapRef.current?.animateToRegion({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    } catch (e) {
+      Alert.alert("Error", "Could not get current location.");
+      console.error("Location error:", e);
+    }
+  };
 
   // ── Draft ──
   const handleSaveDraft = async () => {
@@ -252,10 +324,8 @@ export default function AddVehicleScreen() {
         body.append(key, val);
       });
 
-      // MAP: using default Colombo coordinates while map is disabled
-      // Replace with selectedLocation.lat / selectedLocation.lng when map is re-enabled
-      body.append("lat", 6.9271);
-      body.append("lng", 79.8612);
+      body.append("lat", selectedLocation.lat);
+      body.append("lng", selectedLocation.lng);
 
       photos.forEach((photo, idx) => {
         const uri = photo.uri;
@@ -367,7 +437,7 @@ export default function AddVehicleScreen() {
               </View>
               <View className="flex-1">
                 <DropdownPicker
-                  label="Vehicle Type"
+                  label="Vehicle"
                   required
                   options={VEHICLE_TYPES}
                   value={formData.vehicleType}
@@ -477,21 +547,28 @@ export default function AddVehicleScreen() {
             </View>
 
             {/* ─── Rental Amount ─── */}
-            <View className="mb-4">
+            <View style={{ marginBottom: 16 }}>
               <Text
-                className="text-sm font-semibold mb-2"
-                style={{ color: "#0D3778" }}
+                style={{ color: "#0D3778", fontWeight: "600", fontSize: 14, marginBottom: 8 }}
               >
-                Rental Amount <Text className="text-red-500">*</Text>
+                Rental Amount <Text style={{ color: "#EF4444" }}>*</Text>
               </Text>
-              <View className="flex-row gap-3">
-                <View className="flex-1">
-                  <Text className="text-xs text-gray-500 mb-1">
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, color: "#6B7280", marginBottom: 4 }}>
                     Daily Rental Rate
                   </Text>
                   <TextInput
-                    className="flex-1 border-2 rounded-lg px-3 py-2.5 text-gray-800 bg-white"
-                    style={{ borderColor: "#0D3778" }}
+                    style={{
+                      borderWidth: 2,
+                      borderColor: "#0D3778",
+                      borderRadius: 8,
+                      paddingHorizontal: 12,
+                      paddingVertical: 10,
+                      color: "#1F2937",
+                      backgroundColor: "#FFFFFF",
+                      width: "100%",
+                    }}
                     placeholder="e.g., 5000"
                     placeholderTextColor="#9CA3AF"
                     value={formData.pricePerDay}
@@ -499,13 +576,21 @@ export default function AddVehicleScreen() {
                     keyboardType="numeric"
                   />
                 </View>
-                <View className="flex-1">
-                  <Text className="text-xs text-gray-500 mb-1">
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, color: "#6B7280", marginBottom: 4 }}>
                     Per Kilometer Charge
                   </Text>
                   <TextInput
-                    className="flex-1 border-2 rounded-lg px-3 py-2.5 text-gray-800 bg-white"
-                    style={{ borderColor: "#0D3778" }}
+                    style={{
+                      borderWidth: 2,
+                      borderColor: "#0D3778",
+                      borderRadius: 8,
+                      paddingHorizontal: 12,
+                      paddingVertical: 10,
+                      color: "#1F2937",
+                      backgroundColor: "#FFFFFF",
+                      width: "100%",
+                    }}
                     placeholder="e.g., 50"
                     placeholderTextColor="#9CA3AF"
                     value={formData.pricePerKm}
@@ -525,7 +610,7 @@ export default function AddVehicleScreen() {
               onSelect={(v) => updateField("transmission", v)}
             />
 
-            {/* ─── Location — manual input only (map picker commented out) ─── */}
+            {/* ─── Location ─── */}
             <View className="mb-4">
               <Text
                 className="text-sm font-semibold mb-1.5"
@@ -533,24 +618,24 @@ export default function AddVehicleScreen() {
               >
                 Location <Text className="text-red-500">*</Text>
               </Text>
-              <TextInput
-                className="border-2 rounded-lg px-3 py-2.5 text-gray-800 bg-white"
-                style={{ borderColor: "#0D3778" }}
-                placeholder="Enter your location (e.g., Colombo, Sri Lanka)"
-                placeholderTextColor="#9CA3AF"
-                value={formData.address}
-                onChangeText={(v) => updateField("address", v)}
-              />
-              {/* MAP: map picker icon button commented out
-              <TouchableOpacity
-                className="rounded-lg px-3.5 justify-center items-center"
-                style={{ backgroundColor: "#0D3778" }}
-                onPress={() => setShowMap(true)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="location" size={22} color="white" />
-              </TouchableOpacity>
-              */}
+              <View className="flex-row gap-2">
+                <TextInput
+                  className="flex-1 border-2 rounded-lg px-3 py-2.5 text-gray-800 bg-white"
+                  style={{ borderColor: "#0D3778" }}
+                  placeholder="Enter your location or pick on map"
+                  placeholderTextColor="#9CA3AF"
+                  value={formData.address}
+                  onChangeText={(v) => updateField("address", v)}
+                />
+                <TouchableOpacity
+                  className="rounded-lg px-3.5 justify-center items-center"
+                  style={{ backgroundColor: "#0D3778" }}
+                  onPress={() => setShowMap(true)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="location" size={22} color="white" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* ─── Vehicle Photos ─── */}
@@ -662,10 +747,7 @@ export default function AddVehicleScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ═══════════════════════════════════════════════════════════
-          MAP MODAL — commented out entirely, uncomment when ready
-      ════════════════════════════════════════════════════════════
-
+      {/* ─── Map Modal ─── */}
       <Modal visible={showMap} animationType="slide" presentationStyle="fullScreen">
         <SafeAreaView className="flex-1 bg-white">
 
@@ -686,7 +768,9 @@ export default function AddVehicleScreen() {
               activeOpacity={0.8}
             >
               <Ionicons name="navigate" size={18} color="white" />
-              <Text className="text-white font-semibold ml-2">Use My Current Location</Text>
+              <Text className="text-white font-semibold ml-2">
+                Use My Current Location
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -696,7 +780,8 @@ export default function AddVehicleScreen() {
               {selectedLocation.address || "Tap on map to select"}
             </Text>
             <Text className="text-xs text-gray-400 mt-0.5">
-              Lat: {selectedLocation.lat.toFixed(6)}, Lng: {selectedLocation.lng.toFixed(6)}
+              Lat: {selectedLocation.lat.toFixed(6)}, Lng:{" "}
+              {selectedLocation.lng.toFixed(6)}
             </Text>
           </View>
 
@@ -727,7 +812,12 @@ export default function AddVehicleScreen() {
           </View>
 
           <View className="mx-4 mb-2 px-3 py-2.5 bg-blue-50 rounded-lg flex-row items-start">
-            <Ionicons name="bulb-outline" size={18} color="#0D3778" style={{ marginTop: 1 }} />
+            <Ionicons
+              name="bulb-outline"
+              size={18}
+              color="#0D3778"
+              style={{ marginTop: 1 }}
+            />
             <Text className="text-xs text-gray-600 ml-2 flex-1">
               Tap on the map to place a marker, drag the marker to adjust, or
               use the button above to set your current location.
@@ -741,14 +831,14 @@ export default function AddVehicleScreen() {
               onPress={() => setShowMap(false)}
               activeOpacity={0.8}
             >
-              <Text className="text-white font-bold text-base">Confirm Location</Text>
+              <Text className="text-white font-bold text-base">
+                Confirm Location
+              </Text>
             </TouchableOpacity>
           </View>
 
         </SafeAreaView>
       </Modal>
-
-      ════════════════════════════════════════════════════════════ */}
     </SafeAreaView>
   );
 }
