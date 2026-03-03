@@ -196,7 +196,7 @@ ${topPerformers.map((v, i) => `${i + 1}. ${v.title} (${v.model})
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Admin Report</h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">Overview of platform performance and analytics</p>
           </div>
           <div className="text-xs sm:text-sm text-gray-500">
