@@ -180,6 +180,12 @@ export function CustomerVehicleListPage() {
     return true;
   });
 
+  const sortedVehicles = [...filteredVehicles].sort((a, b) => {
+    const priceA = Number(a?.pricePerDay) || 0;
+    const priceB = Number(b?.pricePerDay) || 0;
+    return priceA - priceB;
+  });
+
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -323,21 +329,21 @@ export function CustomerVehicleListPage() {
                 <p className="mt-6 text-gray-700 font-semibold text-base sm:text-lg">Loading vehicles...</p>
               </div>
             </div>
-          ) : filteredVehicles.length > 0 ? (
+          ) : sortedVehicles.length > 0 ? (
             <>
               {/* Filter Results Info */}
               <div className="mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
                   <span className="w-1.5 h-7 sm:h-8 bg-gradient-to-b from-[#0D3778] to-[#0A2E5C] rounded-full shadow-md"></span>
                   <span className="bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] bg-clip-text text-transparent">
-                    {filteredVehicles.length} Vehicle{filteredVehicles.length !== 1 ? 's' : ''} Available
+                    {sortedVehicles.length} Vehicle{sortedVehicles.length !== 1 ? 's' : ''} Available
                   </span>
                 </h2>
               </div>
 
               {/* Vehicles Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {filteredVehicles.map((vehicle) => {
+                {sortedVehicles.map((vehicle) => {
                   const ratingValue = getRatingValue(vehicle);
                   const reviewCount = getReviewCount(vehicle);
 
