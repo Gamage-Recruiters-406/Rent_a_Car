@@ -13,7 +13,7 @@ import { Hero } from "../../components/ui/Hero";
 import { Stats } from "../../components/ui/Stats";
 import { Items } from "../../components/ui/Items";
 import { NewsLetter } from "../../components/ui/NewsLetter";
-import { QuickStats } from "../../components/ui/QuickStats";
+import { QuickStats } from "../../components/ui/Quickstats";
 import { Testimonials } from "../../components/ui/Testimonials";
 import Layout from "../login/_layout";
 
