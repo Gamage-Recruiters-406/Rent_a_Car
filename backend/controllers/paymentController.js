@@ -255,3 +255,129 @@ export const getPaymentsByUserId = async (req, res) => {
     });
   }
 };
+
+// Get all PAID payments (admin view)
+export const getAllPaidPaymentsForAdmin = async (req, res) => {
+  try {
+    const { startDate, endDate, limit = 10, page = 1, customerId } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Build filter
+    let filter = { status: "paid" }; // Only paid payments
+
+    if (customerId) {
+      filter.customerId = customerId;
+    }
+
+    if (startDate || endDate) {
+      filter.paymentDate = {};
+      if (startDate) filter.paymentDate.$gte = new Date(startDate);
+      if (endDate) filter.paymentDate.$lte = new Date(endDate);
+    }
+
+    // Fetch payments
+    const payments = await payment
+      .find(filter)
+      .populate({
+        path: "vehicleId",
+        select: "make model year image registrationNumber",
+      })
+      .populate({
+        path: "bookingId",
+        select: "startDate endDate totalAmount",
+      })
+      .populate({
+        path: "customerId",
+        select: "name email",
+      })
+      .sort({ paymentDate: -1 })
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalCount = await payment.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      message: "Paid payments fetched successfully for admin.",
+      pagination: {
+        currentPage: pageNumber,
+        totalPages: Math.ceil(totalCount / limitNumber),
+        totalItems: totalCount,
+        itemsPerPage: limitNumber,
+      },
+      payments,
+    });
+  } catch (error) {
+    console.error("Error fetching paid payments for admin:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error.",
+      error: error.message,
+    });
+  }
+};
+
+// Get all PAID payments for vehicle owner
+export const getPaidPaymentsForOwner = async (req, res) => {
+  try {
+    const ownerId = req.user.userid; // Logged-in owner
+    const { startDate, endDate, limit = 10, page = 1 } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Build filter
+    let filter = { status: "paid", OwnerId: ownerId };
+
+    if (startDate || endDate) {
+      filter.paymentDate = {};
+      if (startDate) filter.paymentDate.$gte = new Date(startDate);
+      if (endDate) filter.paymentDate.$lte = new Date(endDate);
+    }
+
+    // Fetch payments
+    const payments = await payment
+      .find(filter)
+      .populate({
+        path: "vehicleId",
+        select: "make model year image registrationNumber",
+      })
+      .populate({
+        path: "bookingId",
+        select: "startDate endDate totalAmount",
+      })
+      .populate({
+        path: "customerId",
+        select: "name email",
+      })
+      .sort({ paymentDate: -1 })
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalCount = await payment.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      message: "Paid payments fetched successfully for owner.",
+      pagination: {
+        currentPage: pageNumber,
+        totalPages: Math.ceil(totalCount / limitNumber),
+        totalItems: totalCount,
+        itemsPerPage: limitNumber,
+      },
+      payments,
+    });
+  } catch (error) {
+    console.error("Error fetching paid payments for owner:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Side Error.",
+      error: error.message,
+    });
+  }
+};
+
