@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -13,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import VehicleSearchFilter from "../../components/owner/VehicleSearchFilter";
 import VehicleCard from "../../components/owner/VehicleCard";
-import { getMyVehicleListings } from "../../services/vehicleService";
+import { getMyVehicleListings, deleteVehicleListing } from "../../services/vehicleService";
 import { isSmallScreen, horizontalPadding } from "../../constants/screenSize";
 
 export default function MyVehicleScreen() {
@@ -25,8 +26,8 @@ export default function MyVehicleScreen() {
   const [error, setError] = useState(null);
   const [errorDetail, setErrorDetail] = useState(null);
 
-  // ─── Fetch from backend ───────────────────────────────────────────────────────
-  // Controller response: { success: true, count: N, vehicles: [...] }
+  // ─── Fetch vehicles ───────────────────────────────────────────────────────────
+  // Controller: GET /vehicle/get-all → { success, count, vehicles: [...] }
   const fetchVehicles = async () => {
     try {
       setLoading(true);
@@ -35,7 +36,6 @@ export default function MyVehicleScreen() {
 
       const data = await getMyVehicleListings();
 
-      // Controller always returns { success, count, vehicles }
       if (!data.success) {
         throw new Error(data.message || "API returned success: false");
       }
@@ -43,17 +43,16 @@ export default function MyVehicleScreen() {
       const list = data.vehicles ?? [];
       setVehicles(list);
       setFilteredVehicles(list);
-
     } catch (err) {
       const status  = err?.response?.status;
       const message = err?.response?.data?.message || err?.message || "Unknown error";
 
       if (status === 401) {
         setError("Session expired. Please log in again.");
-        setErrorDetail("401 Unauthorized — token missing or expired");
+        setErrorDetail("401 Unauthorized");
       } else if (status === 403) {
         setError("Access denied. Owner account required.");
-        setErrorDetail("403 Forbidden — your account may not have the Owner role");
+        setErrorDetail("403 Forbidden");
       } else if (status === 404) {
         setError("API endpoint not found.");
         setErrorDetail("404 — ensure backend is running on port 8090");
@@ -76,7 +75,6 @@ export default function MyVehicleScreen() {
   );
 
   // ─── Client-side filter ───────────────────────────────────────────────────────
-  // Field names from controller: numberPlate, vehicleType, transmission
   const handleSearch = ({ numberPlate, type, transmission }) => {
     let results = vehicles;
 
@@ -99,10 +97,30 @@ export default function MyVehicleScreen() {
     setFilteredVehicles(results);
   };
 
-  // ─── Navigation ───────────────────────────────────────────────────────────────
-  const handleAddVehicle  = ()   => router.push("/owner/add-vehicle");
-  const handleViewRenter  = (id) => router.push(`/owner/vehicle-renter/${id}`);
-  const handleViewDetails = (id) => router.push(`/owner/vehicle-details/${id}`);
+  // ─── Button Handlers ──────────────────────────────────────────────────────────
+  const handleAddVehicle = () => router.push("/owner/add-vehicle");
+
+  const handleViewDetails = (id) =>
+    router.push(`/owner/vehicle-details/${id}`);
+
+  const handleManage = (id) =>
+    router.push(`/owner/vehicle-manage/${id}`);
+
+  const handleAvailability = (id) =>
+    router.push(`/owner/vehicle-availability/${id}`);
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteVehicleListing(id);
+      // Remove from local state immediately
+      setVehicles((prev) => prev.filter((v) => v._id !== id));
+      setFilteredVehicles((prev) => prev.filter((v) => v._id !== id));
+      Alert.alert("Deleted", "Vehicle deleted successfully.");
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || "Failed to delete";
+      Alert.alert("Error", message);
+    }
+  };
 
   // ─── Render states ────────────────────────────────────────────────────────────
   const renderContent = () => {
@@ -155,8 +173,10 @@ export default function MyVehicleScreen() {
       <VehicleCard
         key={vehicle._id}
         vehicle={vehicle}
-        onViewRenter={() => handleViewRenter(vehicle._id)}
         onViewDetails={() => handleViewDetails(vehicle._id)}
+        onManage={() => handleManage(vehicle._id)}
+        onAvailability={() => handleAvailability(vehicle._id)}
+        onDelete={() => handleDelete(vehicle._id)}
       />
     ));
   };
