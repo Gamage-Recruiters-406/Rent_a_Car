@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import VehicleSearchFilter from "../../components/owner/VehicleSearchFilter";
 import VehicleCard from "../../components/owner/VehicleCard";
-import AvailabilityOwner from "../../app/owner/AvailabilityOwner"; // ← existing component
+import AvailabilityOwner from "../../app/owner/AvailabilityOwner";
 import { getMyVehicleListings, deleteVehicleListing } from "../../services/vehicleService";
 import { isSmallScreen, horizontalPadding } from "../../constants/screenSize";
 
