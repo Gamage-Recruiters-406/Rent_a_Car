@@ -1,5 +1,5 @@
 //owner/AvailabilityOwner - owner side
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -98,7 +98,7 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
     return days;
   };
 
-  const fetchAvailability = async () => {
+  const fetchAvailability = useCallback(async () => {
     if (!vehicle?._id) {
       console.log('No vehicle ID provided');
       return;
@@ -139,7 +139,7 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [vehicle?._id]); 
 
   useEffect(() => {
     if (isOpen) {
@@ -147,7 +147,7 @@ const AvailabilityOwner = ({ isOpen, onClose, vehicle }) => {
       fetchAvailability();
       setSelectionRange({ start: null, end: null });
     }
-  }, [isOpen, vehicle?._id]);
+  }, [isOpen, fetchAvailability]); //  fetchAvailability to dependencies
 
   const handleDateClick = (day) => {
     if (!day.isCurrentMonth) return;
