@@ -14,20 +14,26 @@ import { Ionicons } from "@expo/vector-icons";
 
 import VehicleSearchFilter from "../../components/owner/VehicleSearchFilter";
 import VehicleCard from "../../components/owner/VehicleCard";
+import AvailabilityOwner from "../../app/owner/AvailabilityOwner"; // ← existing component
 import { getMyVehicleListings, deleteVehicleListing } from "../../services/vehicleService";
 import { isSmallScreen, horizontalPadding } from "../../constants/screenSize";
 
 export default function MyVehicleScreen() {
   const router = useRouter();
 
-  const [vehicles, setVehicles] = useState([]);
-  const [filteredVehicles, setFilteredVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [errorDetail, setErrorDetail] = useState(null);
+  const [vehicles, setVehicles]                   = useState([]);
+  const [filteredVehicles, setFilteredVehicles]   = useState([]);
+  const [loading, setLoading]                     = useState(true);
+  const [error, setError]                         = useState(null);
+  const [errorDetail, setErrorDetail]             = useState(null);
 
-  // ─── Fetch vehicles ───────────────────────────────────────────────────────────
-  // Controller: GET /vehicle/get-all → { success, count, vehicles: [...] }
+  // ─── AvailabilityOwner modal state ────────────────────────────────────────
+  // isOpen  → matches the prop name used in AvailabilityOwner
+  // vehicle → passed directly as the vehicle object
+  const [availIsOpen, setAvailIsOpen]         = useState(false);
+  const [availVehicle, setAvailVehicle]       = useState(null);
+
+  // ─── Fetch vehicles ───────────────────────────────────────────────────────
   const fetchVehicles = async () => {
     try {
       setLoading(true);
@@ -74,7 +80,7 @@ export default function MyVehicleScreen() {
     }, [])
   );
 
-  // ─── Client-side filter ───────────────────────────────────────────────────────
+  // ─── Client-side filter ───────────────────────────────────────────────────
   const handleSearch = ({ numberPlate, type, transmission }) => {
     let results = vehicles;
 
@@ -97,24 +103,30 @@ export default function MyVehicleScreen() {
     setFilteredVehicles(results);
   };
 
-  // ─── Button Handlers ──────────────────────────────────────────────────────────
-  const handleAddVehicle = () => router.push("/owner/add-vehicle");
+  // ─── Navigation handlers ──────────────────────────────────────────────────
+  const handleAddVehicle  = ()   => router.push("/owner/add-vehicle");
+  const handleViewDetails = (id) => router.push(`/owner/vehicle-details/${id}`);
+  const handleManage      = (id) => router.push(`/owner/vehicle-manage/${id}`);
 
-  const handleViewDetails = (id) =>
-    router.push(`/owner/vehicle-details/${id}`);
+  // ─── Availability: open AvailabilityOwner modal ───────────────────────────
+  // Pass the full vehicle object — AvailabilityOwner uses vehicle._id & vehicle.title
+  const handleAvailability = (vehicle) => {
+    setAvailVehicle(vehicle);
+    setAvailIsOpen(true);
+  };
 
-  const handleManage = (id) =>
-    router.push(`/owner/vehicle-manage/${id}`);
+  const handleAvailClose = () => {
+    setAvailIsOpen(false);
+    setAvailVehicle(null);
+  };
 
-  const handleAvailability = (id) =>
-    router.push(`/owner/vehicle-availability/${id}`);
-
+  // ─── Delete ───────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
       await deleteVehicleListing(id);
-      // Remove from local state immediately
-      setVehicles((prev) => prev.filter((v) => v._id !== id));
-      setFilteredVehicles((prev) => prev.filter((v) => v._id !== id));
+      const updated = vehicles.filter((v) => v._id !== id);
+      setVehicles(updated);
+      setFilteredVehicles(updated);
       Alert.alert("Deleted", "Vehicle deleted successfully.");
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || "Failed to delete";
@@ -122,7 +134,7 @@ export default function MyVehicleScreen() {
     }
   };
 
-  // ─── Render states ────────────────────────────────────────────────────────────
+  // ─── Render states ────────────────────────────────────────────────────────
   const renderContent = () => {
     if (loading) {
       return (
@@ -175,13 +187,13 @@ export default function MyVehicleScreen() {
         vehicle={vehicle}
         onViewDetails={() => handleViewDetails(vehicle._id)}
         onManage={() => handleManage(vehicle._id)}
-        onAvailability={() => handleAvailability(vehicle._id)}
+        onAvailability={() => handleAvailability(vehicle)} // ← full vehicle object
         onDelete={() => handleDelete(vehicle._id)}
       />
     ));
   };
 
-  // ─── Main render ──────────────────────────────────────────────────────────────
+  // ─── Main render ──────────────────────────────────────────────────────────
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       <ScrollView
@@ -246,6 +258,19 @@ export default function MyVehicleScreen() {
           {renderContent()}
         </View>
       </ScrollView>
+
+      {/* ── AvailabilityOwner Modal ─────────────────────────────────────────
+          Props matched exactly to AvailabilityOwner component:
+          - isOpen   → controls visibility
+          - onClose  → closes the modal
+          - vehicle  → full vehicle object { _id, title, model, year }
+      ── */}
+      <AvailabilityOwner
+        isOpen={availIsOpen}
+        onClose={handleAvailClose}
+        vehicle={availVehicle}
+      />
+
     </SafeAreaView>
   );
 }
