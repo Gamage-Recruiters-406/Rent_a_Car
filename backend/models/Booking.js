@@ -2,11 +2,6 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
     {
-        bookingId: {
-            type: String,
-            unique: true,
-            trim: true,
-        },
         startingDate: {
             type: Date,
             required: true,
@@ -59,7 +54,7 @@ const bookingSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["pending", "approved", "rejected"],
+            enum: ["pending", "approved", "rejected", "cancelled"],
             default: "pending",
         },
     },

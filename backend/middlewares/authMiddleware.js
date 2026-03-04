@@ -3,7 +3,8 @@ import JWT from "jsonwebtoken";
 //using this function check user is signin or not
 export const requiredSignIn = async (req, res, next) => {
     try {
-        const token = req.cookies.access_token;
+        // const token = req.cookies.access_token;
+        const token = req.cookies.access_token || req.headers.authorization?.split(" ")[1];
 
         if(!token){
             return res.status(401).json({
