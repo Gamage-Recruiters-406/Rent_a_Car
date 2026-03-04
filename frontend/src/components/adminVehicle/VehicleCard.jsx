@@ -1,7 +1,7 @@
 // VehicleCard.jsx
 
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Calendar, Fuel, Settings, Eye, Trash2, Check, X } from 'lucide-react';
+import { User, MapPin, Calendar, Fuel, Settings, Eye, Trash2, Check, X, CheckCircle, XCircle } from 'lucide-react';
 
 const PLACEHOLDER = 'https://via.placeholder.com/400x300?text=Vehicle';
 
@@ -114,7 +114,17 @@ function VehicleSpecs({ year, fuelType, transmission }) {
   );
 }
 
-function VehiclePricing({ pricePerDay, pricePerKm }) {
+function VehiclePricing({ pricePerDay, pricePerKm, showSinglePrice = false }) {
+  if (showSinglePrice) {
+    return (
+      <div className="mb-4">
+        <div className="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full font-semibold text-sm">
+          LKR {pricePerDay}/day
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex items-center gap-4 mb-4">
       <div className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold">
@@ -127,38 +137,54 @@ function VehiclePricing({ pricePerDay, pricePerKm }) {
   );
 }
 
-function VehicleActionButtons({ status, onApprove, onReject }) {
-  if (status?.toLowerCase() !== 'pending') {
-    return null;
-  }
-
+function ApprovalBadge({ approvalDate }) {
   return (
-    <div className="flex gap-3">
-      <button
-        onClick={onApprove}
-        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
-      >
-        <Check className="w-4 h-4" />
-        Approve
-      </button>
-      <button
-        onClick={onReject}
-        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-      >
-        <X className="w-4 h-4" />
-        Reject
-      </button>
+    <div className="flex items-center gap-2 mb-4 text-green-600">
+      <CheckCircle className="w-5 h-5" />
+      <span className="text-sm font-medium">
+        Approved on {approvalDate}
+      </span>
     </div>
   );
 }
 
-export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) {
+function RejectionBadge({ rejectionReason }) {
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+      <div className="flex items-start gap-3">
+        <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-red-700">Rejection Reason:</p>
+          <p className="text-sm text-red-600 mt-1">
+            {rejectionReason || 'No reason provided'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VehicleDetailsButton({ onDetails }) {
+  return (
+    <button
+      type="button"
+      onClick={onDetails}
+      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+    >
+      Details
+    </button>
+  );
+}
+
+export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView, status = null }) {
   if (!vehicle) return null;
 
-  const handleApprove = () => onApprove?.(vehicle.id);
-  const handleReject = () => onReject?.(vehicle.id);
   const handleDelete = () => onDelete?.(vehicle.id);
   const handleView = () => onView?.(vehicle);
+  
+  // Determine vehicle status
+  const isApproved = status === 'approved' || vehicle.status === 'approved';
+  const isRejected = status === 'rejected' || vehicle.status === 'rejected';
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all">
@@ -176,6 +202,14 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
             <VehicleActions onView={handleView} onDelete={handleDelete} />
           </div>
 
+          {isApproved && vehicle.submittedDate && (
+            <ApprovalBadge approvalDate={vehicle.submittedDate} />
+          )}
+
+          {isRejected && vehicle.rejectionReason && (
+            <RejectionBadge rejectionReason={vehicle.rejectionReason} />
+          )}
+
           <VehicleSpecs
             year={vehicle.year ?? ''}
             fuelType={vehicle.fuelType ?? ''}
@@ -185,17 +219,16 @@ export function VehicleCard({ vehicle, onApprove, onReject, onDelete, onView }) 
           <VehiclePricing
             pricePerDay={vehicle.pricePerDay ?? 0}
             pricePerKm={vehicle.pricePerKm ?? 0}
+            showSinglePrice={isApproved}
           />
 
-          <VehicleActionButtons
-            status={vehicle.status}
-            onApprove={handleApprove}
-            onReject={handleReject}
-          />
+          {!isApproved && !isRejected && <VehicleDetailsButton onDetails={handleView} />}
 
-          <p className="text-sm text-gray-500 mt-3">
-            Submitted: {vehicle.submittedDate ?? '-'}
-          </p>
+          {!isApproved && !isRejected && (
+            <p className="text-sm text-gray-500 mt-3">
+              Submitted: {vehicle.submittedDate ?? '-'}
+            </p>
+          )}
         </div>
       </div>
     </div>

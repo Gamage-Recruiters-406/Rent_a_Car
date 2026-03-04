@@ -160,6 +160,8 @@ vite.config.ts.timestamp-*
 *.sln
 *.sw?
 
+config.bat
+
 # Expo
 .expo/
 dist/
@@ -194,4 +196,8 @@ app-example
 expo-env.d.ts
 # @end expo-cli
 
+/temp
 config.bat
+
+
+uploads/

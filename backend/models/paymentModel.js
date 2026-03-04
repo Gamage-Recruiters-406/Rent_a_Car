@@ -23,7 +23,7 @@ const paymentSchema = new mongoose.Schema({
     },
     amount:{
         amount:{
-            trype: Number,
+            type: Number,
             min: 0,
             required: true
         },
@@ -42,7 +42,7 @@ const paymentSchema = new mongoose.Schema({
             required: true,
         }
     },
-    date: {
+    paymentDate: {
         type: Date,
         required: true
     },
@@ -52,8 +52,11 @@ const paymentSchema = new mongoose.Schema({
         lowercase: true,
         enum: ["paid", "pending"],
         default: "pending"
+    },
+    stripePaymentIntentId:{
+        type: String
     }
 
-})
+},{timestamps: true});
 
 export default mongoose.model("Payment",paymentSchema);

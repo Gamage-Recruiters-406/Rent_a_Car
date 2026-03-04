@@ -14,6 +14,7 @@ import {
 import { getOwnerBookings } from "../services/rentalService";
 import api from "../services/api";
 import Layout from "../layouts/Layout";
+import RentalDetailsModal from "../components/booking/RentalDetailsModal";
 
 const RentalHistoryPage = () => {
   const [rentals, setRentals] = useState([]);
@@ -22,6 +23,8 @@ const RentalHistoryPage = () => {
   const [error, setError] = useState(null);
   const [imageCache, setImageCache] = useState({});
   const [ownerId, setOwnerId] = useState(null);
+  const [selectedRental, setSelectedRental] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,7 +74,6 @@ const RentalHistoryPage = () => {
 
       const data = await response.json();
       if (data?.success && data?.user?._id) {
-        console.log("✅ Authenticated user:", data.user);
         setOwnerId(data.user._id);
       } else {
         throw new Error("User not authenticated. Please login.");
@@ -85,31 +87,19 @@ const RentalHistoryPage = () => {
 
   const fetchOwnerBookings = async () => {
     try {
-      console.log("📡 Fetching owner bookings for ID:", ownerId);
       setLoading(true);
       setError(null);
 
-      const response = await getOwnerBookings(ownerId);
-      console.log("✅ Bookings response received:", response);
-      console.log("📊 Number of bookings:", response?.length || 0);
+      const response = await getOwnerBookings();
 
       const transformedData = transformBookingsData(response || []);
-      console.log("🔄 Transformed bookings data:", transformedData);
 
       setRentals(transformedData);
       setFilteredRentals(transformedData);
 
-      // Preload images
-      console.log("🖼️ Starting image preload...");
       await loadImages(transformedData);
-      console.log("✅ Image preload complete");
     } catch (err) {
-      console.error("❌ Error fetching bookings:", err);
-      console.error("📝 Error details:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      });
+      console.error("Error fetching bookings:", err);
       setError(
         err.response?.data?.message ||
           err.message ||
@@ -121,11 +111,7 @@ const RentalHistoryPage = () => {
   };
 
   const loadImages = async (bookings) => {
-    console.log("🖼️ Loading images for", bookings.length, "bookings");
     const newCache = { ...imageCache };
-    let loadedCount = 0;
-    let skippedCount = 0;
-    let failedCount = 0;
 
     for (const booking of bookings) {
       if (
@@ -135,62 +121,33 @@ const RentalHistoryPage = () => {
       ) {
         try {
           const fullUrl = `http://localhost:8090${booking.imageUrl}`;
-          console.log(`📥 Fetching image: ${fullUrl}`);
 
           const response = await fetch(fullUrl, {
             credentials: "include",
           });
 
           if (!response.ok) {
-            console.error(
-              `❌ Image fetch failed (${response.status}): ${booking.imageUrl}`,
-            );
-            failedCount++;
             continue;
           }
 
           const blob = await response.blob();
           const blobUrl = URL.createObjectURL(blob);
           newCache[booking.imageUrl] = blobUrl;
-          console.log(`✅ Image loaded successfully: ${booking.imageUrl}`);
-          loadedCount++;
         } catch (err) {
-          console.error(`❌ Failed to load image: ${booking.imageUrl}`, err);
-          failedCount++;
-        }
-      } else {
-        skippedCount++;
-        if (booking.imageUrl) {
-          console.log(
-            `⏭️ Skipping image (already cached or external): ${booking.imageUrl}`,
-          );
+          console.error(`Failed to load image: ${booking.imageUrl}`, err);
         }
       }
     }
 
-    console.log(
-      `📊 Image loading summary: ${loadedCount} loaded, ${skippedCount} skipped, ${failedCount} failed`,
-    );
     setImageCache(newCache);
   };
 
   const transformBookingsData = (bookings) => {
-    console.log("🔄 Transforming", bookings.length, "bookings...");
-
-    return bookings.map((booking, index) => {
-      // Check if vehicleId and customerId are populated objects or just IDs
+    return bookings.map((booking) => {
       const isVehiclePopulated =
         typeof booking.vehicleId === "object" && booking.vehicleId !== null;
       const isCustomerPopulated =
         typeof booking.customerId === "object" && booking.customerId !== null;
-
-      console.log(`📋 Booking ${index + 1}:`, {
-        id: booking._id,
-        vehiclePopulated: isVehiclePopulated,
-        customerPopulated: isCustomerPopulated,
-        vehicleId: isVehiclePopulated ? "Object" : booking.vehicleId,
-        customerId: isCustomerPopulated ? "Object" : booking.customerId,
-      });
 
       const imageUrl =
         isVehiclePopulated && booking.vehicleId.photos?.[0]?.url
@@ -199,12 +156,22 @@ const RentalHistoryPage = () => {
 
       return {
         id: booking._id,
+        bookingId: booking._id,
         carName: isVehiclePopulated
           ? booking.vehicleId.title || booking.vehicleId.model || "Vehicle"
           : `Vehicle (${booking.vehicleId?.slice(0, 8)}...)`,
         renter: isCustomerPopulated
           ? `${booking.customerId.first_name} ${booking.customerId.last_name}`
           : `Customer (${booking.customerId?.slice(0, 8)}...)`,
+
+        // Customer data from population
+        renterPhone: isCustomerPopulated
+          ? booking.customerId.contactNumber
+          : "N/A",
+        renterEmail: isCustomerPopulated ? booking.customerId.email : "N/A",
+        licenseNo: "N/A", // Not in User schema - need to add if required
+
+        // Vehicle data from population
         seats: isVehiclePopulated ? booking.vehicleId.seats || 4 : 4,
         transmission: isVehiclePopulated
           ? booking.vehicleId.transmission === "Automatic"
@@ -213,6 +180,12 @@ const RentalHistoryPage = () => {
           : booking.dailyRate > 5000
             ? "Auto"
             : "Manual",
+        registrationNo: isVehiclePopulated
+          ? booking.vehicleId.numberPlate
+          : "N/A",
+        fuelType: isVehiclePopulated ? booking.vehicleId.fuelType : "N/A",
+
+        // Booking dates
         dateRange: `${new Date(booking.startingDate).toLocaleDateString(
           "en-US",
           {
@@ -227,44 +200,40 @@ const RentalHistoryPage = () => {
         })}`,
         startDate: new Date(booking.startingDate),
         endDate: new Date(booking.endDate),
+
+        // Payment details
         price: `Rs. ${booking.totalAmount?.toLocaleString()}`,
+        dailyRate: `Rs. ${booking.dailyRate?.toLocaleString()}`,
+        insurance: booking.insurance || 0,
+        serviceCharge: booking.serviceCharge || 0,
+
+        // Location details (if available in booking)
+        pickupLocation: booking.pickupLocation || "N/A",
+        returnLocation: booking.returnLocation || "N/A",
+
+        // Status
         status:
           booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+
+        // Images
         imageUrl: imageUrl,
-        image:
-          "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=400",
       };
     });
   };
 
   const applyFilters = () => {
-    console.log("🔍 Applying filters:", {
-      searchQuery,
-      dateRange: [startDate, endDate],
-      statusFilter,
-      totalRentals: rentals.length,
-    });
-
     let filtered = [...rentals];
 
-    // Search filter - search by car name, renter name, or price
     if (searchQuery.trim()) {
-      const beforeCount = filtered.length;
       filtered = filtered.filter(
         (rental) =>
           rental.carName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           rental.renter.toLowerCase().includes(searchQuery.toLowerCase()) ||
           rental.price.toLowerCase().includes(searchQuery.toLowerCase()),
       );
-      console.log(
-        `🔍 Search filter: ${beforeCount} → ${filtered.length} rentals`,
-      );
     }
 
-    // Date range filter - show only rentals completely within the selected range
     if (startDate && endDate) {
-      const beforeCount = filtered.length;
-      // Normalize dates to ignore time component
       const filterStart = new Date(
         startDate.getFullYear(),
         startDate.getMonth(),
@@ -274,9 +243,6 @@ const RentalHistoryPage = () => {
         endDate.getFullYear(),
         endDate.getMonth(),
         endDate.getDate(),
-      );
-      console.log(
-        `📅 Date filter range: ${filterStart.toDateString()} to ${filterEnd.toDateString()}`,
       );
 
       filtered = filtered.filter((rental) => {
@@ -291,26 +257,16 @@ const RentalHistoryPage = () => {
           rental.endDate.getDate(),
         );
 
-        // Both start and end dates must be within the selected range
         return rentalStart >= filterStart && rentalEnd <= filterEnd;
       });
-      console.log(
-        `📅 Date filter: ${beforeCount} → ${filtered.length} rentals`,
-      );
     }
 
-    // Status filter
     if (statusFilter) {
-      const beforeCount = filtered.length;
       filtered = filtered.filter(
         (rental) => rental.status.toLowerCase() === statusFilter.toLowerCase(),
       );
-      console.log(
-        `🏷️ Status filter (${statusFilter}): ${beforeCount} → ${filtered.length} rentals`,
-      );
     }
 
-    console.log(`✅ Final filtered results: ${filtered.length} rentals`);
     setFilteredRentals(filtered);
   };
 
@@ -326,6 +282,80 @@ const RentalHistoryPage = () => {
         return "bg-gray-100 text-gray-600";
       default:
         return "bg-blue-100 text-blue-600";
+    }
+  };
+
+  const handleViewDetails = (rental) => {
+    setSelectedRental(rental);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedRental(null);
+  };
+
+  const handleDownloadInvoice = async (rental) => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const API_VERSION = import.meta.env.VITE_API_VERSION || "";
+
+      const response = await fetch(
+        `${API_BASE_URL}${API_VERSION}/bookings/${rental.id}/invoice`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to download invoice");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${rental.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Error downloading invoice:", err);
+      alert("Failed to download invoice. Please try again.");
+    }
+  };
+
+  const handleDownloadDocuments = async (rental) => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+      const API_VERSION = import.meta.env.VITE_API_VERSION || "";
+
+      const response = await fetch(
+        `${API_BASE_URL}${API_VERSION}/bookings/${rental.id}/documents`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to download documents");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `documents-${rental.id}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Error downloading documents:", err);
+      alert("Failed to download documents. Please try again.");
     }
   };
 
@@ -435,19 +465,13 @@ const RentalHistoryPage = () => {
                   className="bg-white rounded-lg sm:rounded-xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow duration-300"
                 >
                   <div className="h-40 sm:h-48 w-full bg-gray-200 relative">
-                    <img
-                      src={
-                        rental.imageUrl && imageCache[rental.imageUrl]
-                          ? imageCache[rental.imageUrl]
-                          : rental.image
-                      }
-                      alt={rental.carName}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src =
-                          "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=400";
-                      }}
-                    />
+                    {rental.imageUrl && imageCache[rental.imageUrl] && (
+                      <img
+                        src={imageCache[rental.imageUrl]}
+                        alt={rental.carName}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
 
                   <div className="p-3 sm:p-5">
@@ -497,7 +521,10 @@ const RentalHistoryPage = () => {
                       </span>
                     </div>
 
-                    <button className="w-full bg-blue-900 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-medium hover:bg-blue-800 transition-colors cursor-pointer">
+                    <button
+                      onClick={() => handleViewDetails(rental)}
+                      className="w-full bg-blue-900 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-medium hover:bg-blue-800 transition-colors cursor-pointer"
+                    >
                       View Details
                     </button>
                   </div>
@@ -506,6 +533,16 @@ const RentalHistoryPage = () => {
             </div>
           )}
         </main>
+
+        {/* Rental Details Modal */}
+        <RentalDetailsModal
+          rental={selectedRental}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onDownloadInvoice={handleDownloadInvoice}
+          onDownloadDocuments={handleDownloadDocuments}
+          imageCache={imageCache}
+        />
       </div>
     </Layout>
   );

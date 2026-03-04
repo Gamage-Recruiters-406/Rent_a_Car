@@ -32,6 +32,11 @@ const vehicleSchema = new mongoose.Schema(
             required: true,
             trim: true
         },
+        seats: {
+            type: Number,
+            required: true,
+            min: 1
+        },
         year: {
             type: Number,
             required: true

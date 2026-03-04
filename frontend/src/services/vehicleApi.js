@@ -8,6 +8,15 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+// Attach token from localStorage to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // GET single vehicle details
 export const getVehicleById = async (id) => {
   // your backend route: /vehicle/get/:id

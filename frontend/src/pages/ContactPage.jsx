@@ -53,8 +53,8 @@ const ContactPage = () => {
                             </Link>
                             <span className="mx-2">/</span>
 
-                <a href="#" className="hover:text-white no-underline">
-                  Page
+                <a href="/vehicles" className="hover:text-white no-underline">
+                  Browse Cars
                 </a>
 
                 <span className="mx-2">/</span>
@@ -93,7 +93,18 @@ const ContactPage = () => {
 
                 <div className="mt-3 space-y-1 text-center text-sm text-slate-600">
                   {c.lines.map((line, idx) => (
-                    <p key={idx}>{line}</p>
+                    <p key={idx}>
+                      {c.title === "Mail Us" ? (
+                        <a
+                          href={`mailto:${line}`}
+                          className="hover:text-blue-600 underline"
+                        >
+                          {line}
+                        </a>
+                      ) : (
+                        line
+                      )}
+                    </p>
                   ))}
                 </div>
               </div>

@@ -9,7 +9,9 @@ import { createVehicleListing,
         updateVehicleStatus, 
         getAllVehicleListings,
         getAllAvailableVehicles,
-        getApprovedVehicleCount} from '../controllers/vehicleController.js';
+        getApprovedVehicleCount,
+        getTopBookedVehicles
+       } from '../controllers/vehicleController.js';
 
 const router = express.Router();
 
@@ -19,7 +21,7 @@ router.post("/create", requiredSignIn, isVerifiedUser, isOwner, uploadVehiclePho
 // Delete vehicle listing
 router.delete("/delete/:id", requiredSignIn, isOwner, deleteVehicleListing);
 // Get single vehicle listing
-router.get("/get/:id", requiredSignIn, getSingleVehicleListing);
+router.get("/get/:id", getSingleVehicleListing);
 // Get my all vehicle listings
 router.get("/get-my-all", requiredSignIn, isOwner, getMyVehicleListings);
 // Update vehicle listing
@@ -29,8 +31,16 @@ router.patch("/admin/status/:id", requiredSignIn, isAdmin, updateVehicleStatus);
 // Get all vehicle listings - ADMIN
 router.get("/admin/get-all", requiredSignIn, isAdmin, getAllVehicleListings);
 // Get all vehicle listings - CUSTOMER
-router.get("/get-all", requiredSignIn, getAllAvailableVehicles);
+router.get("/get-all", getAllAvailableVehicles);
 // Get count of approved vehicles - CUSTOMER
 router.get("/vehicle-count", getApprovedVehicleCount);
+// Get top booked vehicles - CUSTOMER
+router.get("/top-booked", getTopBookedVehicles);
+
+
+
+
+
+
 
 export default router;

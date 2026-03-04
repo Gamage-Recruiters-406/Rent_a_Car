@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Car, Users, MapPin, Star, Headset, Award, Lock, BadgeCheck } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import {
+  Car,
+  Users,
+  MapPin,
+  Star,
+  Headset,
+  Award,
+  Lock,
+  BadgeCheck,
+} from "lucide-react";
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
-const apiVersion = import.meta.env.VITE_API_VERSION;
+
 
 export const Stats = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -10,20 +18,40 @@ export const Stats = () => {
   const [isTrustVisible, setIsTrustVisible] = useState(false);
   const [counts, setCounts] = useState([0, 0, 0, 0]);
   const [vehicleCount, setVehicleCount] = useState(0);
+  const [userCount, setUserCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
+ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_VERSION = import.meta.env.VITE_API_VERSION;
+
   const stats = [
-    { icon: Car, number: `${vehicleCount}+`, value: vehicleCount, label: 'Vehicles Available' },
-    { icon: Users, number: '10,000+', value: 10000, label: 'Happy Customers' },
-    { icon: MapPin, number: '25+', value: 25, label: 'Cities Covered' },
-    { icon: Star, number: '4.9', value: 4.9, label: 'Average Rating', isDecimal: true },
+    {
+      icon: Car,
+      number: `${vehicleCount}+`,
+      value: vehicleCount,
+      label: "Vehicles Available",
+    },
+    {
+      icon: Users,
+      number: `${userCount}+`,
+      value: userCount,
+      label: "Happy Customers",
+    },
+    { icon: MapPin, number: "25+", value: 25, label: "Cities Covered" },
+    {
+      icon: Star,
+      number: "4.9",
+      value: 4.9,
+      label: "Average Rating",
+      isDecimal: true,
+    },
   ];
 
   const trustBadges = [
-    { icon: Award, text: 'Award Winning' },
-    { icon: Headset, text: '24/7 Support' },
-    { icon: Lock, text: 'Verified Secure' },
-    { icon: BadgeCheck, text: 'Certified Platform' },
+    { icon: Award, text: "Award Winning" },
+    { icon: Headset, text: "24/7 Support" },
+    { icon: Lock, text: "Verified Secure" },
+    { icon: BadgeCheck, text: "Certified Platform" },
   ];
 
   // Fetch vehicle count from API
@@ -31,29 +59,29 @@ export const Stats = () => {
     const fetchVehicleCount = async () => {
       try {
         setIsLoading(true);
-        const url = `${baseUrl}${apiVersion}/vehicle/vehicle-count`;
+        const url = `${API_BASE_URL}${API_VERSION}/vehicle/vehicle-count`;
         const response = await fetch(url, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch vehicle count');
+          throw new Error("Failed to fetch vehicle count");
         }
 
         const data = await response.json();
-        
-        if (data.success && typeof data.count === 'number') {
+
+        if (data.success && typeof data.count === "number") {
           setVehicleCount(data.count);
         } else {
-          console.error('Invalid response format:', data);
+          console.error("Invalid response format:", data);
           // Fallback to 0 or keep default
           setVehicleCount(0);
         }
       } catch (error) {
-        console.error('Error fetching vehicle count:', error);
+        console.error("Error fetching vehicle count:", error);
         // Optionally set a fallback value
         setVehicleCount(0);
       } finally {
@@ -62,6 +90,38 @@ export const Stats = () => {
     };
 
     fetchVehicleCount();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserCount = async () => {
+      try {
+        const url = `${API_BASE_URL}${API_VERSION}/authUser/getAllCustomersCount`;
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch user count");
+        }
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setUserCount(data.length);
+        } else {
+          console.error("Invalid response format:", data);
+          setUserCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching user count:", error);
+        setUserCount(0);
+      }
+    };
+
+    fetchUserCount();
   }, []);
 
   useEffect(() => {
@@ -101,12 +161,12 @@ export const Stats = () => {
 
     // Cleanup function to clear all intervals
     return () => {
-      intervals.forEach(interval => clearInterval(interval));
+      intervals.forEach((interval) => clearInterval(interval));
     };
   }, [isStatsVisible, vehicleCount]); // Add vehicleCount as dependency
 
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.innerHTML = `
       @keyframes marquee {
         from {
@@ -149,11 +209,13 @@ export const Stats = () => {
               <div
                 key={index}
                 className={`text-center p-4 sm:p-8 hover:-translate-y-2 transition-all duration-300 ${
-                  isStatsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  isStatsVisible
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-8"
                 }`}
                 style={{
                   transitionDelay: `${index * 100}ms`,
-                  transition: 'all 0.6s ease-out'
+                  transition: "all 0.6s ease-out",
                 }}
               >
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#0d3778] to-[#1a4d99] rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-lg">
@@ -165,18 +227,20 @@ export const Stats = () => {
                   ) : (
                     <>
                       {formatNumber(counts[index], stat.isDecimal)}
-                      {stat.isDecimal ? '' : '+'}
+                      {stat.isDecimal ? "" : "+"}
                     </>
                   )}
                 </div>
-                <div className="text-sm sm:text-base text-gray-500">{stat.label}</div>
+                <div className="text-sm sm:text-base text-gray-500">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
       {/* Trust Badges */}
-      <section 
+      <section
         className="bg-gradient-to-b from-[#E2E8F0] to-[#E2E8F0] py-12"
         onMouseEnter={() => setIsTrustVisible(true)}
       >
@@ -187,14 +251,18 @@ export const Stats = () => {
                 <div
                   key={idx}
                   className={`text-center p-6 rounded-xl hover:shadow-lg transition-all duration-500 min-w-[150px] sm:min-w-[200px] ${
-                    isTrustVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+                    isTrustVisible
+                      ? "opacity-100 scale-100"
+                      : "opacity-0 scale-90"
                   }`}
                   style={{
-                    transitionDelay: `${(idx % trustBadges.length) * 100}ms`
+                    transitionDelay: `${(idx % trustBadges.length) * 100}ms`,
                   }}
                 >
                   <badge.icon className="w-10 h-10 sm:w-12 sm:h-12 text-[#0D3778] mx-auto mb-3" />
-                  <div className="text-xs sm:text-sm text-[#999FA8] font-semibold">{badge.text}</div>
+                  <div className="text-xs sm:text-sm text-[#999FA8] font-semibold">
+                    {badge.text}
+                  </div>
                 </div>
               ))}
             </div>

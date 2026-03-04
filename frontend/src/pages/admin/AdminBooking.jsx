@@ -3,10 +3,9 @@ import { Car, Hourglass, CheckCircle2, XCircle } from 'lucide-react';
 import StatsCard from './../../components/booking/Cards';
 import TableHeader from './../../components/booking/TableHeader';
 import BookingTable from './../../components/booking/BookingTable';
-import Header from './../../layouts/Header';
-import Footer from './../../layouts/Footer';
 import { getAllBookings } from '../../services/bookingApi';
 import { useNavigate } from 'react-router-dom';
+import Layout from './../../layouts/Layout';
 
 const AdminBooking = () => {
   const navigate = useNavigate();
@@ -21,7 +20,30 @@ const AdminBooking = () => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
+        
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        
+        console.log('Token check:', {
+          hasToken: !!token,
+          hasUser: !!user,
+          tokenPreview: token ? `${token.substring(0, 20)}...` : 'null'
+        });
+        
+        if (!token) {
+          console.log('No token found - redirecting to login');
+          setError('You need to be logged in to view bookings.');
+          setLoading(false);
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+          return;
+        }
+
+        console.log('Fetching bookings...');
         const response = await getAllBookings();
+        console.log('Response received:', response);
         
         if (response.success) {
           console.log('Raw booking data:', response.data);
@@ -73,16 +95,26 @@ const AdminBooking = () => {
         }
       } catch (err) {
         console.error('Error fetching bookings:', err);
+        console.error('Error details:', {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          message: err.message
+        });
         
         // Handle 401 Unauthorized error
-        if (err.response?.status === 401) {
-          setError('You need to be logged in as an admin to view bookings.');
+        if (err.response?.status === 401 || err.status === 401 || err.message?.includes('authentication token')) {
+          console.log('Authentication failed - clearing session');
+          setError('Your session has expired or you are not authorized. Please log in again.');
+          // Clear invalid token
+          localStorage.removeItem('token');
+          localStorage.removeItem('user'); // Also clear user data if exists
           // Redirect to login after 2 seconds
           setTimeout(() => {
             navigate('/login');
           }, 2000);
         } else {
-          setError(err.response?.data?.message || 'Failed to fetch bookings. Please try again.');
+          setError(err.response?.data?.message || err.message || 'Failed to fetch bookings. Please try again.');
         }
       } finally {
         setLoading(false);
@@ -139,46 +171,47 @@ const AdminBooking = () => {
       );
 
   return (
-    <div className="flex flex-col min-h-screen bg-app-bg font-sans">
-      <Header />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
-          <h1 className="text-xl sm:text-2xl font-bold text-brand-dark">Recent Bookings (View Only)</h1>
-          <p className="text-sm sm:text-base text-brand-dark mb-6 sm:mb-8 opacity-80">View all the recent bookings made by customers here</p>
+    <Layout>
+      <div className="flex flex-col min-h-screen bg-app-bg font-sans">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
+            <h1 className="text-xl sm:text-2xl font-bold text-brand-dark">Recent Bookings (View Only)</h1>
+            <p className="text-sm sm:text-base text-brand-dark mb-6 sm:mb-8 opacity-80">View all the recent bookings made by customers here</p>
 
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-            </div>
-          ) : error ? (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              <p className="font-bold">Error</p>
-              <p className="text-sm sm:text-base">{error}</p>
-              {error.includes('logged in') && (
-                <p className="mt-2 text-sm">Redirecting to login page...</p>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-                {stats.map((s, i) => <StatsCard key={i} {...s} />)}
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
               </div>
+            ) : error ? (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <p className="font-bold">Error</p>
+                <p className="text-sm sm:text-base">{error}</p>
+                {error.includes('logged in') && (
+                  <p className="mt-2 text-sm">Redirecting to login page...</p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+                  {stats.map((s, i) => <StatsCard key={i} {...s} />)}
+                </div>
 
-              <TableHeader 
-                activeFilter={activeFilter} 
-                onFilterChange={setActiveFilter}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-              />
-              <BookingTable data={searchFilteredData} />
-            </>
-          )}
-        </main>
+                <TableHeader 
+                  activeFilter={activeFilter} 
+                  onFilterChange={setActiveFilter}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                />
+                <BookingTable data={searchFilteredData} />
+              </>
+            )}
+          </main>
+        </div>
       </div>
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 
 
 export default AdminBooking;
+
