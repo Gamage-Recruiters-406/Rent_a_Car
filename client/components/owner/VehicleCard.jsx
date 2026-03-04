@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import StarRating from "./StarRating";
@@ -8,37 +8,47 @@ import { getImageBaseUrl } from "../../services/vehicleService";
 /**
  * VehicleCard
  *
- * Vehicle fields from controller (getMyVehicleListings):
- *   _id, title, numberPlate, model, vehicleType, seats, year,
- *   fuelType, transmission, pricePerDay, km, pricePerKm,
- *   photos: [{ url: "/uploads/<id>/<file>", key: "<file>" }],
- *   location: { address, geo },
- *   status, ownerId, createdAt
- *
  * Props:
- *   vehicle       {object}    — vehicle object from API
- *   onViewRenter  {function}  — called when renter icon is pressed
- *   onViewDetails {function}  — called when details icon is pressed
+ *   vehicle           {object}
+ *   onViewDetails     {function}
+ *   onManage          {function}
+ *   onAvailability    {function}
+ *   onDelete          {function}
  */
-export default function VehicleCard({ vehicle, onViewRenter, onViewDetails }) {
-  const imageSize = isSmallScreen ? 110 : 130;
-  const iconSize  = isSmallScreen ? 32 : 36;
+export default function VehicleCard({
+  vehicle,
+  onViewDetails,
+  onManage,
+  onAvailability,
+  onDelete,
+}) {
+  const imageSize = isSmallScreen ? 100 : 115;
+  const iconSize  = isSmallScreen ? 16 : 18;
 
-  // photos is [{ url: "/uploads/<vehicleId>/<filename>", key }]
-  // Need to prepend BASE_URL to get full image URL
+  // Build full image URL from photos[0].url
   const firstPhoto = vehicle?.photos?.[0];
   const imageUri   = firstPhoto?.url
     ? `${getImageBaseUrl()}${firstPhoto.url}`
     : null;
 
-  // Status badge color
   const getStatusColor = (status) => {
     switch (status) {
-      case "Approved": return "#10B981"; // green
-      case "Rejected": return "#EF4444"; // red
-      case "Pending":  return "#F59E0B"; // amber
-      default:         return "#9CA3AF"; // gray
+      case "Approved": return "#10B981";
+      case "Rejected": return "#EF4444";
+      case "Pending":  return "#F59E0B";
+      default:         return "#9CA3AF";
     }
+  };
+
+  const handleDeletePress = () => {
+    Alert.alert(
+      "Delete Vehicle",
+      `Are you sure you want to delete "${vehicle.title}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: onDelete },
+      ]
+    );
   };
 
   return (
@@ -54,7 +64,9 @@ export default function VehicleCard({ vehicle, onViewRenter, onViewDetails }) {
         elevation: 2,
       }}
     >
+      {/* ── Top Section: Image + Info ── */}
       <View className="flex-row">
+
         {/* Vehicle Image */}
         {imageUri ? (
           <Image
@@ -67,74 +79,63 @@ export default function VehicleCard({ vehicle, onViewRenter, onViewDetails }) {
             style={{ width: imageSize, height: imageSize }}
             className="bg-gray-100 justify-center items-center"
           >
-            <Ionicons name="car-outline" size={40} color="#9CA3AF" />
+            <Ionicons name="image-outline" size={28} color="#9CA3AF" />
+            <Text
+              className="text-gray-400 mt-1 text-center px-2"
+              style={{ fontSize: 9 }}
+            >
+              Image not found
+            </Text>
           </View>
         )}
 
         {/* Vehicle Info */}
-        <View className="flex-1 p-3">
+        <View className="flex-1 px-3 py-2">
 
           {/* Title & Price */}
           <View className="flex-row justify-between items-start mb-1">
             <Text
-              className="font-bold text-gray-800 flex-1 mr-2"
+              className="font-bold text-[#0A2E5C] flex-1 mr-1"
               style={{ fontSize: isSmallScreen ? 14 : 16 }}
               numberOfLines={1}
             >
               {vehicle.title}
             </Text>
             <Text
-              className="font-bold text-gray-800"
-              style={{ fontSize: isSmallScreen ? 13 : 15 }}
+              className="font-bold text-[#0A2E5C]"
+              style={{ fontSize: isSmallScreen ? 13 : 14 }}
             >
               RS.{vehicle.pricePerDay}
             </Text>
           </View>
 
-          {/* Status Badge */}
-          <View className="flex-row items-center mb-1">
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: getStatusColor(vehicle.status),
-                marginRight: 5,
-              }}
-            />
-            <Text
-              style={{
-                fontSize: isSmallScreen ? 10 : 11,
-                color: getStatusColor(vehicle.status),
-                fontWeight: "600",
-              }}
-            >
-              {vehicle.status ?? "Pending"}
-            </Text>
-          </View>
-
-          {/* Tags: model • year • fuelType • transmission */}
+          {/* Booking ID */}
           <Text
-            className="text-gray-600 mb-1"
-            style={{ fontSize: isSmallScreen ? 11 : 12 }}
-            numberOfLines={1}
+            className="text-gray-400 mb-1"
+            style={{ fontSize: isSmallScreen ? 10 : 11 }}
           >
-            {vehicle.model} • {vehicle.year} • {vehicle.fuelType} • {vehicle.transmission}
+            Booking ID: {vehicle._id?.toString().slice(-7)}
           </Text>
 
-          {/* Number Plate */}
+          {/* Tags */}
+          <Text
+            className="text-gray-700 font-medium mb-1"
+            style={{ fontSize: isSmallScreen ? 10 : 11 }}
+            numberOfLines={1}
+          >
+            {vehicle.model} • {vehicle.year} • {vehicle.vehicleType} • {vehicle.transmission} • {vehicle.seats} Seats
+          </Text>
+
+          {/* Plate */}
           <Text
             className="text-gray-600 mb-1"
-            style={{ fontSize: isSmallScreen ? 11 : 12 }}
+            style={{ fontSize: isSmallScreen ? 10 : 11 }}
           >
             Plate: {vehicle.numberPlate}
           </Text>
 
           {/* Pricing */}
-          <Text
-            className="mb-2"
-            style={{ fontSize: isSmallScreen ? 11 : 12 }}
-          >
+          <Text style={{ fontSize: isSmallScreen ? 10 : 11 }} className="mb-1">
             <Text className="text-green-600 font-semibold">
               RS.{vehicle.pricePerDay}/day
             </Text>
@@ -144,43 +145,110 @@ export default function VehicleCard({ vehicle, onViewRenter, onViewDetails }) {
             </Text>
           </Text>
 
-          {/* Stars & Action Buttons */}
-          <View className="flex-row justify-between items-center">
+          {/* Location */}
+          {vehicle.location?.address ? (
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="location-sharp" size={10} color="#0A2E5C" />
+              <Text
+                className="text-[#0A2E5C] ml-1"
+                style={{ fontSize: isSmallScreen ? 10 : 11 }}
+                numberOfLines={1}
+              >
+                {vehicle.location.address}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Stars & Status */}
+          <View className="flex-row justify-between items-center mt-1">
             <StarRating rating={vehicle.rating ?? 0} />
-
-            <View className="flex-row">
-              {/* View Renter Button */}
-              <TouchableOpacity
-                className="bg-[#0A2E5C] rounded-lg mr-2 justify-center items-center"
-                style={{ width: iconSize, height: iconSize }}
-                onPress={onViewRenter}
-                activeOpacity={0.8}
+            <View className="flex-row items-center">
+              <View
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: 4,
+                  backgroundColor: getStatusColor(vehicle.status),
+                  marginRight: 4,
+                }}
+              />
+              <Text
+                style={{
+                  fontSize: isSmallScreen ? 10 : 11,
+                  color: getStatusColor(vehicle.status),
+                  fontWeight: "600",
+                }}
               >
-                <Ionicons
-                  name="people"
-                  size={isSmallScreen ? 15 : 17}
-                  color="white"
-                />
-              </TouchableOpacity>
-
-              {/* View Details Button */}
-              <TouchableOpacity
-                className="bg-[#0A2E5C] rounded-lg justify-center items-center"
-                style={{ width: iconSize, height: iconSize }}
-                onPress={onViewDetails}
-                activeOpacity={0.8}
-              >
-                <Ionicons
-                  name="document-text"
-                  size={isSmallScreen ? 15 : 17}
-                  color="white"
-                />
-              </TouchableOpacity>
+                {vehicle.status ?? "Pending"}
+              </Text>
             </View>
           </View>
 
         </View>
       </View>
+
+      {/* ── Bottom: 4 icon-only buttons in a full-width row ── */}
+      <View
+        className="flex-row border-t border-gray-100"
+        style={{ paddingHorizontal: 8, paddingVertical: 8, gap: 6 }}
+      >
+        {/* View Details */}
+        <TouchableOpacity
+          className="flex-1 bg-[#0A2E5C] rounded-lg justify-center items-center"
+          style={{ paddingVertical: isSmallScreen ? 5 : 7 }}
+          onPress={onViewDetails}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="information-circle-outline"
+            size={iconSize}
+            color="white"
+          />
+        </TouchableOpacity>
+
+        {/* Manage */}
+        <TouchableOpacity
+          className="flex-1 bg-[#0A2E5C] rounded-lg justify-center items-center"
+          style={{ paddingVertical: isSmallScreen ? 5 : 7 }}
+          onPress={onManage}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="create-outline"
+            size={iconSize}
+            color="white"
+          />
+        </TouchableOpacity>
+
+        {/* Availability */}
+        <TouchableOpacity
+          className="flex-1 bg-[#0A2E5C] rounded-lg justify-center items-center"
+          style={{ paddingVertical: isSmallScreen ? 5 : 7 }}
+          onPress={onAvailability}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="calendar-outline"
+            size={iconSize}
+            color="white"
+          />
+        </TouchableOpacity>
+
+        {/* Delete */}
+        <TouchableOpacity
+          className="flex-1 bg-red-500 rounded-lg justify-center items-center"
+          style={{ paddingVertical: isSmallScreen ? 5 : 7 }}
+          onPress={handleDeletePress}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="trash-outline"
+            size={iconSize}
+            color="white"
+          />
+        </TouchableOpacity>
+      </View>
+
     </View>
   );
 }
