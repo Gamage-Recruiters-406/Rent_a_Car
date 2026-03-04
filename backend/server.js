@@ -25,7 +25,8 @@ connectDB();
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:5173", // FRONTEND URL
+    // origin: ["http://localhost:5173", "http://localhost:8081", "http://0.0.0.0:8081"],
+    origin: "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"]
@@ -51,7 +52,6 @@ app.get("/", (req, res) => {
         message: "Welcome to Rent_a_Car web application"
     })
 });
-
 
 
 const PORT = process.env.PORT;
