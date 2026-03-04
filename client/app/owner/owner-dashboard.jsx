@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getRawOwnerBookings, getOwnerEarnings, getMyVehicleListings, getMyVehicleReviews, api } from '../../services/ownerApi';
 
 import { useRouter } from 'expo-router';
+import AppLayout from '../../components/layout/Layout';
 
 // --- Components ---
 
@@ -278,6 +279,7 @@ const OwnerDashboard = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Data state
   const [bookings, setBookings] = useState([]);
@@ -316,8 +318,9 @@ const OwnerDashboard = () => {
         }
 
         const userStr = await AsyncStorage.getItem('user');
-        const user = (userStr && userStr !== 'undefined' && userStr !== 'null') ? JSON.parse(userStr) : {};
-        const ownerId = user._id || user.id;
+        const userData = (userStr && userStr !== 'undefined' && userStr !== 'null') ? JSON.parse(userStr) : {};
+        setUser(userData);
+        const ownerId = userData._id || userData.id;
 
         console.log('Fetching dashboard data for owner:', ownerId);
 
@@ -413,19 +416,22 @@ const OwnerDashboard = () => {
 
   if (loading || !isLoggedIn) {
     return (
-      <View className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#0D3778" />
-        <Text className="text-gray-500 text-sm mt-4">Loading dashboard...</Text>
-      </View>
+      <AppLayout user={user}>
+        <View className="flex-1 bg-gray-50 items-center justify-center">
+          <ActivityIndicator size="large" color="#0D3778" />
+          <Text className="text-gray-500 text-sm mt-4">Loading dashboard...</Text>
+        </View>
+      </AppLayout>
     );
   }
 
   const recentBookings = bookings.slice(0, 5);
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {/* Metric Cards */}
+    <AppLayout user={user}>
+      <View className="flex-1 bg-gray-50">
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+          {/* Metric Cards */}
         <View className="flex-row flex-wrap justify-between">
           <View className="w-[48%] mb-4">
             <MetricCard
@@ -503,7 +509,8 @@ const OwnerDashboard = () => {
       {selectedBooking && (
         <BookingPopup booking={selectedBooking} onClose={closePopup} />
       )}
-    </View>
+      </View>
+    </AppLayout>
   );
 };
 

@@ -9,6 +9,14 @@ export default function Layout() {
         options={{ title: "Home", headerShown: false }}
       />
       <Stack.Screen
+        name="(tabs)"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="owner/owner-dashboard"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="owner/rental-history"
         options={{
           title: "Rental History",
