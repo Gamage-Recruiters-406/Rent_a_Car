@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
+import AppLayout from '../components/layout/Layout';
 
 export default function ReviewsScreen() {
   const [reviews, setReviews] = useState([]);
@@ -256,6 +257,7 @@ export default function ReviewsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <AppLayout>
       <ScrollView contentContainerClassName="p-4 pb-8">
         <View className="p-6">
             <Text className="text-2xl font-bold text-center text-[#0D3778] mt-2">
@@ -513,6 +515,7 @@ export default function ReviewsScreen() {
           </View>
         </Modal>
       </ScrollView>
+      </AppLayout>
     </SafeAreaView>
   );
 }

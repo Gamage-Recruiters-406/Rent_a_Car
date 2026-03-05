@@ -8,10 +8,19 @@ export default function Layout() {
         name="index"
         options={{ title: "Home", headerShown: false }}
       />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="owner/owner-dashboard"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="owner/rental-history"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="owner/AddVehicle"
         options={{
-          title: "Rental History",
+          title: "Add Vehicle",
           headerStyle: {
             backgroundColor: "#0A2E5C",
           },
@@ -33,6 +42,23 @@ export default function Layout() {
           headerTitleStyle: {
             fontWeight: "bold",
           },
+        }}
+      />
+
+      <Stack.Screen
+        name="profilepages/CustomerProfileEdit"
+        options={{
+          title: "Customer Profile",
+          headerStyle: { backgroundColor: "#0A2E5C" },
+          headerTintColor: "#fff",
+        }}
+      />
+      <Stack.Screen
+        name="profilepages/OwnerProfileEdit"
+        options={{
+          title: "Owner Profile",
+          headerStyle: { backgroundColor: "#0A2E5C" },
+          headerTintColor: "#fff",
         }}
       />
     </Stack>

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
+// Added Platform and Linking to imports
+import { Modal, View, Text, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator, Platform, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// FileSystem and Sharing are no longer strictly needed for viewing, 
+// but kept if you need them for other features.
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
@@ -10,32 +13,34 @@ const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 const apiVersion = process.env.EXPO_PUBLIC_API_VERSION;
 
 export const BookingModal = ({ visible, onClose, booking, refreshData, allBookings = [] }) => {
-  const [loading, setLoading] = useState(false);
-  const [downloadingFile, setDownloadingFile] = useState(null); // බාගත වන file එකේ නම තබා ගැනීමට
+  const [submittingAction, setSubmittingAction] = useState(null); 
+  const [downloadingFile, setDownloadingFile] = useState(null); 
 
   if (!booking) return null;
 
-  // --- Document Download Logic ---
+  // --- Document View Logic ---
   const handleDownload = async (fileName) => {
     try {
       setDownloadingFile(fileName);
       
-      // 1. Backend එකේ file එක තියෙන සම්පූර්ණ URL එක (ඔබේ backend path එකට අනුව සකසන්න)
-      const fileUrl = `${baseUrl}/uploads/documents/${fileName}`; 
-      const fileUri = FileSystem.documentDirectory + fileName;
+      // Construct the URL to the file based on your backend structure
+      const fileUrl = `${baseUrl}/uploads/bookings/${booking._id}/${fileName}`; 
+      
+      console.log("Attempting to view file:", fileUrl);
 
-      // 2. File එක බාගත කිරීම
-      const downloadRes = await FileSystem.downloadAsync(fileUrl, fileUri);
+      // Check if the URL is valid
+      const supported = await Linking.canOpenURL(fileUrl);
 
-      if (downloadRes.status === 200) {
-        // 3. බාගත වූ පසු එය Open කිරීමට හෝ Share කිරීමට window එක පෙන්වීම
-        await Sharing.shareAsync(downloadRes.uri);
+      if (supported) {
+        // Open the URL in the browser (web) or native viewer (mobile)
+        await Linking.openURL(fileUrl);
       } else {
-        Alert.alert("දෝෂයක්", "ගොනුව බාගත කිරීමට නොහැකි විය.");
+        Alert.alert("Error", "Cannot open this file type or URL.");
       }
+      
     } catch (error) {
       console.error(error);
-      Alert.alert("දෝෂයක්", "බාගත කිරීමේදී ගැටලුවක් ඇති විය.");
+      Alert.alert("Error", "An error occurred while opening the file.");
     } finally {
       setDownloadingFile(null);
     }
@@ -62,7 +67,7 @@ export const BookingModal = ({ visible, onClose, booking, refreshData, allBookin
 
   const handleUpdateStatus = async (action) => {
     try {
-      setLoading(true);
+      setSubmittingAction(action);
       const token = await AsyncStorage.getItem('userToken');
       const cleanToken = token ? token.replace(/"/g, '') : null;
       const API_URL = `${baseUrl}${apiVersion}/bookings/${action}/${booking._id}`;
@@ -72,14 +77,19 @@ export const BookingModal = ({ visible, onClose, booking, refreshData, allBookin
       });
 
       if (response.data.success) {
-        Alert.alert("සාර්ථකයි", response.data.message);
-        if (refreshData) refreshData(); 
-        onClose();
+        Alert.alert(
+          action === 'approve' ? "Approved!" : "Rejected!",
+          `Booking has been ${action}d successfully.`,
+          [{ text: "OK", onPress: () => {
+             if (refreshData) refreshData(); 
+             onClose();
+          }}]
+        );
       }
     } catch (error) {
-      Alert.alert("දෝෂයක්", error.response?.data?.message || "ක්‍රියාවලිය අසාර්ථකයි");
+      Alert.alert("Error", error.response?.data?.message || "Action failed");
     } finally {
-      setLoading(false);
+      setSubmittingAction(null);
     }
   };
 
@@ -150,7 +160,8 @@ export const BookingModal = ({ visible, onClose, booking, refreshData, allBookin
                       {downloadingFile === doc ? (
                         <ActivityIndicator size="small" color="#00337C" />
                       ) : (
-                        <Ionicons name="download-outline" size={24} color="#00337C" />
+                        // Changed icon to eye for viewing
+                        <Ionicons name="eye-outline" size={24} color="#00337C" />
                       )}
                    </TouchableOpacity>
                 </View>
@@ -180,11 +191,28 @@ export const BookingModal = ({ visible, onClose, booking, refreshData, allBookin
 
           {booking.status === 'pending' && (
             <View className="flex-row px-6 pb-10 space-x-4">
-               <TouchableOpacity onPress={() => handleUpdateStatus('approve')} disabled={loading} className="flex-1 bg-[#00A343] py-4 rounded-2xl items-center shadow-md">
-                  {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-sm">Approve Request</Text>}
+               <TouchableOpacity 
+                 onPress={() => handleUpdateStatus('approve')} 
+                 disabled={submittingAction !== null} 
+                 className="flex-1 bg-[#00A343] py-4 rounded-2xl items-center shadow-md"
+               >
+                  {submittingAction === 'approve' ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-white font-bold text-sm">Approve Request</Text>
+                  )}
                </TouchableOpacity>
-               <TouchableOpacity onPress={() => handleUpdateStatus('reject')} disabled={loading} className="flex-1 bg-[#E6423C] py-4 rounded-2xl items-center shadow-md">
-                  <Text className="text-white font-bold text-sm">Reject Request</Text>
+
+               <TouchableOpacity 
+                 onPress={() => handleUpdateStatus('reject')} 
+                 disabled={submittingAction !== null} 
+                 className="flex-1 bg-[#E6423C] py-4 rounded-2xl items-center shadow-md"
+               >
+                  {submittingAction === 'reject' ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-white font-bold text-sm">Reject Request</Text>
+                  )}
                </TouchableOpacity>
             </View>
           )}

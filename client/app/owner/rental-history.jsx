@@ -4,26 +4,28 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Dimensions,
   Platform,
   Modal,
   ScrollView,
   Alert,
   ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import AppLayout from "../../components/layout/Layout";
 import { Link } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { getOwnerBookings } from "../../services/ownerApi";
 
-const { width } = Dimensions.get("window");
-const isSmallScreen = width < 360;
-const isMediumScreen = width >= 360 && width < 414;
-const numColumns = width > 600 ? 2 : 1; // For tablet support
-
-const RentalCard = ({ rental, onPress }) => {
+const RentalCard = ({
+  rental,
+  onPress,
+  width,
+  isSmallScreen,
+  isMediumScreen,
+  numColumns,
+}) => {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Completed":
@@ -154,15 +156,7 @@ const RentalCard = ({ rental, onPress }) => {
                   : "text-xl"
             }`}
           >
-            {(() => {
-              const start = new Date(rental.pickupDate);
-              const end = new Date(rental.returnDate);
-              const days = Math.max(
-                1,
-                Math.round((end - start) / (1000 * 60 * 60 * 24)),
-              );
-              return `Rs. ${(rental.baseRent * days).toLocaleString()}`;
-            })()}
+            Rs. {rental.totalAmount.toLocaleString()}
           </Text>
         </View>
 
@@ -188,6 +182,11 @@ const RentalCard = ({ rental, onPress }) => {
 };
 
 export default function RentalHistoryScreen() {
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 360;
+  const isMediumScreen = width >= 360 && width < 414;
+  const numColumns = width > 600 ? 2 : 1;
+
   const [searchText, setSearchText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -526,11 +525,18 @@ export default function RentalHistoryScreen() {
   );
 
   const renderRental = ({ item }) => (
-    <RentalCard rental={item} onPress={openRentalDetails} />
+    <RentalCard
+      rental={item}
+      onPress={openRentalDetails}
+      width={width}
+      isSmallScreen={isSmallScreen}
+      isMediumScreen={isMediumScreen}
+      numColumns={numColumns}
+    />
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
+    <AppLayout>
       {/* Sticky Header */}
       {renderHeader()}
 
@@ -542,6 +548,7 @@ export default function RentalHistoryScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderRental}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
         contentContainerStyle={{
           paddingBottom: Platform.OS === "ios" ? 20 : 16,
           flexGrow: 1,
@@ -836,37 +843,25 @@ export default function RentalHistoryScreen() {
                         PAYMENT DETAILS
                       </Text>
                       <PaymentRow
-                        label="Base Rent (per day)"
-                        amount={selectedRental.baseRent}
+                        label="Daily Rate"
+                        amount={selectedRental.dailyRate}
                       />
-                      {(() => {
-                        const start = new Date(selectedRental.pickupDate);
-                        const end = new Date(selectedRental.returnDate);
-                        const days = Math.max(
-                          1,
-                          Math.round((end - start) / (1000 * 60 * 60 * 24)),
-                        );
-                        const total = selectedRental.baseRent * days;
-                        return (
-                          <>
-                            <View className="flex-row justify-between items-center py-1">
-                              <Text className="text-sm text-gray-600">
-                                Rental Duration
-                              </Text>
-                              <Text className="text-sm font-medium text-gray-800">
-                                {days} {days === 1 ? "Day" : "Days"}
-                              </Text>
-                            </View>
-                            <View className="border-t border-gray-300 mt-2 pt-2">
-                              <PaymentRow
-                                label="Total Amount"
-                                amount={total}
-                                isTotal={true}
-                              />
-                            </View>
-                          </>
-                        );
-                      })()}
+                      <View className="flex-row justify-between items-center py-1">
+                        <Text className="text-sm text-gray-600">
+                          Rental Duration
+                        </Text>
+                        <Text className="text-sm font-medium text-gray-800">
+                          {selectedRental.rentalDays}{" "}
+                          {selectedRental.rentalDays === 1 ? "Day" : "Days"}
+                        </Text>
+                      </View>
+                      <View className="border-t border-gray-300 mt-2 pt-2">
+                        <PaymentRow
+                          label="Total Amount"
+                          amount={selectedRental.totalAmount}
+                          isTotal={true}
+                        />
+                      </View>
                     </View>
 
                     {/* Success Banner */}
@@ -914,7 +909,7 @@ export default function RentalHistoryScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </AppLayout>
   );
 }
 
@@ -942,7 +937,7 @@ const PaymentRow = ({ label, amount, isTotal = false }) => (
         isTotal ? "text-sm font-bold text-[#0A2E5C]" : "text-sm text-gray-800"
       }`}
     >
-      Rs. {amount.toLocaleString()}
+      Rs. {(amount ?? 0).toLocaleString()}
     </Text>
   </View>
 );
