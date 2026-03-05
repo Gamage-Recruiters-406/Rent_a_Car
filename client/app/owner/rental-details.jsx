@@ -296,9 +296,25 @@ export default function RentalDetailsScreen() {
             >
               PAYMENT DETAILS
             </Text>
-            <PaymentRow label="Base Rent (5 days)" amount={rental.baseRent} />
-            <PaymentRow label="Insurance" amount={rental.insurance} />
-            <PaymentRow label="Service Tax (18%)" amount={rental.serviceTax} />
+            <PaymentRow label={`Daily Rate`} amount={rental.dailyRate} />
+            <View className="flex-row justify-between items-center mb-2">
+              <Text
+                className={`text-gray-800 flex-1 mr-2 ${
+                  isSmallScreen ? "text-sm" : "text-base"
+                }`}
+              >
+                Rental Duration
+              </Text>
+              <Text
+                className={`${
+                  isSmallScreen
+                    ? "text-sm text-gray-800"
+                    : "text-base text-gray-800"
+                }`}
+              >
+                {rental.rentalDays} {rental.rentalDays === 1 ? "Day" : "Days"}
+              </Text>
+            </View>
             <View className="border-t border-gray-200 mt-2 pt-2">
               <PaymentRow
                 label="Total Amount"
@@ -437,7 +453,7 @@ const PaymentRow = ({ label, amount, isTotal = false }) => (
             : "text-base text-gray-800"
       }`}
     >
-      Rs. {amount.toLocaleString()}
+      Rs. {(amount ?? 0).toLocaleString()}
     </Text>
   </View>
 );
