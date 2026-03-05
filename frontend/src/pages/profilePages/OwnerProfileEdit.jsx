@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {Mail,Phone,MapPin,Calendar,Edit,CheckCircle,Save,User,X, Camera, Trash2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, CheckCircle, Save, User, X, Camera, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Footer from '../../layouts/Footer';
 
@@ -34,16 +34,18 @@ export const OwnerProfileEdit = ({
   const [activeStats, setActiveStats] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [errors, setErrors] = useState({});
   const [earningansRevenue, setEarningansRevenue] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [vehiclecount, setVehiclecount] = useState([]);
+  const [verifyCooldown, setVerifyCooldown] = useState(0);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const storedUser = localStorage.getItem('user');
         const token = localStorage.getItem('token');
-       
+
         if (storedUser && token) {
           const userObj = JSON.parse(storedUser);
           const userId = userObj.user ? userObj.user._id : (userObj._id || userObj.userid);
@@ -53,62 +55,62 @@ export const OwnerProfileEdit = ({
             document.cookie = `access_token=${token}; path=/; samesite=strict`;
 
             const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserDetails`, {
-                withCredentials: true
+              withCredentials: true
             });
             const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/earnings/${userId}`, {
-                withCredentials: true
+              withCredentials: true
             });
             const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/`, {
-                withCredentials: true
+              withCredentials: true
             });
             const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/get-my-all`, {
-                withCredentials: true
+              withCredentials: true
             });
 
-    
+
             if (response.data) {
-                const userData = response.data.user || response.data; 
+              const userData = response.data.user || response.data;
 
-                const mappedProfile = {
-                    //...defaultProfile,
-                    ...activeProfile,
-                    ...userData,
-                    phone: userData.contactNumber || activeProfile.phone || defaultProfile.phone,
-                    subtitle: userData.role === 2 ? 'Owner' : (userData.role === 1 ? 'User' : 'Admin'),
-                    name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || activeProfile.name || defaultProfile.name,
-                    createdAt: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'
-                };
+              const mappedProfile = {
+                //...defaultProfile,
+                ...activeProfile,
+                ...userData,
+                phone: userData.contactNumber || activeProfile.phone || defaultProfile.phone,
+                subtitle: userData.role === 2 ? 'Owner' : (userData.role === 1 ? 'User' : 'Admin'),
+                name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || activeProfile.name || defaultProfile.name,
+                createdAt: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'
+              };
 
-                setActiveProfile(mappedProfile);
-                setEditedProfile(mappedProfile);
+              setActiveProfile(mappedProfile);
+              setEditedProfile(mappedProfile);
 
-               // set earnings and revenue
-                if(response2.data){
-                    const earningsData = response2.data.data;
-                    setEarningansRevenue(earningsData);
-                    //console.log(earningsData);
-                }
-                
-                // set bookings count
-                if(response3.data){
-                    const bookingsData = response3.data.data.length;
-                    setBookings(bookingsData);
-                    
-                }
-                
-                // set vehicle count
-                if(response4.data){
-                    const vehicleData = response4.data;
-                    const pendingcount = vehicleData.vehicles.filter(v => v.status === "Pending").length;
-                    setVehiclecount(pendingcount);
-                    console.log(vehicleData);
-                    
-                }
-                
-                // If stats are part of the response, update them too
-                // if (userData.stats) {
-                //     setActiveStats({ ...defaultStats, ...userData.stats });
-                // }
+              // set earnings and revenue
+              if (response2.data) {
+                const earningsData = response2.data.data;
+                setEarningansRevenue(earningsData);
+                //console.log(earningsData);
+              }
+
+              // set bookings count
+              if (response3.data) {
+                const bookingsData = response3.data.data.length;
+                setBookings(bookingsData);
+
+              }
+
+              // set vehicle count
+              if (response4.data) {
+                const vehicleData = response4.data;
+                const pendingcount = vehicleData.vehicles.filter(v => v.status === "Pending").length;
+                setVehiclecount(pendingcount);
+                console.log(vehicleData);
+
+              }
+
+              // If stats are part of the response, update them too
+              // if (userData.stats) {
+              //     setActiveStats({ ...defaultStats, ...userData.stats });
+              // }
             }
           }
         }
@@ -120,22 +122,22 @@ export const OwnerProfileEdit = ({
     fetchUserData();
   }, []);
 
-    const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
-    useEffect(() => {
-        if (activeProfile.profilePicture) {
-            setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
-        }
-    }, [activeProfile.profilePicture]);
+  useEffect(() => {
+    if (activeProfile.profilePicture) {
+      setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
+    }
+  }, [activeProfile.profilePicture]);
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
-    };
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   const initials = activeProfile.name?.split(' ').map((n) => n[0]).join('').toUpperCase() || '';
 
@@ -144,41 +146,42 @@ export const OwnerProfileEdit = ({
     setEditedProfile(activeProfile);
   };
   const handleSave = async () => {
+    if (!validate()) return;
     try {
-        const formData = new FormData();
-        Object.keys(editedProfile).forEach(key => {
-            formData.append(key, editedProfile[key]);
-        });
-        
-        if (imageFile) {
-            formData.append("profilePicture", imageFile);
+      const formData = new FormData();
+      Object.keys(editedProfile).forEach(key => {
+        formData.append(key, editedProfile[key]);
+      });
+
+      if (imageFile) {
+        formData.append("profilePicture", imageFile);
+      }
+
+      const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data && response.data.success) {
+        toast.success(response.data.message || "Profile updated successfully");
+
+        // Refresh profile data to get new image URL
+        const updatedProfile = { ...editedProfile };
+        if (response.data.user && response.data.user.profilePicture) {
+          updatedProfile.profilePicture = response.data.user.profilePicture;
+          setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
         }
 
-        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, formData, {
-            withCredentials: true,
-            headers: { "Content-Type": "multipart/form-data" },
-        });
-
-        if (response.data && response.data.success) {
-            toast.success(response.data.message || "Profile updated successfully");
-            
-            // Refresh profile data to get new image URL
-             const updatedProfile = { ...editedProfile };
-             if(response.data.user && response.data.user.profilePicture){
-                 updatedProfile.profilePicture = response.data.user.profilePicture;
-                 setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
-             }
-
-            setActiveProfile(updatedProfile);
-            onSave?.(updatedProfile);
-            setIsEditing(false);
-            setImageFile(null);
-        } else {
-            toast.error(response.data?.message || "Failed to update profile");
-        }
+        setActiveProfile(updatedProfile);
+        onSave?.(updatedProfile);
+        setIsEditing(false);
+        setImageFile(null);
+      } else {
+        toast.error(response.data?.message || "Failed to update profile");
+      }
     } catch (error) {
-        console.error("Error updating profile:", error);
-        toast.error(error.response?.data?.message || "An error occurred while updating profile");
+      console.error("Error updating profile:", error);
+      toast.error(error.response?.data?.message || "An error occurred while updating profile");
     }
   };
   const handleCancel = () => {
@@ -187,14 +190,41 @@ export const OwnerProfileEdit = ({
     setImageFile(null);
     setImagePreview(activeProfile.profilePicture ? `${baseUrl}/${activeProfile.profilePicture}` : null);
   };
+  const validate = () => {
+    const newErrors = {};
+    if (!editedProfile.first_name?.trim())
+      newErrors.first_name = 'First name is required.';
+    else if (/\d/.test(editedProfile.first_name))
+      newErrors.first_name = 'First name must not contain numbers.';
+
+    if (!editedProfile.last_name?.trim())
+      newErrors.last_name = 'Last name is required.';
+    else if (/\d/.test(editedProfile.last_name))
+      newErrors.last_name = 'Last name must not contain numbers.';
+
+    if (!editedProfile.contactNumber?.toString().trim())
+      newErrors.contactNumber = 'Phone number is required.';
+    else if (!/^\d{10}$/.test(editedProfile.contactNumber.toString().trim()))
+      newErrors.contactNumber = 'Enter a valid 10-digit phone number.';
+
+    if (editedProfile.bio && editedProfile.bio.length > 100)
+      newErrors.bio = 'Bio must not exceed 300 characters.';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleFieldChange = (field, value) => {
     setEditedProfile((prev) => ({
       ...prev,
       [field]: value
     }));
+    if (errors[field]) {
+      setErrors((prev) => { const e = { ...prev }; delete e[field]; return e; });
+    }
     onProfileChange?.(field, value);
   };
-  
+
   const handleDeleteAccount = async () => {
     if (window.confirm("Are you sure you want to delete your account? This action is permanent and cannot be undone.")) {
       try {
@@ -219,63 +249,71 @@ export const OwnerProfileEdit = ({
       }
     }
   };
-  
+
   const handleVerify = async () => {
     try {
-        const response = await axios.patch(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {}, {
-            withCredentials: true
-        });
+      const response = await axios.patch(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {}, {
+        withCredentials: true
+      });
 
-        if (response.data && response.data.success) {
-            toast.success(response.data.message || "Verification email sent. Please check your inbox.");
-        } else {
-            toast.error(response.data?.message || "Failed to send verification email.");
-        }
+      if (response.data && response.data.success) {
+        toast.success(response.data.message || "Verification email sent. Please check your inbox.");
+        // Start 15-second cooldown
+        setVerifyCooldown(30);
+        const timer = setInterval(() => {
+          setVerifyCooldown((prev) => {
+            if (prev <= 1) { clearInterval(timer); return 0; }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        toast.error(response.data?.message || "Failed to send verification email.");
+      }
     } catch (error) {
-        console.error("Verification error:", error);
-        toast.error(error.response?.data?.message || "An error occurred while sending verification email.");
+      console.error("Verification error:", error);
+      toast.error(error.response?.data?.message || "An error occurred while sending verification email.");
     }
   };
 
   const currentProfile = isEditing ? editedProfile : activeProfile;
 
- 
+
 
   return (
- 
+
     <div data-id={dataId} className="min-h-screen bg-gray-50 w-full">
       {/* Header */}
       <div className="bg-[#0A2E5C] px-6 py-8">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
+              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
                 {imagePreview ? (
-                     <img
-                     src={imagePreview}
-                     alt={activeProfile.name}
-                     className="w-full h-full object-cover" />
+                  <img
+                    src={imagePreview}
+                    alt={activeProfile.name}
+                    className="w-full h-full object-cover" />
                 ) : (
-                    activeProfile.avatar ?
+                  activeProfile.avatar ?
                     <img
-                        src={activeProfile.avatar}
-                        alt={activeProfile.name}
-                        className="w-full h-full object-cover" /> :
+                      src={activeProfile.avatar}
+                      alt={activeProfile.name}
+                      className="w-full h-full object-cover" /> :
                     initials
                 )}
-                </div>
-                {isEditing && (
-                    <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
-                        <Camera className="w-4 h-4 text-[#0A2E5C]" />
-                        <input 
-                            type="file" 
-                            id="profile-upload" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={handleImageChange}
-                        />
-                    </label>
-                )}
+              </div>
+              {isEditing && (
+                <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
+                  <Camera className="w-4 h-4 text-[#0A2E5C]" />
+                  <input
+                    type="file"
+                    id="profile-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
             </div>
             <div>
               <h1 className="text-white text-2xl font-semibold">
@@ -286,37 +324,37 @@ export const OwnerProfileEdit = ({
           </div>
           <div className="flex items-center gap-3">
             {isEditing ?
-            <>
+              <>
                 <button
-                onClick={handleCancel}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-md font-medium hover:bg-white/20 transition-colors">
+                  onClick={handleCancel}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-md font-medium hover:bg-white/20 transition-colors">
 
                   <X className="w-4 h-4" />
                   Cancel
                 </button>
                 <button
-                onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
+                  onClick={handleSave}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
 
                   <Save className="w-4 h-4" />
                   Save Changes
                 </button>
               </> :
-            <>
-              <button
-                 onClick={handleDeleteAccount}
-                 className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-md font-medium hover:bg-red-500/20 transition-colors mr-2">
+              <>
+                <button
+                  onClick={handleDeleteAccount}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-md font-medium hover:bg-red-500/20 transition-colors mr-2">
                   <Trash2 className="w-4 h-4" />
                   Delete Account
-              </button>
-              <button
-                onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
+                </button>
+                <button
+                  onClick={handleEdit}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-[#0A2E5C] rounded-md font-medium hover:bg-white/90 transition-colors">
 
                   <Edit className="w-4 h-4" />
                   Edit Profile
                 </button>
-            </>
+              </>
             }
           </div>
         </div>
@@ -345,11 +383,13 @@ export const OwnerProfileEdit = ({
                       type="text"
                       value={currentProfile.first_name || ''}
                       onChange={(e) =>
-                      handleFieldChange('first_name', e.target.value)
+                        handleFieldChange('first_name', e.target.value)
                       }
                       disabled={!isEditing}
-                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
-
+                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.first_name ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`} />
+                    {isEditing && errors.first_name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>
+                    )}
                   </div>
                 </div>
 
@@ -363,11 +403,13 @@ export const OwnerProfileEdit = ({
                       type="text"
                       value={currentProfile.last_name || ''}
                       onChange={(e) =>
-                      handleFieldChange('last_name', e.target.value)
+                        handleFieldChange('last_name', e.target.value)
                       }
                       disabled={!isEditing}
-                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
-
+                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.last_name ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`} />
+                    {isEditing && errors.last_name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>
+                    )}
                   </div>
                 </div>
 
@@ -393,14 +435,18 @@ export const OwnerProfileEdit = ({
                       Phone Number
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={10}
                       value={currentProfile.contactNumber || ''}
                       onChange={(e) =>
-                      handleFieldChange('contactNumber', e.target.value)
+                        handleFieldChange('contactNumber', e.target.value)
                       }
                       disabled={!isEditing}
-                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
-
+                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.contactNumber ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`} />
+                    {isEditing && errors.contactNumber && (
+                      <p className="text-red-500 text-xs mt-1">{errors.contactNumber}</p>
+                    )}
                   </div>
                 </div>
 
@@ -414,11 +460,13 @@ export const OwnerProfileEdit = ({
                       type="text"
                       value={currentProfile.location || ''}
                       onChange={(e) =>
-                      handleFieldChange('location', e.target.value)
+                        handleFieldChange('location', e.target.value)
                       }
                       disabled={!isEditing}
-                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} />
-
+                      className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.location ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`} />
+                    {isEditing && errors.location && (
+                      <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+                    )}
                   </div>
                 </div>
 
@@ -445,8 +493,18 @@ export const OwnerProfileEdit = ({
                   onChange={(e) => handleFieldChange('bio', e.target.value)}
                   disabled={!isEditing}
                   rows={3}
-                  className={`w-full text-[#999fa8] text-sm leading-relaxed resize-none focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`}
+                  className={`w-full text-[#999fa8] text-sm leading-relaxed resize-none focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.bio ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`}
                   placeholder="Tell us about your business..." />
+                {isEditing && (
+                  <div className="flex justify-between items-center mt-1">
+                    {errors.bio
+                      ? <p className="text-red-500 text-xs">{errors.bio}</p>
+                      : <span />}
+                    <p className={`text-xs ${(currentProfile.bio?.length || 0) > 300 ? 'text-red-500' : 'text-gray-400'}`}>
+                      {currentProfile.bio?.length || 0}/300
+                    </p>
+                  </div>
+                )}
 
               </div>
             </div>
@@ -480,18 +538,18 @@ export const OwnerProfileEdit = ({
                     totalEarnings
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
-                    {"RS."+earningansRevenue.totalEarnings}
+                    {"RS." + earningansRevenue.totalEarnings}
                   </div>
                 </div>
                 <div>
-                   <div className="text-[#999fa8] text-xs mb-1">
+                  <div className="text-[#999fa8] text-xs mb-1">
                     Total pendingcount
                   </div>
                   <div className="text-[#0A2E5C] text-2xl font-bold">
                     {vehiclecount}
                   </div>
                 </div>
-               {/* <div>
+                {/* <div>
                   <div className="text-[#999fa8] text-xs mb-1">
                     Profit
                   </div>
@@ -499,39 +557,45 @@ export const OwnerProfileEdit = ({
                     {0}
                   </div>
                 </div> */}
-          {/* status */}
-               <div className="mt-8 border-t pt-6">
-                      <h3 className="text-[#0A2E5C] font-semibold text-base mb-3">
-                        Account Status
-                      </h3>
-                      {activeProfile.status === 'verified' ? (
-                        <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-3 rounded-lg w-fit">
-                          <CheckCircle className="w-5 h-5" />
-                          <span className="font-medium">Verified Account</span>
+                {/* status */}
+                <div className="mt-8 border-t pt-6">
+                  <h3 className="text-[#0A2E5C] font-semibold text-base mb-3">
+                    Account Status
+                  </h3>
+                  {activeProfile.status === 'verified' ? (
+                    <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-3 rounded-lg w-fit">
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="font-medium">Verified Account</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between bg-yellow-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="text-yellow-700 font-medium">
+                          Status: {activeProfile.status || 'Unverified'}
                         </div>
-                      ) : (
-                        <div className="flex items-center justify-between bg-yellow-50 p-4 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <div className="text-yellow-700 font-medium">
-                              Status: {activeProfile.status || 'Unverified'}
-                            </div>
-                          </div>
-                          <button 
-                            onClick={handleVerify}
-                            className="group flex items-center gap-2 bg-gradient-to-r from-[#0A2E5C] to-[#0A2E5C]/80 text-white px-5 py-2 rounded-lg shadow-md hover:shadow-lg hover:to-[#0A2E5C] transition-all duration-300 transform hover:-translate-y-0.5"
-                          >
-                            <CheckCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
-                            <span className="text-sm font-semibold">Verify Now</span>
-                          </button>
-                        </div>
-                      )}
-               </div>
+                      </div>
+                      <button
+                        onClick={handleVerify}
+                        disabled={verifyCooldown > 0}
+                        className={`group flex items-center gap-2 bg-gradient-to-r from-[#0A2E5C] to-[#0A2E5C]/80 text-white px-5 py-2 rounded-lg shadow-md transition-all duration-300 transform
+                          ${verifyCooldown > 0
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:shadow-lg hover:to-[#0A2E5C] hover:-translate-y-0.5'}`}
+                      >
+                        <CheckCircle className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                        <span className="text-sm font-semibold">
+                          {verifyCooldown > 0 ? `Resend in ${verifyCooldown}s…` : 'Verify Now'}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

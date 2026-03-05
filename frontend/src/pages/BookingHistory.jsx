@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Header } from './BookingPageHeader';
 import Layout from '../layouts/Layout';
 import VehicleBookingModal from './VehicleBookingModal';
 import {
@@ -11,10 +10,10 @@ import {
   XCircle,
   ChevronRight,
   Star,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   fetchUserDetails,
-  handleLogout as logoutService,
   fetchAndEnrichCustomerBookings,
   formatBookingDate,
   formatCurrency,
@@ -28,8 +27,6 @@ const BookingHistory = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState(1);
-  const [activeTab, setActiveTab] = useState('history');
 
   // Modal state
   const [selectedBookingId, setSelectedBookingId] = useState(null);
@@ -47,35 +44,20 @@ const BookingHistory = () => {
 
         if (userResponse.success && userResponse.user) {
           setUser(userResponse.user);
-          setRole(userResponse.user.role ?? 1);
           setIsAuthenticated(true);
         } else {
           setUser(null);
-          setRole(1);
           setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error fetching user details:', error);
         setUser(null);
-        setRole(1);
         setIsAuthenticated(false);
       }
     };
 
     getUserDetails();
   }, [API_BASE_URL, API_VERSION]);
-
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      await logoutService(API_BASE_URL, API_VERSION);
-    } catch (error) {
-      console.error('Logout failed', error);
-    }
-    setUser(null);
-    setRole(1);
-    setIsAuthenticated(false);
-  };
 
   // Define fetchBookings with useCallback to prevent infinite re-renders
   const fetchBookings = useCallback(async () => {
@@ -107,7 +89,7 @@ const BookingHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, API_BASE_URL, API_VERSION]); // Dependencies
+  }, [user, API_BASE_URL, API_VERSION]);
 
   // Fetch bookings only when user is authenticated
   useEffect(() => {
@@ -116,7 +98,7 @@ const BookingHistory = () => {
     } else if (user === null) {
       setLoading(false);
     }
-  }, [isAuthenticated, user, fetchBookings]); //  fetchBookings as dependency
+  }, [isAuthenticated, user, fetchBookings]);
 
   const getStatusStyles = (status) => {
     switch (status.toLowerCase()) {
@@ -137,6 +119,11 @@ const BookingHistory = () => {
 
   const getStatusText = (status) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  // Check if vehicle is available (not deleted)
+  const isVehicleAvailable = (vehicleDetails) => {
+    return vehicleDetails && vehicleDetails.title !== 'Unknown Vehicle' && vehicleDetails.title !== 'Vehicle No Longer Available';
   };
 
   // Star rating component
@@ -208,11 +195,12 @@ const BookingHistory = () => {
   const MobileBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
-    const imageUrl = getVehicleImageUrl(
+    const vehicleAvailable = isVehicleAvailable(booking.vehicleDetails);
+    const imageUrl = vehicleAvailable ? getVehicleImageUrl(
       booking.vehicleDetails,
       0,
       API_BASE_URL,
-    );
+    ) : null;
 
     const [open, setOpen] = useState(false);
 
@@ -228,7 +216,14 @@ const BookingHistory = () => {
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-              <Car className="h-12 w-12 text-gray-400" />
+              {!vehicleAvailable ? (
+                <div className="text-center">
+                  <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-2" />
+                  <p className="text-xs font-medium text-red-600">Vehicle No Longer Available</p>
+                </div>
+              ) : (
+                <Car className="h-12 w-12 text-gray-400" />
+              )}
             </div>
           )}
           <div className="absolute top-2 left-2">
@@ -239,36 +234,40 @@ const BookingHistory = () => {
               {getStatusText(booking.status)}
             </span>
           </div>
-          {/* Stars and Price */}
-          <div className="absolute top-2 right-2 flex flex-col items-end space-y-1">
-            {/* Stars */}
-            <div className="inline-flex items-center gap-0.5 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
-              <StarRating
-                rating={booking.vehicleDetails.rating}
-                size="sm"
-                showNumber={true}
-              />
-            </div>
-            {/* Price */}
-            <div className="inline-flex items-center gap-1 text-xs text-white bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
-              <span className="font-bold">
-                {formatCurrency(booking.totalAmount, 'LKR')}
-              </span>
-            </div>
-          </div>
-          {/* Days badge */}
-          <div className="absolute bottom-2 right-2">
-            <span className="inline-flex items-center gap-1 text-xs text-white bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
-              {booking.days} day{booking.days !== 1 ? 's' : ''}
-            </span>
-          </div>
+          {/* Stars and Price Only show if vehicle is available */}
+          {vehicleAvailable && (
+            <>
+              <div className="absolute top-2 right-2 flex flex-col items-end space-y-1">
+                {/* Stars */}
+                <div className="inline-flex items-center gap-0.5 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                  <StarRating
+                    rating={booking.vehicleDetails.rating}
+                    size="sm"
+                    showNumber={true}
+                  />
+                </div>
+                {/* Price */}
+                <div className="inline-flex items-center gap-1 text-xs text-white bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                  <span className="font-bold">
+                    {formatCurrency(booking.totalAmount, 'LKR')}
+                  </span>
+                </div>
+              </div>
+              {/* Days badge */}
+              <div className="absolute bottom-2 right-2">
+                <span className="inline-flex items-center gap-1 text-xs text-white bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                  {booking.days} day{booking.days !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Content  */}
         <div className="p-3">
           <div className="mb-2">
-            <h3 className="font-bold text-base text-[#0D3778]">
-              {booking.vehicleDetails.title}
+            <h3 className={`font-bold text-base ${vehicleAvailable ? 'text-[#0D3778]' : 'text-gray-500'}`}>
+              {vehicleAvailable ? booking.vehicleDetails.title : 'Vehicle No Longer Available'}
             </h3>
           </div>
 
@@ -313,22 +312,34 @@ const BookingHistory = () => {
             <div className='flex gap-3'>
               <button
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#0D3778] text-white text-xs font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
+                disabled={!vehicleAvailable}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                  vehicleAvailable 
+                    ? 'bg-[#0D3778] text-white hover:bg-[#0A2C63]' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
                 Pay
               </button>
               <button
                 onClick={() => handleViewDetails(booking._id)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#0D3778] text-white text-xs font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
+                disabled={!vehicleAvailable}
+                className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                  vehicleAvailable 
+                    ? 'bg-[#0D3778] text-white hover:bg-[#0A2C63]' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
                 Details
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
+          {vehicleAvailable && (
             <Modal open={open} onClose={() => setOpen(false)}>
               <PaymentPage bookingId={booking._id} />
             </Modal>
+          )}
         </div>
       </div>
     );
@@ -338,17 +349,16 @@ const BookingHistory = () => {
   const DesktopBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
+    const vehicleAvailable = isVehicleAvailable(booking.vehicleDetails);
 
     const [open, setOpen] = useState(false);
-
-
 
     return (
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
         <div className="flex flex-col md:flex-row h-auto md:h-64">
           {/* Image container */}
           <div className="w-full md:w-80 h-48 md:h-full relative flex-shrink-0">
-            {getVehicleImageUrl(booking.vehicleDetails, 0, API_BASE_URL) ? (
+            {vehicleAvailable && getVehicleImageUrl(booking.vehicleDetails, 0, API_BASE_URL) ? (
               <img
                 src={getVehicleImageUrl(
                   booking.vehicleDetails,
@@ -360,10 +370,17 @@ const BookingHistory = () => {
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                <div className="text-gray-400 text-center p-4">
-                  <Car className="h-10 w-10 mx-auto mb-2" />
-                  <p className="text-sm font-medium">No Image</p>
-                </div>
+                {!vehicleAvailable ? (
+                  <div className="text-center p-4">
+                    <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-red-600">Vehicle No Longer Available</p>
+                  </div>
+                ) : (
+                  <div className="text-gray-400 text-center p-4">
+                    <Car className="h-10 w-10 mx-auto mb-2" />
+                    <p className="text-sm font-medium">No Image</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -372,8 +389,8 @@ const BookingHistory = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start mb-2">
               <div className="flex-1 min-w-0 pr-3 mb-2 sm:mb-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
-                  <h3 className="text-lg font-bold text-[#0D3778] truncate">
-                    {booking.vehicleDetails.title}
+                  <h3 className={`text-lg font-bold truncate ${vehicleAvailable ? 'text-[#0D3778]' : 'text-gray-500'}`}>
+                    {vehicleAvailable ? booking.vehicleDetails.title : 'Vehicle No Longer Available'}
                   </h3>
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${statusStyle.bg} ${statusStyle.text} flex-shrink-0 self-start sm:self-center`}
@@ -384,21 +401,23 @@ const BookingHistory = () => {
                 </div>
               </div>
 
-              <div className="text-right flex-shrink-0">
-                <div className="flex items-center justify-end gap-1 mb-0.5">
-                  <StarRating
-                    rating={booking.vehicleDetails.rating}
-                    size="sm"
-                    showNumber={true}
-                  />
+              {vehicleAvailable && (
+                <div className="text-right flex-shrink-0">
+                  <div className="flex items-center justify-end gap-1 mb-0.5">
+                    <StarRating
+                      rating={booking.vehicleDetails.rating}
+                      size="sm"
+                      showNumber={true}
+                    />
+                  </div>
+                  <div className="text-xl font-bold text-[#0D3778]">
+                    {formatCurrency(booking.totalAmount, 'LKR')}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {booking.days} day{booking.days !== 1 ? 's' : ''}
+                  </p>
                 </div>
-                <div className="text-xl font-bold text-[#0D3778]">
-                  {formatCurrency(booking.totalAmount, 'LKR')}
-                </div>
-                <p className="text-xs text-gray-500">
-                  {booking.days} day{booking.days !== 1 ? 's' : ''}
-                </p>
-              </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3 flex-grow">
@@ -447,20 +466,32 @@ const BookingHistory = () => {
             <div className="flex justify-end items-center gap-3 pt-3 border-t border-gray-100 mt-auto">
               <button
                 onClick={() => setOpen(true)}
-                className="px-10 py-2  bg-[#0D3778] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
+                disabled={!vehicleAvailable}
+                className={`px-10 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                  vehicleAvailable 
+                    ? 'bg-[#0D3778] text-white hover:bg-[#0A2C63]' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
                 Pay
               </button>
               <button
                 onClick={() => handleViewDetails(booking._id)}
-                className="px-4 py-2 bg-[#0D3778] text-white text-sm font-semibold rounded-lg hover:bg-[#0A2C63] transition-colors"
+                disabled={!vehicleAvailable}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                  vehicleAvailable 
+                    ? 'bg-[#0D3778] text-white hover:bg-[#0A2C63]' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
                 View Details
               </button>
             </div>
-            <Modal open={open} onClose={() => setOpen(false)}>
-              <PaymentPage bookingId={booking._id} />
-            </Modal>
+            {vehicleAvailable && (
+              <Modal open={open} onClose={() => setOpen(false)}>
+                <PaymentPage bookingId={booking._id} />
+              </Modal>
+            )}
           </div>
         </div>
       </div>
@@ -472,15 +503,6 @@ const BookingHistory = () => {
     return (
       <Layout>
         <div className="min-h-screen bg-white">
-          <Header
-            activeTab={activeTab}
-            onNavigate={setActiveTab}
-            role={role}
-            isAuthenticated={isAuthenticated}
-            user={user}
-            notifications={0}
-            onLogout={handleLogout}
-          />
           <main>
             <div className="bg-gray-50 min-h-[70vh] p-4 md:p-6">
               <div className="max-w-7xl mx-auto">
@@ -503,15 +525,6 @@ const BookingHistory = () => {
     return (
       <Layout>
         <div className="min-h-screen bg-white">
-          <Header
-            activeTab={activeTab}
-            onNavigate={setActiveTab}
-            role={role}
-            isAuthenticated={isAuthenticated}
-            user={user}
-            notifications={0}
-            onLogout={handleLogout}
-          />
           <main>
             <div className="bg-gray-50 min-h-[70vh] p-4 md:p-6">
               <div className="max-w-7xl mx-auto">
@@ -543,16 +556,6 @@ const BookingHistory = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-white">
-        <Header
-          activeTab={activeTab}
-          onNavigate={setActiveTab}
-          role={role}
-          isAuthenticated={isAuthenticated}
-          user={user}
-          notifications={0}
-          onLogout={handleLogout}
-        />
-
         <main>
           <div className="bg-gray-50 min-h-[70vh] p-4 md:p-6">
             <div className="max-w-7xl mx-auto">
@@ -607,8 +610,8 @@ const BookingHistory = () => {
         </main>
       </div>
 
-      {/* Modal for viewing booking details */}
-      {showModal && selectedBookingId && (
+      {/* Modal for viewing booking details - only show if vehicle is available */}
+      {showModal && selectedBookingId && selectedBooking && isVehicleAvailable(selectedBooking.vehicleDetails) && (
         <VehicleBookingModal
           bookingId={selectedBookingId}
           booking={selectedBooking}
