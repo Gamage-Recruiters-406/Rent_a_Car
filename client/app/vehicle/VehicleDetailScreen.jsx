@@ -30,6 +30,8 @@ import {
 
 import { getVehicleById } from "../../src/services/vehicleApi";
 import { getVehicleAvailability } from "../../src/services/bookingApi";
+import AppLayout from "../../components/layout/Layout";
+import { Stack } from "expo-router";
 
 // helpers
 function toYYYYMM(date = new Date()) {
@@ -215,194 +217,212 @@ export default function VehicleDetailScreen() {
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-white"
-      contentContainerStyle={{ padding: 16, gap: 14 }}
-    >
-      <Text className="text-[22px] font-black text-[#0d3778]">{titleText}</Text>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Gallery */}
-      <View className="border-2 border-[#0d3778] rounded-2xl p-2.5">
-        {/* Main Image */}
-        <View
-          className="rounded-2xl overflow-hidden bg-slate-200"
-          style={{ height: mainImageHeight }}
-        >
-          {photoUrls[activeImg] ? (
-            <Image
-              source={{ uri: photoUrls[activeImg] }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="flex-1 items-center justify-center">
-              <Text className="text-slate-500">No image</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Dots */}
-        <View className="flex-row justify-center my-2.5">
-          {/* gap workaround */}
-          {photoUrls.slice(0, 6).map((_, idx) => (
-            <Pressable
-              key={idx}
-              onPress={() => setActiveImg(idx)}
-              className={`w-2 h-2 rounded-full mx-1 ${
-                idx === activeImg ? "bg-[#0d3778]" : "bg-slate-300"
-              }`}
-            />
-          ))}
-        </View>
-
-        {/* Thumbs */}
+      <AppLayout user={null}>
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingVertical: 2 }}
+          className="flex-1 bg-white"
+          contentContainerStyle={{ padding: 16, gap: 14 }}
         >
-          {photoUrls.slice(0, 8).map((img, idx) => {
-            const thumbWidth = isPhone ? 110 : 160;
-            const thumbHeight = isPhone ? 70 : 80;
+          <Text className="text-[22px] font-black text-[#0d3778]">
+            {titleText}
+          </Text>
 
-            return (
-              <Pressable
-                key={idx}
-                onPress={() => setActiveImg(idx)}
-                className={`rounded-2xl overflow-hidden border-2 mr-2.5 ${
-                  idx === activeImg ? "border-[#0d3778]" : "border-slate-300"
-                }`}
-                style={{ width: thumbWidth, height: thumbHeight }}
-              >
+          {/* Gallery */}
+          <View className="border-2 border-[#0d3778] rounded-2xl p-2.5">
+            {/* Main Image */}
+            <View
+              className="rounded-2xl overflow-hidden bg-slate-200"
+              style={{ height: mainImageHeight }}
+            >
+              {photoUrls[activeImg] ? (
                 <Image
-                  source={{ uri: img }}
+                  source={{ uri: photoUrls[activeImg] }}
                   className="w-full h-full"
                   resizeMode="cover"
                 />
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      {/* Availability */}
-      <DropdownCard
-        title="Availability"
-        icon={<CalendarIcon />}
-        open={open.availability}
-        onToggle={() =>
-          setOpen((p) => ({ ...p, availability: !p.availability }))
-        }
-      >
-        <View className="flex-row items-center justify-between mb-2.5">
-          <Pressable
-            onPress={() => setMonth((m) => addMonths(m, -1))}
-            className="w-9 h-9 rounded-full border-2 border-[#0d3778] items-center justify-center"
-          >
-            <Text className="text-[#0d3778] font-black text-lg">‹</Text>
-          </Pressable>
-
-          <Text className="text-[#0d3778] font-black">
-            {formatMonthLabel(month)}
-          </Text>
-
-          <Pressable
-            onPress={() => setMonth((m) => addMonths(m, 1))}
-            className="w-9 h-9 rounded-full border-2 border-[#0d3778] items-center justify-center"
-          >
-            <Text className="text-[#0d3778] font-black text-lg">›</Text>
-          </Pressable>
-        </View>
-
-        <MiniCalendar month={month} blockedSet={blockedSet} />
-
-        <View className="flex-row justify-between mt-2.5 items-center">
-          {/* gap workaround */}
-          <View className="flex-row items-center">
-            <View className="mr-3.5">
-              <LegendItem bg="#d1fae5" border="#6ee7b7" label="Available" />
+              ) : (
+                <View className="flex-1 items-center justify-center">
+                  <Text className="text-slate-500">No image</Text>
+                </View>
+              )}
             </View>
-            <LegendItem bg="#fee2e2" border="#fca5a5" label="Blocked" />
+
+            {/* Dots */}
+            <View className="flex-row justify-center my-2.5">
+              {/* gap workaround */}
+              {photoUrls.slice(0, 6).map((_, idx) => (
+                <Pressable
+                  key={idx}
+                  onPress={() => setActiveImg(idx)}
+                  className={`w-2 h-2 rounded-full mx-1 ${
+                    idx === activeImg ? "bg-[#0d3778]" : "bg-slate-300"
+                  }`}
+                />
+              ))}
+            </View>
+
+            {/* Thumbs */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 2 }}
+            >
+              {photoUrls.slice(0, 8).map((img, idx) => {
+                const thumbWidth = isPhone ? 110 : 160;
+                const thumbHeight = isPhone ? 70 : 80;
+
+                return (
+                  <Pressable
+                    key={idx}
+                    onPress={() => setActiveImg(idx)}
+                    className={`rounded-2xl overflow-hidden border-2 mr-2.5 ${
+                      idx === activeImg
+                        ? "border-[#0d3778]"
+                        : "border-slate-300"
+                    }`}
+                    style={{ width: thumbWidth, height: thumbHeight }}
+                  >
+                    <Image
+                      source={{ uri: img }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
           </View>
 
-          <Text className="text-xs text-slate-500">
-            Blocked: {blockedCountInMonth}
-          </Text>
-        </View>
-      </DropdownCard>
+          {/* Availability */}
+          <DropdownCard
+            title="Availability"
+            icon={<CalendarIcon />}
+            open={open.availability}
+            onToggle={() =>
+              setOpen((p) => ({ ...p, availability: !p.availability }))
+            }
+          >
+            <View className="flex-row items-center justify-between mb-2.5">
+              <Pressable
+                onPress={() => setMonth((m) => addMonths(m, -1))}
+                className="w-9 h-9 rounded-full border-2 border-[#0d3778] items-center justify-center"
+              >
+                <Text className="text-[#0d3778] font-black text-lg">‹</Text>
+              </Pressable>
 
-      {/* Specs */}
-      <DropdownCard
-        title="Vehicle Specification"
-        icon={<SettingsIcon />}
-        open={open.specs}
-        onToggle={() => setOpen((p) => ({ ...p, specs: !p.specs }))}
-      >
-        {/* gap workaround */}
-        <View>
-          {specItems.map((it, i) => (
-            <View key={it.label} className={i === 0 ? "" : "mt-2"}>
-              <BulletRow label={it.label} value={it.value} />
+              <Text className="text-[#0d3778] font-black">
+                {formatMonthLabel(month)}
+              </Text>
+
+              <Pressable
+                onPress={() => setMonth((m) => addMonths(m, 1))}
+                className="w-9 h-9 rounded-full border-2 border-[#0d3778] items-center justify-center"
+              >
+                <Text className="text-[#0d3778] font-black text-lg">›</Text>
+              </Pressable>
             </View>
-          ))}
-        </View>
-      </DropdownCard>
 
-      {/* Registration */}
-      <DropdownCard
-        title="Registration"
-        icon={<VehicleIcon />}
-        open={open.registration}
-        onToggle={() =>
-          setOpen((p) => ({ ...p, registration: !p.registration }))
-        }
-      >
-        <SimpleRow label="Number Plate" value={vehicle.numberPlate || "—"} />
-      </DropdownCard>
+            <MiniCalendar month={month} blockedSet={blockedSet} />
 
-      {/* Rental */}
-      <DropdownCard
-        title="Rental"
-        icon={<FuelStationIcon />}
-        open={open.rental}
-        onToggle={() => setOpen((p) => ({ ...p, rental: !p.rental }))}
-      >
-        <SimpleRow label="Price Per Day" value={vehicle.pricePerDay ?? "—"} />
-        <SimpleRow label="Price Per Km" value={vehicle.pricePerKm ?? "—"} />
-      </DropdownCard>
+            <View className="flex-row justify-between mt-2.5 items-center">
+              {/* gap workaround */}
+              <View className="flex-row items-center">
+                <View className="mr-3.5">
+                  <LegendItem bg="#d1fae5" border="#6ee7b7" label="Available" />
+                </View>
+                <LegendItem bg="#fee2e2" border="#fca5a5" label="Blocked" />
+              </View>
 
-      {/* Location */}
-      <DropdownCard
-        title="Location"
-        icon={<WorldIcon />}
-        open={open.location}
-        onToggle={() => setOpen((p) => ({ ...p, location: !p.location }))}
-      >
-        <SimpleRow
-          label="Available in"
-          value={vehicle.location?.address || "—"}
-        />
-      </DropdownCard>
+              <Text className="text-xs text-slate-500">
+                Blocked: {blockedCountInMonth}
+              </Text>
+            </View>
+          </DropdownCard>
 
-      {/* Description */}
-      <DropdownCard
-        title="Description"
-        icon={<NotebookIcon />}
-        open={open.description}
-        onToggle={() => setOpen((p) => ({ ...p, description: !p.description }))}
-      >
-        <Text className="text-[13px] text-slate-700 leading-[18px]">
-          {vehicle.description || "—"}
-        </Text>
-      </DropdownCard>
+          {/* Specs */}
+          <DropdownCard
+            title="Vehicle Specification"
+            icon={<SettingsIcon />}
+            open={open.specs}
+            onToggle={() => setOpen((p) => ({ ...p, specs: !p.specs }))}
+          >
+            {/* gap workaround */}
+            <View>
+              {specItems.map((it, i) => (
+                <View key={it.label} className={i === 0 ? "" : "mt-2"}>
+                  <BulletRow label={it.label} value={it.value} />
+                </View>
+              ))}
+            </View>
+          </DropdownCard>
 
-      {/* Book Now */}
-      <Pressable
-        onPress={() => Alert.alert("Book Now", "Backend connect later ✅")}
-        className="h-12 rounded-2xl bg-[#0d3778] items-center justify-center mt-1.5"
-      >
-        <Text className="text-white font-black">Book Now</Text>
-      </Pressable>
-    </ScrollView>
+          {/* Registration */}
+          <DropdownCard
+            title="Registration"
+            icon={<VehicleIcon />}
+            open={open.registration}
+            onToggle={() =>
+              setOpen((p) => ({ ...p, registration: !p.registration }))
+            }
+          >
+            <SimpleRow
+              label="Number Plate"
+              value={vehicle.numberPlate || "—"}
+            />
+          </DropdownCard>
+
+          {/* Rental */}
+          <DropdownCard
+            title="Rental"
+            icon={<FuelStationIcon />}
+            open={open.rental}
+            onToggle={() => setOpen((p) => ({ ...p, rental: !p.rental }))}
+          >
+            <SimpleRow
+              label="Price Per Day"
+              value={vehicle.pricePerDay ?? "—"}
+            />
+            <SimpleRow label="Price Per Km" value={vehicle.pricePerKm ?? "—"} />
+          </DropdownCard>
+
+          {/* Location */}
+          <DropdownCard
+            title="Location"
+            icon={<WorldIcon />}
+            open={open.location}
+            onToggle={() => setOpen((p) => ({ ...p, location: !p.location }))}
+          >
+            <SimpleRow
+              label="Available in"
+              value={vehicle.location?.address || "—"}
+            />
+          </DropdownCard>
+
+          {/* Description */}
+          <DropdownCard
+            title="Description"
+            icon={<NotebookIcon />}
+            open={open.description}
+            onToggle={() =>
+              setOpen((p) => ({ ...p, description: !p.description }))
+            }
+          >
+            <Text className="text-[13px] text-slate-700 leading-[18px]">
+              {vehicle.description || "—"}
+            </Text>
+          </DropdownCard>
+
+          {/* Book Now */}
+          <Pressable
+            onPress={() => Alert.alert("Book Now", "Backend connect later ✅")}
+            className="h-12 rounded-2xl bg-[#0d3778] items-center justify-center mt-1.5"
+          >
+            <Text className="text-white font-black">Book Now</Text>
+          </Pressable>
+        </ScrollView>
+      </AppLayout>
+    </>
   );
 }

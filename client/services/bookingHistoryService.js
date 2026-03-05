@@ -1,3 +1,4 @@
+//bookinghistoryservice
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -81,43 +82,6 @@ export const fetchUserDetails = async (API_BASE_URL, API_VERSION) => {
       user: null,
       message: 'Error fetching user details',
     };
-  }
-};
-
-// Handle user logout
-export const handleLogout = async (API_BASE_URL, API_VERSION) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-
-    if (token) {
-      await fetch(`${API_BASE_URL}${API_VERSION}/authUser/logout`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-    }
-
-    // Clear all stored data regardless of API response
-    await AsyncStorage.multiRemove([
-      'userToken',
-      'userId',
-      'userRole',
-      'userStatus',
-    ]);
-
-    return { success: true, message: 'Logged out successfully' };
-  } catch (error) {
-    console.error('Logout failed', error);
-    // Still clear local storage even if API fails
-    await AsyncStorage.multiRemove([
-      'userToken',
-      'userId',
-      'userRole',
-      'userStatus',
-    ]);
-    return { success: true, message: 'Logged out locally' };
   }
 };
 
@@ -498,7 +462,7 @@ export const enrichBookingData = async (
             vehicleRating = vehicleData.averageRating || 0;
             reviewCount = vehicleData.reviewCount || 0;
           } else if (vehicleRes.status === 404) {
-            // Vehicle was deleted - use placeholder
+            // Vehicle was deleted -  placeholder
             vehicleData = {
               title: 'Vehicle Deleted',
               photos: [],

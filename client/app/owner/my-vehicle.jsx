@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -13,20 +14,26 @@ import { Ionicons } from "@expo/vector-icons";
 
 import VehicleSearchFilter from "../../components/owner/VehicleSearchFilter";
 import VehicleCard from "../../components/owner/VehicleCard";
-import { getMyVehicleListings } from "../../services/vehicleService";
+import AvailabilityOwner from "../../app/owner/AvailabilityOwner";
+import { getMyVehicleListings, deleteVehicleListing } from "../../services/vehicleService";
 import { isSmallScreen, horizontalPadding } from "../../constants/screenSize";
 
 export default function MyVehicleScreen() {
   const router = useRouter();
 
-  const [vehicles, setVehicles] = useState([]);
-  const [filteredVehicles, setFilteredVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [errorDetail, setErrorDetail] = useState(null);
+  const [vehicles, setVehicles]                   = useState([]);
+  const [filteredVehicles, setFilteredVehicles]   = useState([]);
+  const [loading, setLoading]                     = useState(true);
+  const [error, setError]                         = useState(null);
+  const [errorDetail, setErrorDetail]             = useState(null);
 
-  // ─── Fetch from backend ───────────────────────────────────────────────────────
-  // Controller response: { success: true, count: N, vehicles: [...] }
+  // ─── AvailabilityOwner modal state ────────────────────────────────────────
+  // isOpen  → matches the prop name used in AvailabilityOwner
+  // vehicle → passed directly as the vehicle object
+  const [availIsOpen, setAvailIsOpen]         = useState(false);
+  const [availVehicle, setAvailVehicle]       = useState(null);
+
+  // ─── Fetch vehicles ───────────────────────────────────────────────────────
   const fetchVehicles = async () => {
     try {
       setLoading(true);
@@ -35,7 +42,6 @@ export default function MyVehicleScreen() {
 
       const data = await getMyVehicleListings();
 
-      // Controller always returns { success, count, vehicles }
       if (!data.success) {
         throw new Error(data.message || "API returned success: false");
       }
@@ -43,17 +49,16 @@ export default function MyVehicleScreen() {
       const list = data.vehicles ?? [];
       setVehicles(list);
       setFilteredVehicles(list);
-
     } catch (err) {
       const status  = err?.response?.status;
       const message = err?.response?.data?.message || err?.message || "Unknown error";
 
       if (status === 401) {
         setError("Session expired. Please log in again.");
-        setErrorDetail("401 Unauthorized — token missing or expired");
+        setErrorDetail("401 Unauthorized");
       } else if (status === 403) {
         setError("Access denied. Owner account required.");
-        setErrorDetail("403 Forbidden — your account may not have the Owner role");
+        setErrorDetail("403 Forbidden");
       } else if (status === 404) {
         setError("API endpoint not found.");
         setErrorDetail("404 — ensure backend is running on port 8090");
@@ -75,8 +80,7 @@ export default function MyVehicleScreen() {
     }, [])
   );
 
-  // ─── Client-side filter ───────────────────────────────────────────────────────
-  // Field names from controller: numberPlate, vehicleType, transmission
+  // ─── Client-side filter ───────────────────────────────────────────────────
   const handleSearch = ({ numberPlate, type, transmission }) => {
     let results = vehicles;
 
@@ -99,12 +103,38 @@ export default function MyVehicleScreen() {
     setFilteredVehicles(results);
   };
 
-  // ─── Navigation ───────────────────────────────────────────────────────────────
+  // ─── Navigation handlers ──────────────────────────────────────────────────
   const handleAddVehicle  = ()   => router.push("/owner/add-vehicle");
-  const handleViewRenter  = (id) => router.push(`/owner/vehicle-renter/${id}`);
   const handleViewDetails = (id) => router.push(`/owner/vehicle-details/${id}`);
+  const handleManage      = (id) => router.push(`/owner/vehicle-manage/${id}`);
 
-  // ─── Render states ────────────────────────────────────────────────────────────
+  // ─── Availability: open AvailabilityOwner modal ───────────────────────────
+  // Pass the full vehicle object — AvailabilityOwner uses vehicle._id & vehicle.title
+  const handleAvailability = (vehicle) => {
+    setAvailVehicle(vehicle);
+    setAvailIsOpen(true);
+  };
+
+  const handleAvailClose = () => {
+    setAvailIsOpen(false);
+    setAvailVehicle(null);
+  };
+
+  // ─── Delete ───────────────────────────────────────────────────────────────
+  const handleDelete = async (id) => {
+    try {
+      await deleteVehicleListing(id);
+      const updated = vehicles.filter((v) => v._id !== id);
+      setVehicles(updated);
+      setFilteredVehicles(updated);
+      Alert.alert("Deleted", "Vehicle deleted successfully.");
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || "Failed to delete";
+      Alert.alert("Error", message);
+    }
+  };
+
+  // ─── Render states ────────────────────────────────────────────────────────
   const renderContent = () => {
     if (loading) {
       return (
@@ -155,13 +185,15 @@ export default function MyVehicleScreen() {
       <VehicleCard
         key={vehicle._id}
         vehicle={vehicle}
-        onViewRenter={() => handleViewRenter(vehicle._id)}
         onViewDetails={() => handleViewDetails(vehicle._id)}
+        onManage={() => handleManage(vehicle._id)}
+        onAvailability={() => handleAvailability(vehicle)} // ← full vehicle object
+        onDelete={() => handleDelete(vehicle._id)}
       />
     ));
   };
 
-  // ─── Main render ──────────────────────────────────────────────────────────────
+  // ─── Main render ──────────────────────────────────────────────────────────
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       <ScrollView
@@ -226,6 +258,19 @@ export default function MyVehicleScreen() {
           {renderContent()}
         </View>
       </ScrollView>
+
+      {/* ── AvailabilityOwner Modal ─────────────────────────────────────────
+          Props matched exactly to AvailabilityOwner component:
+          - isOpen   → controls visibility
+          - onClose  → closes the modal
+          - vehicle  → full vehicle object { _id, title, model, year }
+      ── */}
+      <AvailabilityOwner
+        isOpen={availIsOpen}
+        onClose={handleAvailClose}
+        vehicle={availVehicle}
+      />
+
     </SafeAreaView>
   );
 }
