@@ -30,6 +30,19 @@ export default function Layout() {
         }}
       />
       <Stack.Screen
+        name="owner/AddVehicle"
+        options={{
+          title: "Add Vehicle",
+          headerStyle: {
+            backgroundColor: "#0A2E5C",
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
+      />
+      <Stack.Screen
         name="owner/rental-details"
         options={{
           presentation: "modal",
