@@ -12,22 +12,55 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// ─── GET /vehicle/get-all (PUBLIC - no auth required) ─────────────────────────
+// ─── Request interceptor: auto-attach token for auth-required routes ──────────
+// Checks all common token key names used across the app
+api.interceptors.request.use(
+  (config) => {
+    const possibleKeys = ["token", "authToken", "auth_token", "accessToken", "jwt"];
+    let token = null;
+    for (const key of possibleKeys) {
+      const val = localStorage.getItem(key);
+      if (val) { token = val; break; }
+    }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ─── Response interceptor: handle 401 ────────────────────────────────────────
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      ["token", "authToken", "auth_token", "accessToken", "jwt", "user"].forEach(
+        (key) => localStorage.removeItem(key)
+      );
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ─── GET /vehicle/get-all (PUBLIC) ────────────────────────────────────────────
+// No auth required — returns Approved vehicles with verified owners
 // Controller returns: { success, count, vehicles: [...] }
-// Only returns Approved vehicles with verified owners
 export const getMyVehicleListings = async () => {
   const res = await api.get("/vehicle/get-all");
   return res.data;
 };
 
-// ─── GET /vehicle/get/:id (PUBLIC - no auth required) ─────────────────────────
+// ─── GET /vehicle/get/:id (PUBLIC) ───────────────────────────────────────────
+// No auth required
 // Controller returns: { success, vehicle }
 export const getSingleVehicleListing = async (id) => {
   const res = await api.get(`/vehicle/get/${id}`);
   return res.data;
 };
 
-// ─── POST /vehicle/create (requires auth - add later) ────────────────────────
+// ─── POST /vehicle/create (requiredSignIn + isVerifiedUser + isOwner) ─────────
+// multipart/form-data for photos
 export const createVehicleListing = async (formData) => {
   const res = await api.post("/vehicle/create", formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -35,7 +68,8 @@ export const createVehicleListing = async (formData) => {
   return res.data;
 };
 
-// ─── PUT /vehicle/update/:id (requires auth - add later) ─────────────────────
+// ─── PUT /vehicle/update/:id (requiredSignIn + isOwner) ──────────────────────
+// multipart/form-data for photos
 export const updateVehicleListing = async (id, formData) => {
   const res = await api.put(`/vehicle/update/${id}`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -43,7 +77,9 @@ export const updateVehicleListing = async (id, formData) => {
   return res.data;
 };
 
-// ─── DELETE /vehicle/delete/:id (requires auth - add later) ──────────────────
+// ─── DELETE /vehicle/delete/:id (requiredSignIn + isOwner) ───────────────────
+// Token is auto-attached via request interceptor above
+// Controller returns: { success, message, deletedId }
 export const deleteVehicleListing = async (id) => {
   const res = await api.delete(`/vehicle/delete/${id}`);
   return res.data;
