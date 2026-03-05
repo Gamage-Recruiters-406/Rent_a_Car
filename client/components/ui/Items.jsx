@@ -1,6 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 
-const CARD_WIDTH = 85; // percentage
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.85;
+ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+  const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
+
 
 export const Items = () => {
   const [cars, setCars] = useState([]);
@@ -8,7 +22,7 @@ export const Items = () => {
   const [error, setError] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const carouselRef = useRef(null);
+  const scrollRef = useRef(null);
   const autoPlayRef = useRef(null);
 
   useEffect(() => {
@@ -16,35 +30,20 @@ export const Items = () => {
   }, []);
 
   useEffect(() => {
-    if (cars.length > 1) {
-      startAutoPlay();
-    }
-
-    return () => {
-      stopAutoPlay();
-    };
+    if (cars.length > 1) startAutoPlay();
+    return () => stopAutoPlay();
   }, [cars.length, currentIndex]);
 
   const fetchCars = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8090/api/v1/vehicle/top-booked');
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch vehicles');
-      }
-
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/vehicle/top-booked`);
+      if (!response.ok) throw new Error('Failed to fetch vehicles');
       const data = await response.json();
-
-      if (data.success && data.vehicles) {
-        setCars(data.vehicles);
-      } else {
-        setCars([]);
-      }
+      setCars(data.success && data.vehicles ? data.vehicles : []);
       setError(null);
     } catch (err) {
       setError(err.message);
-      console.error('Error fetching cars:', err);
     } finally {
       setLoading(false);
     }
@@ -53,10 +52,10 @@ export const Items = () => {
   const startAutoPlay = () => {
     stopAutoPlay();
     autoPlayRef.current = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = prevIndex + 1 >= cars.length ? 0 : prevIndex + 1;
-        scrollToIndex(nextIndex);
-        return nextIndex;
+      setCurrentIndex((prev) => {
+        const next = prev + 1 >= cars.length ? 0 : prev + 1;
+        scrollToIndex(next);
+        return next;
       });
     }, 3000);
   };
@@ -69,234 +68,240 @@ export const Items = () => {
   };
 
   const scrollToIndex = (index) => {
-    if (carouselRef.current) {
-      const scrollAmount = index * (carouselRef.current.offsetWidth * 0.85 + 16);
-      carouselRef.current.scrollTo({
-        left: scrollAmount,
-        behavior: 'smooth'
-      });
-    }
+    scrollRef.current?.scrollTo({
+      x: index * (CARD_WIDTH + 16),
+      animated: true,
+    });
   };
 
   const goToNext = () => {
-    const nextIndex = currentIndex < cars.length - 1 ? currentIndex + 1 : 0;
-    setCurrentIndex(nextIndex);
-    scrollToIndex(nextIndex);
+    const next = currentIndex < cars.length - 1 ? currentIndex + 1 : 0;
+    setCurrentIndex(next);
+    scrollToIndex(next);
     startAutoPlay();
   };
 
   const goToPrev = () => {
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : cars.length - 1;
-    setCurrentIndex(prevIndex);
-    scrollToIndex(prevIndex);
+    const prev = currentIndex > 0 ? currentIndex - 1 : cars.length - 1;
+    setCurrentIndex(prev);
+    scrollToIndex(prev);
     startAutoPlay();
   };
 
   if (loading) {
     return (
-      <div className="bg-white py-12">
-        <div className="text-center mb-8 px-5">
-          <h2 className="text-3xl font-bold text-[#0d3778] mb-2">Popular Cars</h2>
-          <p className="text-base text-gray-600 max-w-xs mx-auto">Most booked vehicles on our platform</p>
-        </div>
-        <div className="flex flex-col items-center justify-center min-h-[300px]">
-          <div className="w-12 h-12 border-4 border-[#0d3778] border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-3 text-base text-gray-600">Loading popular cars...</p>
-        </div>
-      </div>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Popular Cars</Text>
+          <Text style={styles.subtitle}>Most booked vehicles on our platform</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#0d3778" />
+          <Text style={styles.loadingText}>Loading popular cars...</Text>
+        </View>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white py-12">
-        <div className="text-center mb-8 px-5">
-          <h2 className="text-3xl font-bold text-[#0d3778] mb-2">Popular Cars</h2>
-          <p className="text-base text-gray-600 max-w-xs mx-auto">Most booked vehicles on our platform</p>
-        </div>
-        <div className="flex flex-col items-center justify-center min-h-[300px] px-5">
-          <svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-base text-red-500 text-center mt-4 mb-4">Error: {error}</p>
-          <button 
-            onClick={fetchCars}
-            className="bg-[#0d3778] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#0a2a5c] transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Popular Cars</Text>
+          <Text style={styles.subtitle}>Most booked vehicles on our platform</Text>
+        </View>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Error: {error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={fetchCars}>
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   }
 
   if (!cars || cars.length === 0) {
     return (
-      <div className="bg-white py-12">
-        <div className="text-center mb-8 px-5">
-          <h2 className="text-3xl font-bold text-[#0d3778] mb-2">Popular Cars</h2>
-          <p className="text-base text-gray-600 max-w-xs mx-auto">Most booked vehicles on our platform</p>
-        </div>
-        <div className="flex flex-col items-center justify-center min-h-[300px]">
-          <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-base text-gray-600 text-center mt-4">No popular cars available at the moment.</p>
-        </div>
-      </div>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Popular Cars</Text>
+          <Text style={styles.subtitle}>Most booked vehicles on our platform</Text>
+        </View>
+        <View style={styles.centered}>
+          <Text style={styles.emptyText}>No popular cars available at the moment.</Text>
+        </View>
+      </View>
     );
   }
 
   return (
-    <div className="bg-white py-12">
+    <View style={styles.container}>
       {/* Header */}
-      <div className="text-center mb-8 px-5">
-        <h2 className="text-3xl font-bold text-[#0d3778] mb-2">Popular Cars</h2>
-        <p className="text-base text-gray-600 max-w-xs mx-auto">Most booked vehicles on our platform</p>
-      </div>
+      <View style={styles.header}>
+        <Text style={styles.title}>Popular Cars</Text>
+        <Text style={styles.subtitle}>Most booked vehicles on our platform</Text>
+      </View>
 
-      {/* Carousel Container */}
-      <div className="relative">
-        {/* Navigation Buttons */}
+      {/* Carousel */}
+      <View style={styles.carouselWrapper}>
+        {/* Prev Button */}
         {cars.length > 1 && (
-          <>
-            <button
-              onClick={goToPrev}
-              className="absolute left-2 top-[45%] -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
-            >
-              <svg className="w-6 h-6 text-[#0d3778]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <button
-              onClick={goToNext}
-              className="absolute right-2 top-[45%] -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors"
-            >
-              <svg className="w-6 h-6 text-[#0d3778]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </>
+          <TouchableOpacity style={[styles.navBtn, styles.navBtnLeft]} onPress={goToPrev}>
+            <Text style={styles.navBtnText}>‹</Text>
+          </TouchableOpacity>
         )}
 
-        {/* Cars Carousel */}
-        <div
-          ref={carouselRef}
-          className="overflow-x-auto scrollbar-hide snap-x snap-mandatory"
-          onMouseEnter={stopAutoPlay}
-          onMouseLeave={startAutoPlay}
-          style={{ scrollSnapType: 'x mandatory' }}
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={CARD_WIDTH + 16}
+          decelerationRate="fast"
+          contentContainerStyle={styles.scrollContent}
+          onScrollBeginDrag={stopAutoPlay}
+          onScrollEndDrag={startAutoPlay}
+          scrollEventThrottle={16}
+          onScroll={(e) => {
+            const idx = Math.round(e.nativeEvent.contentOffset.x / (CARD_WIDTH + 16));
+            setCurrentIndex(idx);
+          }}
         >
-          <div className="flex gap-4 px-[7.5%]">
-            {cars.map((item, index) => {
-              const car = item?.vehicle || {};
-              const firstPhoto = car.photos && car.photos.length > 0 ? car.photos[0].url : '';
+          {cars.map((item) => {
+            const car = item?.vehicle || {};
+            const firstPhoto = car.photos?.[0]?.url;
+            if (!firstPhoto) return null;
+            const imageUrl = `${BASE_URL}${firstPhoto}`;
 
-              if (!firstPhoto) return null;
+            return (
+              <TouchableOpacity
+                key={car._id}
+                style={styles.card}
+                activeOpacity={0.9}
+                onPress={() => console.log('View details:', car.title)}
+              >
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={styles.cardImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle} numberOfLines={2}>
+                    {car.title || 'Untitled Vehicle'}
+                  </Text>
 
-              const imageUrl = `http://localhost:8090${firstPhoto}`;
+                  {/* Features Row */}
+                  <View style={styles.featuresRow}>
+                    <Text style={styles.featureText}>👥 {car.seats || 0} Seats</Text>
+                    <Text style={styles.featureText}>⚙️ {car.transmission || 'N/A'}</Text>
+                    <Text style={styles.featureTextYellow}>⭐ {item.bookingCount || 0}</Text>
+                  </View>
 
-              return (
-                <div
-                  key={car._id}
-                  className="flex-shrink-0 w-[85%] snap-center"
-                >
-                  <div
-                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-                    onClick={() => console.log('View details:', car.title)}
-                  >
-                    {/* Vehicle Image */}
-                    <div className="w-full h-52 bg-gray-200">
-                      <img
-                        src={imageUrl}
-                        alt={car.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                  <View style={styles.divider} />
 
-                    {/* Card Content */}
-                    <div className="p-5">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center line-clamp-2">
-                        {car.title || 'Untitled Vehicle'}
-                      </h3>
+                  {/* Price & Button */}
+                  <View style={styles.priceRow}>
+                    <Text style={styles.price}>
+                      LKR {(car.pricePerDay || 0).toLocaleString()}
+                      <Text style={styles.perDay}>/day</Text>
+                    </Text>
+                  </View>
+                  <TouchableOpacity style={styles.detailsBtn}>
+                    <Text style={styles.detailsBtnText}>View Details</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
-                      {/* Features */}
-                      <div className="flex justify-center gap-4 mb-4">
-                        <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          <span className="text-sm text-gray-600">{car.seats || 0} Seats</span>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="text-sm text-gray-600">{car.transmission || 'N/A'}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                          <span className="text-sm text-yellow-500 font-semibold">{item.bookingCount || 0}</span>
-                        </div>
-                      </div>
-
-                      <div className="h-px bg-gray-200 my-4"></div>
-
-                      {/* Price and Button */}
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-[#0d3778] mb-4">
-                          LKR {(car.pricePerDay || 0).toLocaleString()}
-                          <span className="text-sm text-gray-600 font-normal">/day</span>
-                        </p>
-
-                        <button className="w-full bg-[#1e3a8a] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#1e3a8a]/90 transition-colors">
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Dot Indicators */}
+        {/* Next Button */}
         {cars.length > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6">
-            {cars.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentIndex(index);
-                  scrollToIndex(index);
-                  startAutoPlay();
-                }}
-                className={`h-2 rounded-full transition-all ${
-                  currentIndex === index 
-                    ? 'w-8 bg-[#0d3778]' 
-                    : 'w-2 bg-gray-300'
-                }`}
-              />
-            ))}
-          </div>
+          <TouchableOpacity style={[styles.navBtn, styles.navBtnRight]} onPress={goToNext}>
+            <Text style={styles.navBtnText}>›</Text>
+          </TouchableOpacity>
         )}
-      </div>
+      </View>
 
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-    </div>
+      {/* Dot Indicators */}
+      {cars.length > 1 && (
+        <View style={styles.dotsRow}>
+          {cars.map((_, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => {
+                setCurrentIndex(index);
+                scrollToIndex(index);
+                startAutoPlay();
+              }}
+              style={[
+                styles.dot,
+                currentIndex === index ? styles.dotActive : styles.dotInactive,
+              ]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { backgroundColor: '#fff', paddingVertical: 48 },
+  header: { alignItems: 'center', marginBottom: 32, paddingHorizontal: 20 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#0d3778', marginBottom: 8 },
+  subtitle: { fontSize: 14, color: '#6b7280', textAlign: 'center', maxWidth: 260 },
+  centered: { minHeight: 300, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+  loadingText: { marginTop: 12, fontSize: 14, color: '#6b7280' },
+  errorText: { fontSize: 14, color: '#ef4444', textAlign: 'center', marginBottom: 16 },
+  emptyText: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
+  retryBtn: { backgroundColor: '#0d3778', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  retryBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  carouselWrapper: { position: 'relative' },
+  scrollContent: { paddingHorizontal: width * 0.075, gap: 16 },
+  card: {
+    width: CARD_WIDTH,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  cardImage: { width: '100%', height: 208 },
+  cardContent: { padding: 20 },
+  cardTitle: { fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 12, textAlign: 'center' },
+  featuresRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginBottom: 16 },
+  featureText: { fontSize: 13, color: '#6b7280' },
+  featureTextYellow: { fontSize: 13, color: '#f59e0b', fontWeight: '600' },
+  divider: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 16 },
+  priceRow: { alignItems: 'center', marginBottom: 16 },
+  price: { fontSize: 22, fontWeight: 'bold', color: '#0d3778' },
+  perDay: { fontSize: 13, color: '#6b7280', fontWeight: 'normal' },
+  detailsBtn: { backgroundColor: '#1e3a8a', borderRadius: 8, paddingVertical: 14, alignItems: 'center' },
+  detailsBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  navBtn: {
+    position: 'absolute',
+    top: '45%',
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  navBtnLeft: { left: 8 },
+  navBtnRight: { right: 8 },
+  navBtnText: { fontSize: 24, color: '#0d3778', lineHeight: 28 },
+  dotsRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 },
+  dot: { height: 8, borderRadius: 4 },
+  dotActive: { width: 32, backgroundColor: '#0d3778' },
+  dotInactive: { width: 8, backgroundColor: '#d1d5db' },
+});
