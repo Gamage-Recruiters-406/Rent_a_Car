@@ -152,7 +152,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
     {
       id: 6,
       icon: 'cash-outline',
-      label: 'Earnings',
+      label: 'Rental History',
       route: '/owner/rental-history',
       iconType: 'Ionicons',
     },
@@ -160,7 +160,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       id: 7,
       icon: 'notifications-outline',
       label: 'Notifications',
-      route: '/notifications',
+      route: '/Notifications/notifications',
       iconType: 'Ionicons',
       badge: 3,
     },
@@ -265,25 +265,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
               const isActive = activeItemId === item.id;
               return (
                 <View key={item.id}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (item.expandable) {
-                        setExpandedBookings(!expandedBookings);
-                      } else if (item.isLogout) {
-                        AsyncStorage.removeItem('userToken');
-                        onClose();
-                        router.replace('/login');
-                      } else {
-                        setActiveItemId(item.id);
-                        handleNavigation(item.route);
-                      }
-                    }}
-                    onLongPress={() => {
-                      if (item.expandable) {
-                        setActiveItemId(item.id);
-                        handleNavigation(item.route);
-                      }
-                    }}
+                  <View
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -293,26 +275,48 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
                       borderRadius: 8,
                       marginVertical: 2,
                     }}
-                    activeOpacity={0.7}
                   >
-                    {renderIcon(item, isActive ? '#0D3778' : 'white')}
-                    <Text
-                      style={{
-                        color: isActive ? '#0D3778' : 'white',
-                        fontSize: 16,
-                        flex: 1,
-                        fontWeight: isActive ? 'bold' : 'normal',
+                    {/* Icon + Label: Always navigate */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (item.isLogout) {
+                          AsyncStorage.removeItem('userToken');
+                          onClose();
+                          router.replace('/login');
+                        } else {
+                          setActiveItemId(item.id);
+                          handleNavigation(item.route);
+                        }
                       }}
+                      style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                      activeOpacity={0.7}
                     >
-                      {item.label}
-                    </Text>
+                      {renderIcon(item, isActive ? '#0D3778' : 'white')}
+                      <Text
+                        style={{
+                          color: isActive ? '#0D3778' : 'white',
+                          fontSize: 16,
+                          flex: 1,
+                          fontWeight: isActive ? 'bold' : 'normal',
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
 
+                    {/* Chevron icon: Toggle dropdown (only for expandable items) */}
                     {item.expandable && (
-                      <MaterialCommunityIcons
-                        name={expandedBookings ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color={isActive ? '#0D3778' : 'white'}
-                      />
+                      <TouchableOpacity
+                        onPress={() => setExpandedBookings(!expandedBookings)}
+                        style={{ padding: 4 }}
+                        activeOpacity={0.7}
+                      >
+                        <MaterialCommunityIcons
+                          name={expandedBookings ? 'chevron-up' : 'chevron-down'}
+                          size={20}
+                          color={isActive ? '#0D3778' : 'white'}
+                        />
+                      </TouchableOpacity>
                     )}
 
                     {item.badge && (
@@ -328,7 +332,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
                         <Text style={{ color: '#fff', fontSize: 12 }}>{item.badge}</Text>
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </View>
 
                   {/* Expandable Booking Sub-items */}
                   {item.expandable && expandedBookings && item.subItems && (
