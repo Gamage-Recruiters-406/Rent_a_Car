@@ -16,7 +16,8 @@ import { searchVehicles, createBooking } from '../services/bookingApi';
 // import { ContactPage } from './ContactPage';
 // import { PaymentModal } from './PaymentModal';
 import { getAllReviews } from '../services/reviewApi';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 // Analog Clock Time Picker Component
 function AnalogTimePicker({
@@ -363,6 +364,11 @@ export function LandingPage({ onBookNow }) {
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    setUploadedFile(event.target.files[0]);
+  };
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -467,32 +473,39 @@ export function LandingPage({ onBookNow }) {
     return (days * rate).toFixed(2);
   };
 
+  const navigate = useNavigate();
+
   const handleBookingCreate = async () => {
-    if (!selectedVehicleId) return alert("Please select a vehicle.");
+    if (!selectedVehicleId) return toast.error("Please select a vehicle.");
     const start = combineDateTime(pickupDate, pickupTime);
     const end = combineDateTime(dropoffDate, dropoffTime);
 
-    if (!start || !end) return alert("Please select pickup and dropoff dates.");
-    if (end <= start) return alert("End date must be after pickup date.");
+    if (!start || !end) return toast.error("Please select pickup and dropoff dates.");
+    if (end <= start) return toast.error("End date must be after pickup date.");
 
     setIsLoading(true);
     try {
-      // Create FormData as backend expects multipart/form-data
       const formData = new FormData();
       formData.append('vehicleId', selectedVehicleId);
       formData.append('startingDate', start.toISOString());
       formData.append('endDate', end.toISOString());
-      // documents are currently empty for initial booking from landing page
+
+      if (uploadedFile) {
+        formData.append('documents', uploadedFile);
+      } else {
+        return toast.error("Please upload your ID/License.");
+      }
 
       const res = await createBooking(formData);
 
       if (res.success) {
-        alert("Booking request sent successfully!");
+        toast.success("Booking request sent successfully!");
         if (onBookNow) onBookNow();
+        navigate('/booking-history');
       }
     } catch (err) {
       console.error(err);
-      alert(err.message || "Failed to create booking. Please ensure you are logged in.");
+      toast.error(err.message || "Failed to create booking. Please ensure you are logged in.");
     } finally {
       setIsLoading(false);
     }
@@ -636,6 +649,24 @@ export function LandingPage({ onBookNow }) {
 
                   }
                 </div>
+              </div>
+
+              {/* ID/License Upload */}
+              <div className="bg-white rounded px-4 py-3">
+                <label htmlFor="file-upload" className="block text-sm font-semibold text-gray-900 mb-2">
+                  Upload ID/License
+                </label>
+                <input
+                  type="file"
+                  id="file-upload"
+                  onChange={handleFileChange}
+                  className="block w-full text-xs text-gray-700 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-[#1e3a5f] file:text-white hover:file:bg-[#162c46] cursor-pointer"
+                />
+                {uploadedFile && (
+                  <p className="mt-2 text-xs text-green-600 font-medium overflow-hidden text-ellipsis whitespace-nowrap">
+                    Selected: {uploadedFile.name}
+                  </p>
+                )}
               </div>
 
               {/* Total */}
@@ -827,7 +858,6 @@ export function LandingPage({ onBookNow }) {
 export function BookingPage1() {
   const [activeTab, setActiveTab] = useState('home');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const renderContent = () => {
     switch (activeTab) {
       case 'home':

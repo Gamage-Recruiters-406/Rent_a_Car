@@ -34,13 +34,14 @@ export const AdminProfileEdit = ({
   const [editedProfile, setEditedProfile] = useState(profile);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const storedUser = localStorage.getItem('user');
         const token = localStorage.getItem('token');
-       
+
         if (storedUser && token) {
           const userObj = JSON.parse(storedUser);
           const userId = userObj.user ? userObj.user._id : (userObj._id || userObj.userid);
@@ -48,24 +49,24 @@ export const AdminProfileEdit = ({
           if (userId) {
             document.cookie = `access_token=${token}`;
             const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserDetails`, {
-                withCredentials: true
+              withCredentials: true
             });
-    
-            if (response.data) {
-                const userData = response.data.user || response.data; 
 
-                const mappedProfile = {
-                    ...defaultProfile,
-                    ...activeProfile,
-                    ...userData,
-                    contactNumber: userData.contactNumber || activeProfile.contactNumber || activeProfile.phone || defaultProfile.contactNumber,
-                    // If backend doesn't send subtitle, keep default "Admin"
-                    name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || activeProfile.name || defaultProfile.name,
-                    createdAt: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'
-                };
-                
-                setActiveProfile(mappedProfile);
-                setEditedProfile(mappedProfile);
+            if (response.data) {
+              const userData = response.data.user || response.data;
+
+              const mappedProfile = {
+                ...defaultProfile,
+                ...activeProfile,
+                ...userData,
+                contactNumber: userData.contactNumber || activeProfile.contactNumber || activeProfile.phone || defaultProfile.contactNumber,
+                // If backend doesn't send subtitle, keep default "Admin"
+                name: userData.name || `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || activeProfile.name || defaultProfile.name,
+                createdAt: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString() : 'N/A'
+              };
+
+              setActiveProfile(mappedProfile);
+              setEditedProfile(mappedProfile);
             }
           }
         }
@@ -78,19 +79,20 @@ export const AdminProfileEdit = ({
     fetchUserData();
   }, []); // Run once on mount
 
-    useEffect(() => {
-        if (activeProfile.profilePicture) {
-            setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
-        }
-    }, [activeProfile.profilePicture]);
+  useEffect(() => {
+    if (activeProfile.profilePicture) {
+      setImagePreview(`${baseUrl}/${activeProfile.profilePicture}`);
+    }
+  }, [activeProfile.profilePicture]);
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
-    };
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
 
   const initials = activeProfile.name ? activeProfile.name.split(' ').map((n) => n[0]).join('').toUpperCase() : 'A';
 
@@ -99,47 +101,70 @@ export const AdminProfileEdit = ({
     setEditedProfile(activeProfile);
   };
 
+  const validate = () => {
+    const newErrors = {};
+
+    if (!editedProfile.first_name?.trim())
+      newErrors.first_name = 'First name is required.';
+    else if (/\d/.test(editedProfile.first_name))
+      newErrors.first_name = 'First name must not contain numbers.';
+
+    if (!editedProfile.last_name?.trim())
+      newErrors.last_name = 'Last name is required.';
+    else if (/\d/.test(editedProfile.last_name))
+      newErrors.last_name = 'Last name must not contain numbers.';
+
+    if (!editedProfile.contactNumber?.toString().trim())
+      newErrors.contactNumber = 'Phone number is required.';
+    else if (!/^\d{10}$/.test(editedProfile.contactNumber.toString().trim()))
+      newErrors.contactNumber = 'Enter a valid 10-digit phone number.';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validate()) return;
     try {
-        const formData = new FormData();
-        Object.keys(editedProfile).forEach(key => {
-            formData.append(key, editedProfile[key]);
-        });
-        
-        if (imageFile) {
-            formData.append("profilePicture", imageFile);
+      const formData = new FormData();
+      Object.keys(editedProfile).forEach(key => {
+        formData.append(key, editedProfile[key]);
+      });
+
+      if (imageFile) {
+        formData.append("profilePicture", imageFile);
+      }
+
+      // Optimistic update (skip for file upload as we need backend url)
+      // onSave?.(editedProfile);
+
+      // API update
+      const token = localStorage.getItem('token');
+      document.cookie = `access_token=${token}`;
+      const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data && response.data.success) {
+        toast.success("Profile updated successfully");
+        // Refresh profile data to get new image URL
+        const updatedProfile = { ...editedProfile };
+        if (response.data.user && response.data.user.profilePicture) {
+          updatedProfile.profilePicture = response.data.user.profilePicture;
+          setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
         }
 
-        // Optimistic update (skip for file upload as we need backend url)
-        // onSave?.(editedProfile);
-        
-        // API update
-        const token = localStorage.getItem('token');
-        document.cookie = `access_token=${token}`;
-        const response = await axios.put(`${baseUrl}${apiVersion}/authUser/Updateuser`, formData, {
-            withCredentials: true,
-            headers: { "Content-Type": "multipart/form-data" },
-        });
-
-        if (response.data && response.data.success) {
-            toast.success("Profile updated successfully");
-            // Refresh profile data to get new image URL
-             const updatedProfile = { ...editedProfile };
-             if(response.data.user && response.data.user.profilePicture){
-                 updatedProfile.profilePicture = response.data.user.profilePicture;
-                 setImagePreview(`${baseUrl}/${response.data.user.profilePicture}`);
-             }
-
-            setActiveProfile(updatedProfile);
-            setIsEditing(false);
-            setImageFile(null);
-        } else {
-             // Revert or show error (for now just toast)
-             toast.error(response.data?.message || "Failed to update profile");
-        }
+        setActiveProfile(updatedProfile);
+        setIsEditing(false);
+        setImageFile(null);
+      } else {
+        // Revert or show error (for now just toast)
+        toast.error(response.data?.message || "Failed to update profile");
+      }
     } catch (error) {
-        console.error("Error updating profile:", error);
-        toast.error(error.response?.data?.message || "An error occurred while updating profile");
+      console.error("Error updating profile:", error);
+      toast.error(error.response?.data?.message || "An error occurred while updating profile");
     }
   };
 
@@ -156,7 +181,7 @@ export const AdminProfileEdit = ({
   //     if(!token){
   //       toast.error("Please login and try again to verify your email");
   //     }
-        
+
   //       const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getVerificationMail`, {
   //           params: { token: token },
   //           withCredentials: true
@@ -178,6 +203,9 @@ export const AdminProfileEdit = ({
       ...prev,
       [field]: value
     }));
+    if (errors[field]) {
+      setErrors((prev) => { const e = { ...prev }; delete e[field]; return e; });
+    }
     onProfileChange?.(field, value);
   };
 
@@ -215,37 +243,37 @@ export const AdminProfileEdit = ({
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
+              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-[#0A2E5C] font-semibold text-xl overflow-hidden">
                 {imagePreview ? (
-                    <img
+                  <img
                     src={imagePreview}
                     alt={currentProfile.name}
-                    className="w-full h-full object-cover" 
-                    />
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                    currentProfile.avatar ? (
-                        <img 
-                            src={currentProfile.avatar} 
-                            alt={currentProfile.name} 
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        initials
-                    )
+                  currentProfile.avatar ? (
+                    <img
+                      src={currentProfile.avatar}
+                      alt={currentProfile.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    initials
+                  )
                 )}
-                </div>
-                {isEditing && (
-                    <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
-                        <Camera className="w-4 h-4 text-[#0A2E5C]" />
-                        <input 
-                            type="file" 
-                            id="profile-upload" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={handleImageChange}
-                        />
-                    </label>
-                )}
+              </div>
+              {isEditing && (
+                <label htmlFor="profile-upload" className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer shadow-md hover:bg-gray-100 transition-colors">
+                  <Camera className="w-4 h-4 text-[#0A2E5C]" />
+                  <input
+                    type="file"
+                    id="profile-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
             </div>
             <div>
               <h1 className="text-white text-2xl font-semibold">
@@ -315,8 +343,11 @@ export const AdminProfileEdit = ({
                   value={currentProfile.first_name || ''}
                   onChange={(e) => handleFieldChange('first_name', e.target.value)}
                   disabled={!isEditing}
-                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} 
+                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.first_name ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`}
                 />
+                {isEditing && errors.first_name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.first_name}</p>
+                )}
               </div>
             </div>
 
@@ -331,12 +362,15 @@ export const AdminProfileEdit = ({
                   value={currentProfile.last_name || ''}
                   onChange={(e) => handleFieldChange('last_name', e.target.value)}
                   disabled={!isEditing}
-                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} 
+                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.last_name ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`}
                 />
+                {isEditing && errors.last_name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.last_name}</p>
+                )}
               </div>
             </div>
 
-            
+
             <div className="flex items-start gap-3">
               <Mail className="w-5 h-5 text-[#999fa8] mt-1" />
               <div className="flex-1">
@@ -348,7 +382,7 @@ export const AdminProfileEdit = ({
                   value={currentProfile.email || ''}
                   readOnly
                   disabled={isEditing}
-                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} 
+                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`}
                 />
               </div>
             </div>
@@ -360,12 +394,17 @@ export const AdminProfileEdit = ({
                   Phone Number
                 </label>
                 <input
-                  type="tel"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={currentProfile.contactNumber || ''}
                   onChange={(e) => handleFieldChange('contactNumber', e.target.value)}
                   disabled={!isEditing}
-                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} 
+                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? `focus:ring-2 ${errors.contactNumber ? 'ring-2 ring-red-400 bg-red-50' : 'focus:ring-[#0A2E5C]/20 bg-gray-50'}` : 'cursor-default'}`}
                 />
+                {isEditing && errors.contactNumber && (
+                  <p className="text-red-500 text-xs mt-1">{errors.contactNumber}</p>
+                )}
               </div>
             </div>
 
@@ -382,7 +421,7 @@ export const AdminProfileEdit = ({
                     handleFieldChange('location', e.target.value)
                   }
                   disabled={!isEditing}
-                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`} 
+                  className={`w-full text-[#0A2E5C] font-medium focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`}
                 />
               </div>
             </div>
@@ -411,7 +450,7 @@ export const AdminProfileEdit = ({
               disabled={!isEditing}
               rows={3}
               className={`w-full text-[#999fa8] text-sm leading-relaxed resize-none focus:outline-none rounded px-2 py-1 transition-colors ${isEditing ? 'focus:ring-2 focus:ring-[#0A2E5C]/20 bg-gray-50' : 'cursor-default'}`}
-              placeholder="Tell us about yourself..." 
+              placeholder="Tell us about yourself..."
             />
           </div>
 
@@ -447,6 +486,6 @@ export const AdminProfileEdit = ({
       </div>
       <Footer />
     </div>
-    
+
   );
 };
