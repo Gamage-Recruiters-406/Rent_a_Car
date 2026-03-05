@@ -120,7 +120,7 @@ export default function CustomerVehicleList() {
       const url = `${baseUrl}${apiVersion}/vehicle/get-all`;
       const response = await fetch(url, {
         method: 'GET',
-        credentials: 'include',
+        //credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
