@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8090";
-const API_VERSION = "/api/v1";
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION; 
 
 /** Use this to build full photo URLs: getImageBaseUrl() + photo.url */
 export const getImageBaseUrl = () => BASE_URL;
