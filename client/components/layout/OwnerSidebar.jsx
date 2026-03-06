@@ -49,39 +49,42 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
           'Authorization': `Bearer ${token}`,
         };
 
-        // Fetch all owner bookings + earnings in parallel
-        const [bookingsRes, earningsRes] = await Promise.all([
+        // Fetch bookings (for counts) and paid payments (for real earnings) in parallel
+        const [bookingsRes, paymentsRes] = await Promise.all([
           fetch(`${baseUrl}${apiVersion}/bookings/owner`, { headers }),
-          fetch(`${baseUrl}${apiVersion}/bookings/owner/earnings/${ownerId}`, { headers }),
+          fetch(`${baseUrl}${apiVersion}/payment/get-paid-payments-for-owner?limit=1000`, { headers }),
         ]);
 
         if (!bookingsRes.ok) console.error('Bookings fetch failed:', bookingsRes.status);
-        if (!earningsRes.ok) console.error('Earnings fetch failed:', earningsRes.status);
+        if (!paymentsRes.ok) console.error('Payments fetch failed:', paymentsRes.status);
 
         const bookingsData = await bookingsRes.json();
-        const earningsData = await earningsRes.json();
+        const paymentsData = await paymentsRes.json();
 
-        // Count bookings by status + calculate earnings from fetched data directly
+        // Count bookings by status
         if (bookingsData.success && Array.isArray(bookingsData.data)) {
           const counts = { approved: 0, pending: 0, rejected: 0 };
-          let earnings = 0;
 
           bookingsData.data.forEach((b) => {
             const status = b.status?.toLowerCase().trim();
-
-            // Count by status
             if (counts[status] !== undefined) counts[status]++;
-
-            // Earnings from approved + paid bookings with totalAmount > 0
-            if ((status === 'approved' || status === 'paid') && b.totalAmount > 0) {
-              earnings += b.totalAmount;
-            }
           });
 
           setBookingCounts(counts);
-          setTotalEarnings(earnings);
         } else {
           console.warn('Unexpected bookings response:', bookingsData);
+        }
+
+        // Calculate total earnings from actual paid payments
+        if (paymentsData.success && Array.isArray(paymentsData.payments)) {
+          const earnings = paymentsData.payments.reduce((total, p) => {
+            // amount.amount is the payable amount (after platform fee deduction)
+            return total + (p.amount?.amount || 0);
+          }, 0);
+          setTotalEarnings(earnings);
+        } else {
+          console.warn('Unexpected payments response:', paymentsData);
+          setTotalEarnings(0);
         }
       } catch (error) {
         console.error('Failed to fetch owner data:', error);
@@ -152,7 +155,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
     {
       id: 6,
       icon: 'cash-outline',
-      label: 'Earnings',
+      label: 'Rental History',
       route: '/owner/rental-history',
       iconType: 'Ionicons',
     },
@@ -160,9 +163,8 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       id: 7,
       icon: 'notifications-outline',
       label: 'Notifications',
-      route: '/notifications',
+      route: '/Notifications/Notification',
       iconType: 'Ionicons',
-      badge: 3,
     },
     {
       id: 8,
@@ -265,25 +267,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
               const isActive = activeItemId === item.id;
               return (
                 <View key={item.id}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (item.expandable) {
-                        setExpandedBookings(!expandedBookings);
-                      } else if (item.isLogout) {
-                        AsyncStorage.removeItem('userToken');
-                        onClose();
-                        router.replace('/login');
-                      } else {
-                        setActiveItemId(item.id);
-                        handleNavigation(item.route);
-                      }
-                    }}
-                    onLongPress={() => {
-                      if (item.expandable) {
-                        setActiveItemId(item.id);
-                        handleNavigation(item.route);
-                      }
-                    }}
+                  <View
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
@@ -293,26 +277,48 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
                       borderRadius: 8,
                       marginVertical: 2,
                     }}
-                    activeOpacity={0.7}
                   >
-                    {renderIcon(item, isActive ? '#0D3778' : 'white')}
-                    <Text
-                      style={{
-                        color: isActive ? '#0D3778' : 'white',
-                        fontSize: 16,
-                        flex: 1,
-                        fontWeight: isActive ? 'bold' : 'normal',
+                    {/* Icon + Label: Always navigate */}
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (item.isLogout) {
+                          AsyncStorage.removeItem('userToken');
+                          onClose();
+                          router.replace('/login');
+                        } else {
+                          setActiveItemId(item.id);
+                          handleNavigation(item.route);
+                        }
                       }}
+                      style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                      activeOpacity={0.7}
                     >
-                      {item.label}
-                    </Text>
+                      {renderIcon(item, isActive ? '#0D3778' : 'white')}
+                      <Text
+                        style={{
+                          color: isActive ? '#0D3778' : 'white',
+                          fontSize: 16,
+                          flex: 1,
+                          fontWeight: isActive ? 'bold' : 'normal',
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
 
+                    {/* Chevron icon: Toggle dropdown (only for expandable items) */}
                     {item.expandable && (
-                      <MaterialCommunityIcons
-                        name={expandedBookings ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color={isActive ? '#0D3778' : 'white'}
-                      />
+                      <TouchableOpacity
+                        onPress={() => setExpandedBookings(!expandedBookings)}
+                        style={{ padding: 4 }}
+                        activeOpacity={0.7}
+                      >
+                        <MaterialCommunityIcons
+                          name={expandedBookings ? 'chevron-up' : 'chevron-down'}
+                          size={20}
+                          color={isActive ? '#0D3778' : 'white'}
+                        />
+                      </TouchableOpacity>
                     )}
 
                     {item.badge && (
@@ -328,7 +334,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
                         <Text style={{ color: '#fff', fontSize: 12 }}>{item.badge}</Text>
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </View>
 
                   {/* Expandable Booking Sub-items */}
                   {item.expandable && expandedBookings && item.subItems && (

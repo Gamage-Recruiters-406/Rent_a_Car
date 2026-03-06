@@ -95,12 +95,30 @@ const normalizeBooking = (booking) => {
     returnDate: formatDate(booking.endDate),
     returnTime: formatTime(booking.endDate),
 
-    // Payment (backend has no insurance/serviceTax breakdown)
-    baseRent: booking.totalAmount || 0,
+    // Rental duration — calculated from raw ISO dates before formatting
+    rentalDays: (() => {
+      const start = new Date(booking.startingDate);
+      const end = new Date(booking.endDate);
+      const diff = Math.round((end - start) / (1000 * 60 * 60 * 24));
+      return Math.max(1, diff);
+    })(),
+
+    // Payment — fallback: dailyRate × rentalDays when totalAmount is 0/missing
+    dailyRate: booking.dailyRate || vehicle.pricePerDay || 0,
     insurance: 0,
     serviceTax: 0,
-    totalAmount: booking.totalAmount || 0,
-    dailyRate: booking.dailyRate || 0,
+    totalAmount: (() => {
+      if (booking.totalAmount && booking.totalAmount > 0)
+        return booking.totalAmount;
+      const rate = booking.dailyRate || vehicle.pricePerDay || 0;
+      const start = new Date(booking.startingDate);
+      const end = new Date(booking.endDate);
+      const days = Math.max(
+        1,
+        Math.round((end - start) / (1000 * 60 * 60 * 24)),
+      );
+      return rate * days;
+    })(),
     currency: booking.currency || "LKR",
 
     // Status
@@ -230,10 +248,10 @@ export const getOwnerEarnings = async (ownerId, startDate, endDate) => {
   if (!token) throw new Error("Not authenticated");
 
   const queryParams = new URLSearchParams();
-  if (startDate) queryParams.append('startDate', startDate);
-  if (endDate) queryParams.append('endDate', endDate);
-  
-  const url = `${BASE_URL}${API_VERSION}/bookings/owner/earnings/${ownerId}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  if (startDate) queryParams.append("startDate", startDate);
+  if (endDate) queryParams.append("endDate", endDate);
+
+  const url = `${BASE_URL}${API_VERSION}/bookings/owner/earnings/${ownerId}${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
 
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },

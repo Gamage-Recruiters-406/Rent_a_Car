@@ -12,8 +12,8 @@ import {
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
- const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
-  const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
 
 export const Items = () => {
@@ -170,7 +170,7 @@ export const Items = () => {
             const car = item?.vehicle || {};
             const firstPhoto = car.photos?.[0]?.url;
             if (!firstPhoto) return null;
-            const imageUrl = `${BASE_URL}${firstPhoto}`;
+            const imageUrl = `${API_BASE_URL}${firstPhoto}`;
 
             return (
               <TouchableOpacity

@@ -2,32 +2,37 @@ import { useState, useCallback } from "react";
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   Platform,
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
+import AppLayout from "../../components/layout/Layout";
 import VehicleSearchFilter from "../../components/owner/VehicleSearchFilter";
 import VehicleCard from "../../components/owner/VehicleCard";
+import AvailabilityOwner from "../../app/owner/AvailabilityOwner";
 import { getMyVehicleListings, deleteVehicleListing } from "../../services/vehicleService";
 import { isSmallScreen, horizontalPadding } from "../../constants/screenSize";
 
 export default function MyVehicleScreen() {
   const router = useRouter();
 
-  const [vehicles, setVehicles] = useState([]);
-  const [filteredVehicles, setFilteredVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [errorDetail, setErrorDetail] = useState(null);
+  const [vehicles, setVehicles]                   = useState([]);
+  const [filteredVehicles, setFilteredVehicles]   = useState([]);
+  const [loading, setLoading]                     = useState(true);
+  const [error, setError]                         = useState(null);
+  const [errorDetail, setErrorDetail]             = useState(null);
 
-  // ─── Fetch vehicles ───────────────────────────────────────────────────────────
-  // Controller: GET /vehicle/get-all → { success, count, vehicles: [...] }
+  // ─── AvailabilityOwner modal state ────────────────────────────────────────
+  // isOpen  → matches the prop name used in AvailabilityOwner
+  // vehicle → passed directly as the vehicle object
+  const [availIsOpen, setAvailIsOpen]         = useState(false);
+  const [availVehicle, setAvailVehicle]       = useState(null);
+
+  // ─── Fetch vehicles ───────────────────────────────────────────────────────
   const fetchVehicles = async () => {
     try {
       setLoading(true);
@@ -74,7 +79,7 @@ export default function MyVehicleScreen() {
     }, [])
   );
 
-  // ─── Client-side filter ───────────────────────────────────────────────────────
+  // ─── Client-side filter ───────────────────────────────────────────────────
   const handleSearch = ({ numberPlate, type, transmission }) => {
     let results = vehicles;
 
@@ -97,24 +102,30 @@ export default function MyVehicleScreen() {
     setFilteredVehicles(results);
   };
 
-  // ─── Button Handlers ──────────────────────────────────────────────────────────
-  const handleAddVehicle = () => router.push("/owner/add-vehicle");
+  // ─── Navigation handlers ──────────────────────────────────────────────────
+  const handleAddVehicle  = ()   => router.push("/owner/AddVehicle");
+  const handleViewDetails = (id) => router.push(`/owner/vehicle-details/${id}`);
+  const handleManage      = (id) => router.push(`/owner/EditVehicleOwner?id=${id}`);
 
-  const handleViewDetails = (id) =>
-    router.push(`/owner/vehicle-details/${id}`);
+  // ─── Availability: open AvailabilityOwner modal ───────────────────────────
+  // Pass the full vehicle object — AvailabilityOwner uses vehicle._id & vehicle.title
+  const handleAvailability = (vehicle) => {
+    setAvailVehicle(vehicle);
+    setAvailIsOpen(true);
+  };
 
-  const handleManage = (id) =>
-    router.push(`/owner/vehicle-manage/${id}`);
+  const handleAvailClose = () => {
+    setAvailIsOpen(false);
+    setAvailVehicle(null);
+  };
 
-  const handleAvailability = (id) =>
-    router.push(`/owner/vehicle-availability/${id}`);
-
+  // ─── Delete ───────────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     try {
       await deleteVehicleListing(id);
-      // Remove from local state immediately
-      setVehicles((prev) => prev.filter((v) => v._id !== id));
-      setFilteredVehicles((prev) => prev.filter((v) => v._id !== id));
+      const updated = vehicles.filter((v) => v._id !== id);
+      setVehicles(updated);
+      setFilteredVehicles(updated);
       Alert.alert("Deleted", "Vehicle deleted successfully.");
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || "Failed to delete";
@@ -122,7 +133,7 @@ export default function MyVehicleScreen() {
     }
   };
 
-  // ─── Render states ────────────────────────────────────────────────────────────
+  // ─── Render states ────────────────────────────────────────────────────────
   const renderContent = () => {
     if (loading) {
       return (
@@ -175,77 +186,79 @@ export default function MyVehicleScreen() {
         vehicle={vehicle}
         onViewDetails={() => handleViewDetails(vehicle._id)}
         onManage={() => handleManage(vehicle._id)}
-        onAvailability={() => handleAvailability(vehicle._id)}
+        onAvailability={() => handleAvailability(vehicle)}
         onDelete={() => handleDelete(vehicle._id)}
       />
     ));
   };
 
-  // ─── Main render ──────────────────────────────────────────────────────────────
+  // ─── Main render ──────────────────────────────────────────────────────────
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <AppLayout>
+      {/* Page Title */}
+      <View
+        style={{
+          paddingHorizontal: horizontalPadding,
+          paddingTop: 20,
+          paddingBottom: 8,
+        }}
       >
-        {/* Page Title */}
-        <View
-          style={{
-            paddingHorizontal: horizontalPadding,
-            paddingTop: 20,
-            paddingBottom: 8,
-          }}
+        <Text
+          className="text-center font-bold text-gray-800"
+          style={{ fontSize: isSmallScreen ? 20 : 24 }}
         >
+          My Vehicle
+        </Text>
+      </View>
+
+      {/* Add New Vehicle Button */}
+      <View
+        style={{
+          paddingHorizontal: horizontalPadding,
+          paddingBottom: 16,
+          alignItems: "flex-end",
+        }}
+      >
+        <TouchableOpacity
+          className="bg-[#0A2E5C] rounded-lg flex-row items-center"
+          style={{
+            paddingVertical: isSmallScreen ? 10 : 12,
+            paddingHorizontal: isSmallScreen ? 14 : 18,
+            minHeight: Platform.OS === "ios" ? 44 : 48,
+          }}
+          onPress={handleAddVehicle}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={isSmallScreen ? 16 : 20} color="white" />
           <Text
-            className="text-center font-bold text-gray-800"
-            style={{ fontSize: isSmallScreen ? 20 : 24 }}
+            className="text-white font-semibold ml-1"
+            style={{ fontSize: isSmallScreen ? 13 : 15 }}
           >
-            My Vehicle
+            Add New Vehicle
           </Text>
-        </View>
+        </TouchableOpacity>
+      </View>
 
-        {/* Add New Vehicle Button */}
-        <View
-          style={{
-            paddingHorizontal: horizontalPadding,
-            paddingBottom: 16,
-            alignItems: "flex-end",
-          }}
-        >
-          <TouchableOpacity
-            className="bg-[#0A2E5C] rounded-lg flex-row items-center"
-            style={{
-              paddingVertical: isSmallScreen ? 10 : 12,
-              paddingHorizontal: isSmallScreen ? 14 : 18,
-              minHeight: Platform.OS === "ios" ? 44 : 48,
-            }}
-            onPress={handleAddVehicle}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add" size={isSmallScreen ? 16 : 20} color="white" />
-            <Text
-              className="text-white font-semibold ml-1"
-              style={{ fontSize: isSmallScreen ? 13 : 15 }}
-            >
-              Add New Vehicle
-            </Text>
-          </TouchableOpacity>
-        </View>
+      {/* Search / Filter Card */}
+      <View
+        style={{ paddingHorizontal: horizontalPadding, paddingBottom: 20 }}
+      >
+        <VehicleSearchFilter onSearch={handleSearch} />
+      </View>
 
-        {/* Search / Filter Card */}
-        <View
-          style={{ paddingHorizontal: horizontalPadding, paddingBottom: 20 }}
-        >
-          <VehicleSearchFilter onSearch={handleSearch} />
-        </View>
+      {/* Vehicle List */}
+      <View
+        style={{ paddingHorizontal: horizontalPadding, paddingBottom: 24 }}
+      >
+        {renderContent()}
+      </View>
 
-        {/* Vehicle List */}
-        <View
-          style={{ paddingHorizontal: horizontalPadding, paddingBottom: 24 }}
-        >
-          {renderContent()}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      {/* AvailabilityOwner Modal */}
+      <AvailabilityOwner
+        isOpen={availIsOpen}
+        onClose={handleAvailClose}
+        vehicle={availVehicle}
+      />
+    </AppLayout>
   );
 }
