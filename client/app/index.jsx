@@ -91,13 +91,13 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
-      <Link href="/booking" asChild>
+    {/*  <Link href="/booking" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Owner Booking Request
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
    { /*  <Link href="/owner/my-vehicle" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -133,13 +133,13 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>  */}
 
-      <Link href="/owner/EditVehicleOwner" asChild>
+    {/*  <Link href="/owner/EditVehicleOwner" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Edit Vehicle
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
       <TouchableOpacity
         onPress={async () => {
