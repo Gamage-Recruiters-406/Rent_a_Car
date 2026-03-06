@@ -20,35 +20,35 @@ export default function HomeScreen() {
           and demonstration purposes of navigation flow.
           pleas donot delet this buttons. after connect every part then delet this buttons*/}
 
-      <Link href="/login/SignInPage" asChild>
+   {/*   <Link href="/login/SignInPage" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Login
           </Text>
         </TouchableOpacity>
-      </Link>
-      <Link href="/Reviews" asChild>
+      </Link> */}
+     {/*  <Link href="/Reviews" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Reviews
           </Text>
         </TouchableOpacity>
-      </Link>
-      <Link href="/MyReviews" asChild>
+      </Link> */}
+     {/*<Link href="/MyReviews" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             My Reviews
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
-      <View style={styles.buttonWrapper}>
+    {/* <View style={styles.buttonWrapper}>
         <Link href="/CustomerVehicleList" asChild>
           <TouchableOpacity style={styles.button}>
             <Text style={styles.buttonText}>Go to Vehicle List</Text>
           </TouchableOpacity>
         </Link>
-      </View>
+      </View>  */}
 
       <Link href="/vehicle_booking" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -58,30 +58,30 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
-      <Link href="/owner/rental-history" asChild>
+     {/* <Link href="/owner/rental-history" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             owner rental history
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link>  */}
 
-      <Link href="/Cus_booking-history/booking-history" asChild>
+     {/* <Link href="/Cus_booking-history/booking-history" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             {" "}
             BOOKING History
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
-      <Link href="/admin/settings" asChild>
+    { /*  <Link href="/admin/settings" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             admin setting
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
       <Link href="/vehicle/6981d6ae24ec9900bf582a54" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -99,13 +99,13 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
-      <Link href="/owner/my-vehicle" asChild>
+   { /*  <Link href="/owner/my-vehicle" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Owner My Vehicles
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> 
 
       <Link href="/owner/owner-dashboard" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -114,24 +114,24 @@ export default function HomeScreen() {
             Owner Dashboard
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
-      <Link href="/contact" asChild>
+     {/* <Link href="/contact" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             {" "}
             Contact
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
-      <Link href="/owner/AddVehicle" asChild>
+ {/*     <Link href="/owner/AddVehicle" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             Add Vehicle
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link>  */}
 
       <Link href="/owner/EditVehicleOwner" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -157,7 +157,7 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
-      <View className="bg-gray-100 p-6 rounded-2xl mt-6 shadow-sm w-72 items-center">
+     {/*   <View className="bg-gray-100 p-6 rounded-2xl mt-6 shadow-sm w-72 items-center">
         <Text className="text-[#0A2E5C] font-bold text-lg mb-4">Profiles</Text>
         <Link href="/profilepages/CustomerProfileEdit" asChild>
           <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full mb-3 shadow-sm">
@@ -167,14 +167,14 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </Link>
 
-        <Link href="/profilepages/OwnerProfileEdit" asChild>
+       {/* <Link href="/profilepages/OwnerProfileEdit" asChild>
           <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full shadow-sm">
             <Text className="text-white font-semibold text-center">
               Owner Profile
             </Text>
           </TouchableOpacity>
         </Link>
-      </View>
+      </View>  */}
 
       <AppLayout>
         <Hero />
