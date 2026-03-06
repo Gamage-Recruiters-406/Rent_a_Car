@@ -20,7 +20,7 @@ import {
     X
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Header } from '../../components/vehicle_booking/BookingPageHeader';
+import AppLayout from '../../components/layout/Layout';
 import { searchVehicles, createBooking } from '../../services/bookingApi';
 import { getAllReviews } from '../../services/reviewApi';
 import { AnalogTimePicker } from '../../components/vehicle_booking/AnalogTimePicker';
@@ -144,9 +144,7 @@ export default function VehicleBookingPage() {
     };
 
     return (
-        <ScrollView className="flex-1 bg-white">
-            <Header onNavigate={(route) => console.log('Navigate', route)} />
-
+        <AppLayout headerProps={{ title: 'Car Reservation' }}>
             {/* Hero Section */}
             <View className="h-[600px] relative bg-gray-900">
                 <ImageBackground
@@ -323,7 +321,6 @@ export default function VehicleBookingPage() {
                     </View>
                 </View>
             </Modal>
-
-        </ScrollView>
+        </AppLayout>
     );
 }
