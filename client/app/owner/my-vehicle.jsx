@@ -50,7 +50,7 @@ export default function MyVehicleScreen() {
 
       let list = vehicleData.value.vehicles ?? [];
 
-      // Merge average ratings from reviews into vehicles
+      // Merge average ratings from reviews into vehicles (silently skip if 401/failed)
       if (reviewData.status === "fulfilled" && reviewData.value?.reviews) {
         const ratingMap = {};
         reviewData.value.reviews.forEach((review) => {
@@ -124,7 +124,7 @@ export default function MyVehicleScreen() {
 
   // ─── Navigation handlers ──────────────────────────────────────────────────
   const handleAddVehicle  = ()   => router.push("/owner/AddVehicle");
-  const handleViewDetails = (id) => router.push(`/owner/vehicle-details/${id}`);
+  const handleViewDetails = (id) => router.push(`/owner/VehicleDetails?id=${id}`);
   const handleManage      = (id) => router.push(`/owner/EditVehicleOwner?id=${id}`);
 
   // ─── Availability: open AvailabilityOwner modal ───────────────────────────
