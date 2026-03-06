@@ -14,7 +14,7 @@ import AppLayout from "../../components/layout/Layout";
 import VehicleSearchFilter from "../../components/owner/VehicleSearchFilter";
 import VehicleCard from "../../components/owner/VehicleCard";
 import AvailabilityOwner from "../../app/owner/AvailabilityOwner";
-import { getMyVehicleListings, deleteVehicleListing } from "../../services/vehicleService";
+import { getMyVehicleListings, deleteVehicleListing, getMyVehicleReviews } from "../../services/vehicleService";
 import { isSmallScreen, horizontalPadding } from "../../constants/screenSize";
 
 export default function MyVehicleScreen() {
@@ -39,13 +39,33 @@ export default function MyVehicleScreen() {
       setError(null);
       setErrorDetail(null);
 
-      const data = await getMyVehicleListings();
+      // Fetch vehicles and reviews in parallel
+      const [vehicleData, reviewData] = await Promise.allSettled([
+        getMyVehicleListings(),
+        getMyVehicleReviews(),
+      ]);
 
-      if (!data.success) {
-        throw new Error(data.message || "API returned success: false");
+      if (vehicleData.status === "rejected") throw vehicleData.reason;
+      if (!vehicleData.value.success) throw new Error(vehicleData.value.message || "API returned success: false");
+
+      let list = vehicleData.value.vehicles ?? [];
+
+      // Merge average ratings from reviews into vehicles
+      if (reviewData.status === "fulfilled" && reviewData.value?.reviews) {
+        const ratingMap = {};
+        reviewData.value.reviews.forEach((review) => {
+          const vid = review.vehicle?._id || review.vehicleId;
+          if (!vid) return;
+          if (!ratingMap[vid]) ratingMap[vid] = { total: 0, count: 0 };
+          ratingMap[vid].total += review.rating || 0;
+          ratingMap[vid].count += 1;
+        });
+        list = list.map((v) => {
+          const r = ratingMap[v._id];
+          return r ? { ...v, rating: parseFloat((r.total / r.count).toFixed(1)) } : { ...v, rating: v.rating ?? 0 };
+        });
       }
 
-      const list = data.vehicles ?? [];
       setVehicles(list);
       setFilteredVehicles(list);
     } catch (err) {

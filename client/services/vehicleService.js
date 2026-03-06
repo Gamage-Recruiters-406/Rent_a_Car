@@ -87,3 +87,14 @@ export const getApprovedVehicleCount = async () => {
   const res = await api.get("/vehicle/vehicle-count");
   return res.data;
 };
+
+/** GET /reviews/my-vehicles — requiredSignIn + isOwner */
+export const getMyVehicleReviews = async () => {
+  try {
+    const response = await api.get('/reviews/my-vehicles');
+    return response.data;
+  } catch (error) {
+    console.error('Get my vehicle reviews error:', error);
+    throw error.response?.data || { message: error.message || 'Network error' };
+  }
+};
