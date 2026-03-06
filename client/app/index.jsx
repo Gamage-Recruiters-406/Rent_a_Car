@@ -7,7 +7,7 @@ import { Stats } from "../components/ui/Stats";
 import { Testimonials } from "../components/ui/Testimonials";
 import { NewsLetter } from "../components/ui/NewsLetter";
 import { Items } from "../components/ui/Items";
-import { QuickStats } from '../components/ui/Quickstats';
+import { QuickStats } from "../components/ui/Quickstats";
 import AppLayout from "../components/layout/Layout";
 
 export default function HomeScreen() {
@@ -83,7 +83,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link>
 
-
       <Link href="/vehicle/6981d6ae24ec9900bf582a54" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
@@ -110,13 +109,35 @@ export default function HomeScreen() {
 
       <Link href="/owner/owner-dashboard" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center"> Owner Dashboard</Text>
+          <Text className="text-white font-semibold text-lg text-center">
+            {" "}
+            Owner Dashboard
+          </Text>
         </TouchableOpacity>
       </Link>
 
       <Link href="/contact" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
-          <Text className="text-white font-semibold text-lg text-center"> Contact</Text>
+          <Text className="text-white font-semibold text-lg text-center">
+            {" "}
+            Contact
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/owner/AddVehicle" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Add Vehicle
+          </Text>
+        </TouchableOpacity>
+      </Link>
+
+      <Link href="/owner/EditVehicleOwner" asChild>
+        <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
+          <Text className="text-white font-semibold text-lg text-center">
+            Edit Vehicle
+          </Text>
         </TouchableOpacity>
       </Link>
 
@@ -136,34 +157,34 @@ export default function HomeScreen() {
         </Text>
       </TouchableOpacity>
 
-            <View className="bg-gray-100 p-6 rounded-2xl mt-6 shadow-sm w-72 items-center">
-              <Text className="text-[#0A2E5C] font-bold text-lg mb-4">Profiles</Text>
-              <Link href="/profilepages/CustomerProfileEdit" asChild>
-                <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full mb-3 shadow-sm">
-                  <Text className="text-white font-semibold text-center">Customer Profile</Text>
-                </TouchableOpacity>
-              </Link>
+      <View className="bg-gray-100 p-6 rounded-2xl mt-6 shadow-sm w-72 items-center">
+        <Text className="text-[#0A2E5C] font-bold text-lg mb-4">Profiles</Text>
+        <Link href="/profilepages/CustomerProfileEdit" asChild>
+          <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full mb-3 shadow-sm">
+            <Text className="text-white font-semibold text-center">
+              Customer Profile
+            </Text>
+          </TouchableOpacity>
+        </Link>
 
-              <Link href="/profilepages/OwnerProfileEdit" asChild>
-                <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full shadow-sm">
-                  <Text className="text-white font-semibold text-center">Owner Profile</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
+        <Link href="/profilepages/OwnerProfileEdit" asChild>
+          <TouchableOpacity className="bg-blue-600 px-6 py-3 rounded-lg w-full shadow-sm">
+            <Text className="text-white font-semibold text-center">
+              Owner Profile
+            </Text>
+          </TouchableOpacity>
+        </Link>
+      </View>
 
-<AppLayout>
-      <Hero />
-      <Stats />
-      <Items />
-      <QuickStats />
-      <NewsLetter />
-      <Testimonials /> 
+      <AppLayout>
+        <Hero />
+        <Stats />
+        <Items />
+        <QuickStats />
+        <NewsLetter />
+        <Testimonials />
       </AppLayout>
     </ScrollView>
-
-
-
-
   );
 }
 

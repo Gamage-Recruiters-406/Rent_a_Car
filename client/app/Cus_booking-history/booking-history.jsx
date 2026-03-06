@@ -1,4 +1,4 @@
-//customer
+//customer booking history
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -8,9 +8,7 @@ import {
   Image,
   ActivityIndicator,
   RefreshControl,
-  Dimensions,
   Alert,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -23,7 +21,6 @@ import {
   XCircle,
   ChevronRight,
   Star,
-  X,
   CreditCard,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,12 +30,11 @@ import {
   formatBookingDate,
   formatCurrency,
   getVehicleImageUrl,
-  handleLogout,
 } from '../../services/bookingHistoryService';
 import VehicleBookingModal from './VehicleBookingModal';
-import AppLayout from '../../components/layout/Layout'; 
+import AppLayout from '../../components/layout/Layout';
 
-const { width } = Dimensions.get('window');
+//const { width } = Dimensions.get('window');
 
 const BookingHistory = () => {
   const router = useRouter();
@@ -47,7 +43,7 @@ const BookingHistory = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState(1);
+  //const [role, setRole] = useState(1);
 
   // Modal state
   const [selectedBookingId, setSelectedBookingId] = useState(null);
@@ -66,7 +62,7 @@ const BookingHistory = () => {
         if (!token) {
           console.log('No token found');
           setUser(null);
-          setRole(1);
+       //   setRole(1);
           setIsAuthenticated(false);
           setLoading(false);
           return;
@@ -76,17 +72,17 @@ const BookingHistory = () => {
 
         if (userResponse.success && userResponse.user) {
           setUser(userResponse.user);
-          setRole(userResponse.user.role ?? 1);
+         // setRole(userResponse.user.role ?? 1);
           setIsAuthenticated(true);
         } else {
           setUser(null);
-          setRole(1);
+         // setRole(1);
           setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error fetching user details:', error);
         setUser(null);
-        setRole(1);
+       // setRole(1);
         setIsAuthenticated(false);
       }
     };
@@ -126,34 +122,6 @@ const BookingHistory = () => {
 
     fetchBookings();
   }, [isAuthenticated, user?._id, API_BASE_URL, API_VERSION]);
-
-  // Handle logout
-  const onLogout = async () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await handleLogout(API_BASE_URL, API_VERSION);
-            await AsyncStorage.multiRemove([
-              'userToken',
-              'userId',
-              'userRole',
-              'userStatus',
-            ]);
-            setUser(null);
-            setRole(1);
-            setIsAuthenticated(false);
-            router.replace('/login');
-          } catch (error) {
-            console.error('Logout failed', error);
-          }
-        },
-      },
-    ]);
-  };
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -222,7 +190,7 @@ const BookingHistory = () => {
     }
 
     const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
+    // const hasHalfStar = rating % 1 >= 0.5;
 
     return (
       <View className="flex-row items-center">
@@ -256,7 +224,7 @@ const BookingHistory = () => {
     setSelectedBooking(null);
   };
 
-  //  pay button handler 
+  //  pay button handler
   const handlePayPress = (booking) => {
     // Only allow payment for approved bookings
     if (booking.status?.toLowerCase() !== 'approved') {
@@ -266,12 +234,12 @@ const BookingHistory = () => {
       );
       return;
     }
-    
-    //  alert 
+
+    //  alert
     Alert.alert(
       'Payment',
       `Payment for ${formatCurrency(booking.totalAmount, 'LKR')} will be implemented soon.`,
-      [{ text: 'OK' }]
+      [{ text: 'OK' }],
     );
   };
 
@@ -279,23 +247,24 @@ const BookingHistory = () => {
   const MobileBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
-    
+
     // Check for deleted vehicle
     const isVehicleDeleted =
       !booking.vehicleDetails ||
       booking.vehicleDetails === null ||
-      (typeof booking.vehicleDetails === 'object' && Object.keys(booking.vehicleDetails).length === 0) ||
+      (typeof booking.vehicleDetails === 'object' &&
+        Object.keys(booking.vehicleDetails).length === 0) ||
       booking.vehicleDetails?.isDeleted === true ||
       booking.vehicleDetails?.title === 'Unknown Vehicle';
 
     // Check if payment is allowed
-    const canPay = booking.status?.toLowerCase() === 'approved' && !isVehicleDeleted;
-    
-    const imageUrl = !isVehicleDeleted && booking.vehicleDetails ? getVehicleImageUrl(
-      booking.vehicleDetails,
-      0,
-      API_BASE_URL,
-    ) : null;
+    const canPay =
+      booking.status?.toLowerCase() === 'approved' && !isVehicleDeleted;
+
+    const imageUrl =
+      !isVehicleDeleted && booking.vehicleDetails
+        ? getVehicleImageUrl(booking.vehicleDetails, 0, API_BASE_URL)
+        : null;
 
     return (
       <View className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-4">
@@ -305,7 +274,7 @@ const BookingHistory = () => {
             <View className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 items-center justify-center">
               <Car size={48} color="#9CA3AF" />
               <Text className="text-sm font-medium text-gray-500 mt-2">
-                This vehicle has been deleted
+                This vehicle is no longer available
               </Text>
             </View>
           ) : imageUrl ? (
@@ -342,7 +311,7 @@ const BookingHistory = () => {
             {isVehicleDeleted ? (
               <View className="bg-red-100 px-2 py-1 rounded">
                 <Text className="text-xs text-red-600 font-medium">
-                  Vehicle Deleted
+                  Vehicle not available
                 </Text>
               </View>
             ) : (
@@ -376,11 +345,15 @@ const BookingHistory = () => {
               }`}
               numberOfLines={2}
             >
-              {isVehicleDeleted ? 'This vehicle has been deleted' : (booking.vehicleDetails?.title || 'Unknown Vehicle')}
+              {isVehicleDeleted
+                ? 'This vehicle is no longer available'
+                : booking.vehicleDetails?.title || 'Unknown Vehicle'}
             </Text>
-            <Text className={`text-base font-bold ${
-              isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
-            }`}>
+            <Text
+              className={`text-base font-bold ${
+                isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
+              }`}
+            >
               {formatCurrency(booking.totalAmount, 'LKR')}
             </Text>
           </View>
@@ -406,15 +379,20 @@ const BookingHistory = () => {
             <View className="flex-row items-start">
               <User
                 size={14}
-                color={isVehicleDeleted ? "#9CA3AF" : "#9333EA"}
+                color={isVehicleDeleted ? '#9CA3AF' : '#9333EA'}
                 style={{ marginTop: 2, marginRight: 8 }}
               />
               <View className="flex-1">
                 <Text className="text-xs text-gray-500">Owner</Text>
-                <Text className={`text-xs font-medium ${
-                  isVehicleDeleted ? 'text-gray-400' : ''
-                }`} numberOfLines={1}>
-                  {isVehicleDeleted ? 'Vehicle owner unavailable' : booking.ownerName}
+                <Text
+                  className={`text-xs font-medium ${
+                    isVehicleDeleted ? 'text-gray-400' : ''
+                  }`}
+                  numberOfLines={1}
+                >
+                  {isVehicleDeleted
+                    ? 'Vehicle owner unavailable'
+                    : booking.ownerName}
                 </Text>
               </View>
             </View>
@@ -457,7 +435,9 @@ const BookingHistory = () => {
 
             {/* View Details Button */}
             <TouchableOpacity
-              onPress={() => !isVehicleDeleted && handleViewDetails(booking._id)}
+              onPress={() =>
+                !isVehicleDeleted && handleViewDetails(booking._id)
+              }
               disabled={isVehicleDeleted}
               className={`flex-row items-center px-4 py-2 rounded-lg ${
                 isVehicleDeleted ? 'bg-gray-300' : 'bg-[#0D3778]'
@@ -482,23 +462,24 @@ const BookingHistory = () => {
   const DesktopBookingCard = ({ booking }) => {
     const statusStyle = getStatusStyles(booking.status);
     const StatusIcon = statusStyle.icon;
-    
+
     // Check for deleted vehicle
     const isVehicleDeleted =
       !booking.vehicleDetails ||
       booking.vehicleDetails === null ||
-      (typeof booking.vehicleDetails === 'object' && Object.keys(booking.vehicleDetails).length === 0) ||
+      (typeof booking.vehicleDetails === 'object' &&
+        Object.keys(booking.vehicleDetails).length === 0) ||
       booking.vehicleDetails?.isDeleted === true ||
       booking.vehicleDetails?.title === 'Unknown Vehicle';
 
-    // Check if payment is allowed 
-    const canPay = booking.status?.toLowerCase() === 'approved' && !isVehicleDeleted;
-    
-    const imageUrl = !isVehicleDeleted && booking.vehicleDetails ? getVehicleImageUrl(
-      booking.vehicleDetails,
-      0,
-      API_BASE_URL,
-    ) : null;
+    // Check if payment is allowed
+    const canPay =
+      booking.status?.toLowerCase() === 'approved' && !isVehicleDeleted;
+
+    const imageUrl =
+      !isVehicleDeleted && booking.vehicleDetails
+        ? getVehicleImageUrl(booking.vehicleDetails, 0, API_BASE_URL)
+        : null;
 
     return (
       <View className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-4">
@@ -509,7 +490,7 @@ const BookingHistory = () => {
               <View className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 items-center justify-center">
                 <Car size={40} color="#9CA3AF" />
                 <Text className="text-sm font-medium text-gray-500 mt-2">
-                  This vehicle has been deleted
+                  This vehicle is no longer available
                 </Text>
               </View>
             ) : imageUrl ? (
@@ -539,7 +520,9 @@ const BookingHistory = () => {
                     }`}
                     numberOfLines={2}
                   >
-                    {isVehicleDeleted ? 'This vehicle has been deleted' : (booking.vehicleDetails?.title || 'Unknown Vehicle')}
+                    {isVehicleDeleted
+                      ? 'This vehicle is no longer available'
+                      : booking.vehicleDetails?.title || 'Unknown Vehicle'}
                   </Text>
                   <View
                     className={`flex-row items-center px-2 py-0.5 rounded-full ${statusStyle.bg}`}
@@ -571,9 +554,11 @@ const BookingHistory = () => {
                     />
                   )}
                 </View>
-                <Text className={`text-xl font-bold ${
-                  isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
-                }`}>
+                <Text
+                  className={`text-xl font-bold ${
+                    isVehicleDeleted ? 'text-gray-400' : 'text-[#0D3778]'
+                  }`}
+                >
                   {formatCurrency(booking.totalAmount, 'LKR')}
                 </Text>
                 <Text className="text-xs text-gray-500">
@@ -599,17 +584,27 @@ const BookingHistory = () => {
 
                 {/* Owner information */}
                 <View className="flex-row items-start mt-3">
-                  <View className={`p-1.5 rounded-lg mr-2 ${
-                    isVehicleDeleted ? 'bg-gray-100' : 'bg-purple-50'
-                  }`}>
-                    <User size={16} color={isVehicleDeleted ? "#9CA3AF" : "#9333EA"} />
+                  <View
+                    className={`p-1.5 rounded-lg mr-2 ${
+                      isVehicleDeleted ? 'bg-gray-100' : 'bg-purple-50'
+                    }`}
+                  >
+                    <User
+                      size={16}
+                      color={isVehicleDeleted ? '#9CA3AF' : '#9333EA'}
+                    />
                   </View>
                   <View className="flex-1">
                     <Text className="text-xs text-gray-500">Owner</Text>
-                    <Text className={`text-sm font-medium ${
-                      isVehicleDeleted ? 'text-gray-400' : ''
-                    }`} numberOfLines={1}>
-                      {isVehicleDeleted ? 'Vehicle owner unavailable' : booking.ownerName}
+                    <Text
+                      className={`text-sm font-medium ${
+                        isVehicleDeleted ? 'text-gray-400' : ''
+                      }`}
+                      numberOfLines={1}
+                    >
+                      {isVehicleDeleted
+                        ? 'Vehicle owner unavailable'
+                        : booking.ownerName}
                     </Text>
                   </View>
                 </View>
@@ -653,7 +648,9 @@ const BookingHistory = () => {
 
               {/* View Details Button */}
               <TouchableOpacity
-                onPress={() => !isVehicleDeleted && handleViewDetails(booking._id)}
+                onPress={() =>
+                  !isVehicleDeleted && handleViewDetails(booking._id)
+                }
                 disabled={isVehicleDeleted}
                 className={`px-6 py-2 rounded-lg ${
                   isVehicleDeleted ? 'bg-gray-300' : 'bg-[#0D3778]'
@@ -730,7 +727,8 @@ const BookingHistory = () => {
                 Your Vehicle Booking History
               </Text>
               <Text className="text-gray-600 mt-1">
-                {bookings.length} booking{bookings.length !== 1 ? 's' : ''} found
+                {bookings.length} booking{bookings.length !== 1 ? 's' : ''}{' '}
+                found
               </Text>
             </View>
 
