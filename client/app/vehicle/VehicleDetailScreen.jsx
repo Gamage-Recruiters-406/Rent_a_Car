@@ -32,6 +32,7 @@ import { getVehicleById } from "../../src/services/vehicleApi";
 import { getVehicleAvailability } from "../../src/services/bookingApi";
 import AppLayout from "../../components/layout/Layout";
 import { Stack } from "expo-router";
+import { useRouter } from "expo-router";
 
 // helpers
 function toYYYYMM(date = new Date()) {
@@ -76,6 +77,8 @@ export default function VehicleDetailScreen() {
     specs: true,
     description: true,
   });
+
+  const router = useRouter();
 
   useEffect(() => {
     let mounted = true;
@@ -416,7 +419,12 @@ export default function VehicleDetailScreen() {
 
           {/* Book Now */}
           <Pressable
-            onPress={() => Alert.alert("Book Now", "Backend connect later ✅")}
+            onPress={() =>
+              router.push({
+                pathname: "/vehicle_booking",
+                params: { vehicleId: id },
+              })
+            }
             className="h-12 rounded-2xl bg-[#0d3778] items-center justify-center mt-1.5"
           >
             <Text className="text-white font-black">Book Now</Text>

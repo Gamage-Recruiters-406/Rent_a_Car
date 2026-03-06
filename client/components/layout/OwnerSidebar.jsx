@@ -49,39 +49,42 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
           'Authorization': `Bearer ${token}`,
         };
 
-        // Fetch all owner bookings + earnings in parallel
-        const [bookingsRes, earningsRes] = await Promise.all([
+        // Fetch bookings (for counts) and paid payments (for real earnings) in parallel
+        const [bookingsRes, paymentsRes] = await Promise.all([
           fetch(`${baseUrl}${apiVersion}/bookings/owner`, { headers }),
-          fetch(`${baseUrl}${apiVersion}/bookings/owner/earnings/${ownerId}`, { headers }),
+          fetch(`${baseUrl}${apiVersion}/payment/get-paid-payments-for-owner?limit=1000`, { headers }),
         ]);
 
         if (!bookingsRes.ok) console.error('Bookings fetch failed:', bookingsRes.status);
-        if (!earningsRes.ok) console.error('Earnings fetch failed:', earningsRes.status);
+        if (!paymentsRes.ok) console.error('Payments fetch failed:', paymentsRes.status);
 
         const bookingsData = await bookingsRes.json();
-        const earningsData = await earningsRes.json();
+        const paymentsData = await paymentsRes.json();
 
-        // Count bookings by status + calculate earnings from fetched data directly
+        // Count bookings by status
         if (bookingsData.success && Array.isArray(bookingsData.data)) {
           const counts = { approved: 0, pending: 0, rejected: 0 };
-          let earnings = 0;
 
           bookingsData.data.forEach((b) => {
             const status = b.status?.toLowerCase().trim();
-
-            // Count by status
             if (counts[status] !== undefined) counts[status]++;
-
-            // Earnings from approved + paid bookings with totalAmount > 0
-            if ((status === 'approved' || status === 'paid') && b.totalAmount > 0) {
-              earnings += b.totalAmount;
-            }
           });
 
           setBookingCounts(counts);
-          setTotalEarnings(earnings);
         } else {
           console.warn('Unexpected bookings response:', bookingsData);
+        }
+
+        // Calculate total earnings from actual paid payments
+        if (paymentsData.success && Array.isArray(paymentsData.payments)) {
+          const earnings = paymentsData.payments.reduce((total, p) => {
+            // amount.amount is the payable amount (after platform fee deduction)
+            return total + (p.amount?.amount || 0);
+          }, 0);
+          setTotalEarnings(earnings);
+        } else {
+          console.warn('Unexpected payments response:', paymentsData);
+          setTotalEarnings(0);
         }
       } catch (error) {
         console.error('Failed to fetch owner data:', error);
@@ -160,9 +163,8 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       id: 7,
       icon: 'notifications-outline',
       label: 'Notifications',
-      route: '/Notifications/notifications',
+      route: '/Notifications/Notification',
       iconType: 'Ionicons',
-      badge: 3,
     },
     {
       id: 8,

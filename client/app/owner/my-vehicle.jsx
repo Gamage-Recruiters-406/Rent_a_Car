@@ -2,16 +2,15 @@ import { useState, useCallback } from "react";
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   Platform,
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
+import AppLayout from "../../components/layout/Layout";
 import VehicleSearchFilter from "../../components/owner/VehicleSearchFilter";
 import VehicleCard from "../../components/owner/VehicleCard";
 import AvailabilityOwner from "../../app/owner/AvailabilityOwner";
@@ -104,9 +103,9 @@ export default function MyVehicleScreen() {
   };
 
   // ─── Navigation handlers ──────────────────────────────────────────────────
-  const handleAddVehicle  = ()   => router.push("/owner/add-vehicle");
+  const handleAddVehicle  = ()   => router.push("/owner/AddVehicle");
   const handleViewDetails = (id) => router.push(`/owner/vehicle-details/${id}`);
-  const handleManage      = (id) => router.push(`/owner/vehicle-manage/${id}`);
+  const handleManage      = (id) => router.push(`/owner/EditVehicleOwner?id=${id}`);
 
   // ─── Availability: open AvailabilityOwner modal ───────────────────────────
   // Pass the full vehicle object — AvailabilityOwner uses vehicle._id & vehicle.title
@@ -187,7 +186,7 @@ export default function MyVehicleScreen() {
         vehicle={vehicle}
         onViewDetails={() => handleViewDetails(vehicle._id)}
         onManage={() => handleManage(vehicle._id)}
-        onAvailability={() => handleAvailability(vehicle)} // ← full vehicle object
+        onAvailability={() => handleAvailability(vehicle)}
         onDelete={() => handleDelete(vehicle._id)}
       />
     ));
@@ -195,82 +194,71 @@ export default function MyVehicleScreen() {
 
   // ─── Main render ──────────────────────────────────────────────────────────
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <AppLayout>
+      {/* Page Title */}
+      <View
+        style={{
+          paddingHorizontal: horizontalPadding,
+          paddingTop: 20,
+          paddingBottom: 8,
+        }}
       >
-        {/* Page Title */}
-        <View
-          style={{
-            paddingHorizontal: horizontalPadding,
-            paddingTop: 20,
-            paddingBottom: 8,
-          }}
+        <Text
+          className="text-center font-bold text-gray-800"
+          style={{ fontSize: isSmallScreen ? 20 : 24 }}
         >
+          My Vehicle
+        </Text>
+      </View>
+
+      {/* Add New Vehicle Button */}
+      <View
+        style={{
+          paddingHorizontal: horizontalPadding,
+          paddingBottom: 16,
+          alignItems: "flex-end",
+        }}
+      >
+        <TouchableOpacity
+          className="bg-[#0A2E5C] rounded-lg flex-row items-center"
+          style={{
+            paddingVertical: isSmallScreen ? 10 : 12,
+            paddingHorizontal: isSmallScreen ? 14 : 18,
+            minHeight: Platform.OS === "ios" ? 44 : 48,
+          }}
+          onPress={handleAddVehicle}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={isSmallScreen ? 16 : 20} color="white" />
           <Text
-            className="text-center font-bold text-gray-800"
-            style={{ fontSize: isSmallScreen ? 20 : 24 }}
+            className="text-white font-semibold ml-1"
+            style={{ fontSize: isSmallScreen ? 13 : 15 }}
           >
-            My Vehicle
+            Add New Vehicle
           </Text>
-        </View>
+        </TouchableOpacity>
+      </View>
 
-        {/* Add New Vehicle Button */}
-        <View
-          style={{
-            paddingHorizontal: horizontalPadding,
-            paddingBottom: 16,
-            alignItems: "flex-end",
-          }}
-        >
-          <TouchableOpacity
-            className="bg-[#0A2E5C] rounded-lg flex-row items-center"
-            style={{
-              paddingVertical: isSmallScreen ? 10 : 12,
-              paddingHorizontal: isSmallScreen ? 14 : 18,
-              minHeight: Platform.OS === "ios" ? 44 : 48,
-            }}
-            onPress={handleAddVehicle}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add" size={isSmallScreen ? 16 : 20} color="white" />
-            <Text
-              className="text-white font-semibold ml-1"
-              style={{ fontSize: isSmallScreen ? 13 : 15 }}
-            >
-              Add New Vehicle
-            </Text>
-          </TouchableOpacity>
-        </View>
+      {/* Search / Filter Card */}
+      <View
+        style={{ paddingHorizontal: horizontalPadding, paddingBottom: 20 }}
+      >
+        <VehicleSearchFilter onSearch={handleSearch} />
+      </View>
 
-        {/* Search / Filter Card */}
-        <View
-          style={{ paddingHorizontal: horizontalPadding, paddingBottom: 20 }}
-        >
-          <VehicleSearchFilter onSearch={handleSearch} />
-        </View>
+      {/* Vehicle List */}
+      <View
+        style={{ paddingHorizontal: horizontalPadding, paddingBottom: 24 }}
+      >
+        {renderContent()}
+      </View>
 
-        {/* Vehicle List */}
-        <View
-          style={{ paddingHorizontal: horizontalPadding, paddingBottom: 24 }}
-        >
-          {renderContent()}
-        </View>
-      </ScrollView>
-
-      {/* ── AvailabilityOwner Modal ─────────────────────────────────────────
-          Props matched exactly to AvailabilityOwner component:
-          - isOpen   → controls visibility
-          - onClose  → closes the modal
-          - vehicle  → full vehicle object { _id, title, model, year }
-      ── */}
+      {/* AvailabilityOwner Modal */}
       <AvailabilityOwner
         isOpen={availIsOpen}
         onClose={handleAvailClose}
         vehicle={availVehicle}
       />
-
-    </SafeAreaView>
+    </AppLayout>
   );
 }
