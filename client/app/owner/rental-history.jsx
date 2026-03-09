@@ -4,148 +4,28 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Dimensions,
   Platform,
   Modal,
   ScrollView,
   Alert,
+  ActivityIndicator,
+  useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import AppLayout from "../../components/layout/Layout";
 import { Link } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { getOwnerBookings } from "../../services/ownerApi";
 
-const { width } = Dimensions.get("window");
-const isSmallScreen = width < 360;
-const isMediumScreen = width >= 360 && width < 414;
-const numColumns = width > 600 ? 2 : 1; // For tablet support
-
-// Mock data for rental history
-const RENTALS = [
-  {
-    id: "1",
-    vehicleName: "Mercedes-Benz S-Class",
-    ownerName: "Piyal Siripala Zoysa",
-    registrationNo: "ABC-0001",
-    seats: "4 Seats",
-    transmission: "Automatic",
-    fuelType: "Petrol",
-    renterName: "John Doe",
-    renterPhone: "+94 00 0000 000",
-    renterEmail: "johndoe@gmail.com",
-    licenseNo: "B00000111",
-    pickupDate: "Jan 10, 2026",
-    pickupTime: "10:00 AM",
-    returnDate: "Jan 15, 2026",
-    returnTime: "10:00 AM",
-    baseRent: 40000,
-    insurance: 2000,
-    serviceTax: 3000,
-    totalAmount: 45000,
-    status: "Completed",
-    image:
-      "https://images.unsplash.com/photo-1563720223185-11003d516935?w=400&h=250&fit=crop",
-  },
-  {
-    id: "2",
-    vehicleName: "Toyota Fortuner",
-    ownerName: "Sunil Siriwardhana",
-    registrationNo: "XYZ-0002",
-    seats: "7 Seats",
-    transmission: "Manual",
-    fuelType: "Diesel",
-    renterName: "Jane Smith",
-    renterPhone: "+94 00 1111 111",
-    renterEmail: "jane.smith@gmail.com",
-    licenseNo: "B00000222",
-    pickupDate: "Jan 08, 2026",
-    pickupTime: "09:00 AM",
-    returnDate: "Jan 12, 2026",
-    returnTime: "09:00 AM",
-    baseRent: 25000,
-    insurance: 1500,
-    serviceTax: 500,
-    totalAmount: 27000,
-    status: "Canceled",
-    image:
-      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=250&fit=crop",
-  },
-  {
-    id: "3",
-    vehicleName: "BMW M4",
-    ownerName: "Tharindu Sanjeewa",
-    registrationNo: "BMW-0003",
-    seats: "2 Seats",
-    transmission: "Automatic",
-    fuelType: "Petrol",
-    renterName: "Mike Wilson",
-    renterPhone: "+94 00 2222 222",
-    renterEmail: "mike.wilson@gmail.com",
-    licenseNo: "B00000333",
-    pickupDate: "Feb 01, 2026",
-    pickupTime: "08:00 AM",
-    returnDate: "Feb 05, 2026",
-    returnTime: "08:00 AM",
-    baseRent: 35000,
-    insurance: 2500,
-    serviceTax: 500,
-    totalAmount: 38000,
-    status: "Ongoing",
-    image:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=250&fit=crop",
-  },
-  {
-    id: "4",
-    vehicleName: "Maruti Suzuki",
-    ownerName: "Somasiri Udawalaththa",
-    registrationNo: "CAR-0004",
-    seats: "5 Seats",
-    transmission: "Manual",
-    fuelType: "Petrol",
-    renterName: "Sarah Davis",
-    renterPhone: "+94 00 3333 333",
-    renterEmail: "sarah.davis@gmail.com",
-    licenseNo: "B00000444",
-    pickupDate: "Jan 20, 2026",
-    pickupTime: "11:00 AM",
-    returnDate: "Jan 25, 2026",
-    returnTime: "11:00 AM",
-    baseRent: 15000,
-    insurance: 1000,
-    serviceTax: 2000,
-    totalAmount: 18000,
-    status: "Completed",
-    image:
-      "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=250&fit=crop",
-  },
-  {
-    id: "5",
-    vehicleName: "Toyota NOAH Old Model",
-    ownerName: "Asiri Dahansala",
-    registrationNo: "OLD-0005",
-    seats: "8 Seats",
-    transmission: "Automatic",
-    fuelType: "Hybrid",
-    renterName: "Tom Brown",
-    renterPhone: "+94 00 4444 444",
-    renterEmail: "tom.brown@gmail.com",
-    licenseNo: "B00000555",
-    pickupDate: "Jan 28, 2026",
-    pickupTime: "02:00 PM",
-    returnDate: "Feb 02, 2026",
-    returnTime: "02:00 PM",
-    baseRent: 22000,
-    insurance: 1500,
-    serviceTax: 1500,
-    totalAmount: 25000,
-    status: "Completed",
-    image:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=250&fit=crop",
-  },
-];
-
-const RentalCard = ({ rental, onPress }) => {
+const RentalCard = ({
+  rental,
+  onPress,
+  width,
+  isSmallScreen,
+  isMediumScreen,
+  numColumns,
+}) => {
   const getStatusStyle = (status) => {
     switch (status) {
       case "Completed":
@@ -154,6 +34,8 @@ const RentalCard = ({ rental, onPress }) => {
         return "bg-red-100 text-red-800";
       case "Ongoing":
         return "bg-[#E3F2FD] text-[#0A2E5C]";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -167,6 +49,8 @@ const RentalCard = ({ rental, onPress }) => {
         return "close-circle";
       case "Ongoing":
         return "time";
+      case "Pending":
+        return "hourglass-outline";
       default:
         return "help-circle";
     }
@@ -180,6 +64,8 @@ const RentalCard = ({ rental, onPress }) => {
         return "#EF4444";
       case "Ongoing":
         return "#0A2E5C";
+      case "Pending":
+        return "#D97706";
       default:
         return "#6B7280";
     }
@@ -190,12 +76,11 @@ const RentalCard = ({ rental, onPress }) => {
 
   return (
     <TouchableOpacity
-      className="bg-white rounded-lg mt-4"
+      className="bg-white rounded-lg mt-4 overflow-hidden"
       style={{
         width: cardWidth,
         marginHorizontal: numColumns > 1 ? 8 : 16,
-        minHeight: isSmallScreen ? 140 : 160,
-        shadowColor: "#0A2E5C", // Blue shadow color (matching header)
+        shadowColor: "#0A2E5C",
         shadowOffset: {
           width: 0,
           height: 4,
@@ -207,90 +92,89 @@ const RentalCard = ({ rental, onPress }) => {
       onPress={() => onPress(rental)}
       activeOpacity={0.7}
     >
-      <View className="flex-row p-4">
-        {/* Left Side - Vehicle Photo */}
-        <View className="mr-4">
+      {/* Top Section */}
+      <View className="flex-row p-4 pb-3">
+        {/* Top Left - Vehicle Photo */}
+        <View className="mr-4 justify-center">
           <Image
             source={{ uri: rental.image }}
             style={{
               width: imageSize,
-              height: imageSize * 0.7,
-              borderRadius: 12,
+              height: imageSize * 0.75,
+              borderRadius: 10,
             }}
             contentFit="cover"
           />
         </View>
 
-        {/* Right Side */}
+        {/* Top Right - Car name, Renter name, Date */}
+        <View className="flex-1 justify-center">
+          <Text
+            className={`font-bold text-gray-800 ${
+              isSmallScreen
+                ? "text-base"
+                : isMediumScreen
+                  ? "text-lg"
+                  : "text-xl"
+            }`}
+            numberOfLines={2}
+          >
+            {rental.vehicleName}
+          </Text>
+          <Text
+            className={`text-gray-600 mt-1 ${
+              isSmallScreen ? "text-xs" : "text-sm"
+            }`}
+            numberOfLines={1}
+          >
+            {rental.ownerName}
+          </Text>
+          <Text
+            className={`text-gray-500 mt-1 ${
+              isSmallScreen ? "text-xs" : "text-sm"
+            }`}
+            numberOfLines={1}
+          >
+            {rental.pickupDate} - {rental.returnDate}
+          </Text>
+        </View>
+      </View>
+
+      {/* Divider */}
+      <View className="h-px bg-gray-100 mx-4" />
+
+      {/* Bottom Section */}
+      <View className="flex-row items-center px-4 py-3">
+        {/* Bottom Left - Price */}
         <View className="flex-1">
-          {/* Top Section - Car name, Owner name, Date */}
-          <View className="mb-4">
-            <Text
-              className={`font-bold text-gray-800  ${
-                isSmallScreen
-                  ? "text-base"
-                  : isMediumScreen
-                    ? "text-lg"
-                    : "text-xl"
-              }`}
-              numberOfLines={2}
-            >
-              {rental.vehicleName}
-            </Text>
-            <Text
-              className={`text-gray-600 mb-1 ${
-                isSmallScreen ? "text-sm" : "text-base"
-              }`}
-              numberOfLines={1}
-            >
-              {rental.ownerName}
-            </Text>
-            <Text
-              className={`text-gray-500 ${
-                isSmallScreen ? "text-xs" : "text-sm"
-              }`}
-              numberOfLines={1}
-            >
-              {rental.pickupDate} - {rental.returnDate}
-            </Text>
-          </View>
+          <Text
+            className={`font-bold text-[#0A2E5C] ${
+              isSmallScreen
+                ? "text-base"
+                : isMediumScreen
+                  ? "text-lg"
+                  : "text-xl"
+            }`}
+          >
+            Rs. {rental.totalAmount.toLocaleString()}
+          </Text>
+        </View>
 
-          {/* Bottom Section */}
-          <View className="flex-row justify-between items-center">
-            {/* Left - Price */}
-            <View className="flex-1 mr-3">
-              <Text
-                className={`font-bold text-[#0A2E5C] ${
-                  isSmallScreen
-                    ? "text-base"
-                    : isMediumScreen
-                      ? "text-lg"
-                      : "text-xl"
-                }`}
-              >
-                Rs. {rental.totalAmount.toLocaleString()}
-              </Text>
-            </View>
-
-            {/* Right - Status with Icon */}
-            <View
-              className={`px-3 py-2 rounded-full flex-row items-center ${getStatusStyle(rental.status)}`}
-            >
-              <Ionicons
-                name={getStatusIcon(rental.status)}
-                size={isSmallScreen ? 14 : 16}
-                color={getStatusIconColor(rental.status)}
-                style={{ marginRight: 4 }}
-              />
-              <Text
-                className={`font-semibold ${
-                  isSmallScreen ? "text-xs" : "text-sm"
-                }`}
-              >
-                {rental.status}
-              </Text>
-            </View>
-          </View>
+        {/* Bottom Right - Status */}
+        <View
+          className={`px-3 py-1.5 rounded-full flex-row items-center ${getStatusStyle(rental.status)}`}
+        >
+          <Ionicons
+            name={getStatusIcon(rental.status)}
+            size={isSmallScreen ? 13 : 15}
+            color={getStatusIconColor(rental.status)}
+            style={{ marginRight: 4 }}
+          />
+          <Text
+            className={`font-semibold ${isSmallScreen ? "text-xs" : "text-sm"}`}
+          >
+            {rental.status}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -298,6 +182,11 @@ const RentalCard = ({ rental, onPress }) => {
 };
 
 export default function RentalHistoryScreen() {
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 360;
+  const isMediumScreen = width >= 360 && width < 414;
+  const numColumns = width > 600 ? 2 : 1;
+
   const [searchText, setSearchText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -312,7 +201,33 @@ export default function RentalHistoryScreen() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  const filteredRentals = RENTALS.filter((rental) => {
+  // ── Real data ──────────────────────────────────────────────────────────────
+  const [rentals, setRentals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadBookings = async () => {
+      try {
+        setLoading(true);
+        setFetchError(null);
+        const data = await getOwnerBookings();
+        if (isMounted) setRentals(data);
+      } catch (err) {
+        if (isMounted) setFetchError(err.message || "Failed to load bookings");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    loadBookings();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const filteredRentals = rentals.filter((rental) => {
     const matchesSearch =
       rental.vehicleName.toLowerCase().includes(searchText.toLowerCase()) ||
       rental.ownerName.toLowerCase().includes(searchText.toLowerCase());
@@ -472,6 +387,8 @@ export default function RentalHistoryScreen() {
         return "bg-red-100 text-red-800";
       case "Ongoing":
         return "bg-[#E3F2FD] text-[#0A2E5C]";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -537,31 +454,33 @@ export default function RentalHistoryScreen() {
 
       {/* Filter Buttons */}
       <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-        {["All", "Completed", "Ongoing", "Canceled"].map((status) => (
-          <TouchableOpacity
-            key={status}
-            className={`rounded-full border ${
-              selectedStatus === status
-                ? "bg-[#0A2E5C] border-[#0A2E5C]"
-                : "bg-white border-gray-300"
-            }`}
-            style={{
-              paddingHorizontal: isSmallScreen ? 12 : 16,
-              paddingVertical: isSmallScreen ? 8 : 10,
-              minHeight: Platform.OS === "ios" ? 36 : 40,
-            }}
-            onPress={() => setSelectedStatus(status)}
-            activeOpacity={0.7}
-          >
-            <Text
-              className={`font-medium ${
-                selectedStatus === status ? "text-white" : "text-gray-600"
-              } ${isSmallScreen ? "text-xs" : "text-sm"}`}
+        {["All", "Pending", "Completed", "Ongoing", "Canceled"].map(
+          (status) => (
+            <TouchableOpacity
+              key={status}
+              className={`rounded-full border ${
+                selectedStatus === status
+                  ? "bg-[#0A2E5C] border-[#0A2E5C]"
+                  : "bg-white border-gray-300"
+              }`}
+              style={{
+                paddingHorizontal: isSmallScreen ? 12 : 16,
+                paddingVertical: isSmallScreen ? 8 : 10,
+                minHeight: Platform.OS === "ios" ? 36 : 40,
+              }}
+              onPress={() => setSelectedStatus(status)}
+              activeOpacity={0.7}
             >
-              {status}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                className={`font-medium ${
+                  selectedStatus === status ? "text-white" : "text-gray-600"
+                } ${isSmallScreen ? "text-xs" : "text-sm"}`}
+              >
+                {status}
+              </Text>
+            </TouchableOpacity>
+          ),
+        )}
       </View>
 
       {/* Selected Date Range Display */}
@@ -606,11 +525,18 @@ export default function RentalHistoryScreen() {
   );
 
   const renderRental = ({ item }) => (
-    <RentalCard rental={item} onPress={openRentalDetails} />
+    <RentalCard
+      rental={item}
+      onPress={openRentalDetails}
+      width={width}
+      isSmallScreen={isSmallScreen}
+      isMediumScreen={isMediumScreen}
+      numColumns={numColumns}
+    />
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
+    <AppLayout>
       {/* Sticky Header */}
       {renderHeader()}
 
@@ -622,6 +548,7 @@ export default function RentalHistoryScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderRental}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
         contentContainerStyle={{
           paddingBottom: Platform.OS === "ios" ? 20 : 16,
           flexGrow: 1,
@@ -629,7 +556,29 @@ export default function RentalHistoryScreen() {
         columnWrapperStyle={
           numColumns > 1 ? { justifyContent: "space-between" } : null
         }
-        style={{ backgroundColor: "#f9fafb" }} // Light gray background only for the list area
+        style={{ backgroundColor: "#f9fafb" }}
+        ListEmptyComponent={
+          loading ? (
+            <View className="flex-1 items-center justify-center py-20">
+              <ActivityIndicator size="large" color="#0A2E5C" />
+              <Text className="text-gray-500 mt-4">Loading bookings…</Text>
+            </View>
+          ) : fetchError ? (
+            <View className="flex-1 items-center justify-center py-20 px-8">
+              <Ionicons name="alert-circle" size={48} color="#EF4444" />
+              <Text className="text-red-500 text-center mt-4">
+                {fetchError}
+              </Text>
+            </View>
+          ) : (
+            <View className="flex-1 items-center justify-center py-20">
+              <Ionicons name="receipt-outline" size={48} color="#9CA3AF" />
+              <Text className="text-gray-400 mt-4">
+                No rental history found
+              </Text>
+            </View>
+          )
+        }
       />
 
       {/* Date Range Picker Modal */}
@@ -894,17 +843,18 @@ export default function RentalHistoryScreen() {
                         PAYMENT DETAILS
                       </Text>
                       <PaymentRow
-                        label="Base Rent"
-                        amount={selectedRental.baseRent}
+                        label="Daily Rate"
+                        amount={selectedRental.dailyRate}
                       />
-                      <PaymentRow
-                        label="Insurance"
-                        amount={selectedRental.insurance}
-                      />
-                      <PaymentRow
-                        label="Service Tax"
-                        amount={selectedRental.serviceTax}
-                      />
+                      <View className="flex-row justify-between items-center py-1">
+                        <Text className="text-sm text-gray-600">
+                          Rental Duration
+                        </Text>
+                        <Text className="text-sm font-medium text-gray-800">
+                          {selectedRental.rentalDays}{" "}
+                          {selectedRental.rentalDays === 1 ? "Day" : "Days"}
+                        </Text>
+                      </View>
                       <View className="border-t border-gray-300 mt-2 pt-2">
                         <PaymentRow
                           label="Total Amount"
@@ -959,7 +909,7 @@ export default function RentalHistoryScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </AppLayout>
   );
 }
 
@@ -987,7 +937,7 @@ const PaymentRow = ({ label, amount, isTotal = false }) => (
         isTotal ? "text-sm font-bold text-[#0A2E5C]" : "text-sm text-gray-800"
       }`}
     >
-      Rs. {amount.toLocaleString()}
+      Rs. {(amount ?? 0).toLocaleString()}
     </Text>
   </View>
 );

@@ -1,25 +1,28 @@
 import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 
-const baseUrl = 'http://localhost:8090';
-const apiVersion = '/api/v1';
+ const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+  const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
 export const NewsLetter = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubscribe = async () => {
-    // Basic email validation
     if (!email || !validateEmail(email)) {
-      setMessage({
-        text: 'Please enter a valid email address',
-        type: 'error',
-      });
+      setMessage({ text: 'Please enter a valid email address', type: 'error' });
       return;
     }
 
@@ -28,147 +31,162 @@ export const NewsLetter = () => {
 
     try {
       const response = await fetch(
-        `${baseUrl}${apiVersion}/subscription/create-subscription`,
+        `${API_BASE_URL}${API_VERSION}/subscription/create-subscription`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email }),
         }
       );
-
       const data = await response.json();
 
       if (data.success) {
         setMessage({ text: data.message, type: 'success' });
-        setEmail(''); // Clear the input on success
+        setEmail('');
       } else {
         setMessage({ text: data.message, type: 'error' });
       }
-    } catch (error) {
-      setMessage({
-        text: 'Failed to subscribe. Please try again later.',
-        type: 'error',
-      });
-      console.error('Subscription error:', error);
+    } catch {
+      setMessage({ text: 'Failed to subscribe. Please try again later.', type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !loading) {
-      handleSubscribe();
-    }
-  };
-
   return (
-    <div className="bg-gray-50 py-12 px-4">
-      <div className="max-w-2xl w-full mx-auto">
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={styles.container}>
         {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-[#0d3778] mb-4">
-            Stay Updated
-          </h2>
-          <p className="text-base text-gray-600 leading-6 px-2">
-            Subscribe to our newsletter for exclusive deals, new vehicle
-            listings, and travel tips
-          </p>
-        </div>
+        <View style={styles.header}>
+          <Text style={styles.title}>Stay Updated</Text>
+          <Text style={styles.subtitle}>
+            Subscribe to our newsletter for exclusive deals, new vehicle listings, and travel tips
+          </Text>
+        </View>
 
-        {/* Form */}
-        <div className="space-y-4">
-          {/* Email Input */}
-          <div className="flex items-center bg-white border-2 border-gray-200 rounded-xl px-4 py-1 focus-within:border-[#0d3778] transition-colors">
-            <svg 
-              className="w-5 h-5 text-gray-600 mr-3"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
-              />
-            </svg>
-            <input
-              type="email"
-              className="flex-1 text-base text-gray-900 py-4 outline-none placeholder-gray-400"
-              placeholder="Enter your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={loading}
-            />
-          </div>
+        {/* Email Input */}
+        <View style={styles.inputWrapper}>
+          <Text style={styles.inputIcon}>✉️</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your email address"
+            placeholderTextColor="#9ca3af"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+            onSubmitEditing={handleSubscribe}
+            returnKeyType="send"
+          />
+        </View>
 
-          {/* Subscribe Button */}
-          <button
-            onClick={handleSubscribe}
-            disabled={loading}
-            className={`w-full bg-[#0d3778] text-white rounded-xl py-[18px] px-6 flex items-center justify-center gap-2 font-semibold shadow-md hover:bg-[#0a2a5c] transition-colors ${
-              loading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+        {/* Subscribe Button */}
+        <TouchableOpacity
+          style={[styles.subscribeBtn, loading && styles.subscribeBtnDisabled]}
+          onPress={handleSubscribe}
+          disabled={loading}
+          activeOpacity={0.85}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <View style={styles.btnInner}>
+              <Text style={styles.btnText}>Subscribe</Text>
+              <Text style={styles.btnArrow}>→</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Success / Error Message */}
+        {message.text ? (
+          <View
+            style={[
+              styles.messageBanner,
+              message.type === 'success' ? styles.successBanner : styles.errorBanner,
+            ]}
           >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <>
-                <span className="text-base">Subscribe</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Success/Error Message */}
-        {message.text && (
-          <div
-            className={`flex items-center p-4 rounded-xl mt-4 border ${
-              message.type === 'success'
-                ? 'bg-green-50 border-green-200'
-                : 'bg-red-50 border-red-200'
-            }`}
-          >
-            <svg
-              className={`w-5 h-5 mr-3 flex-shrink-0 ${
-                message.type === 'success' ? 'text-green-600' : 'text-red-600'
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              {message.type === 'success' ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              )}
-            </svg>
-            <p
-              className={`flex-1 text-sm leading-5 ${
-                message.type === 'success' ? 'text-green-600' : 'text-red-600'
-              }`}
+            <Text style={styles.messageIcon}>
+              {message.type === 'success' ? '✅' : '⚠️'}
+            </Text>
+            <Text
+              style={[
+                styles.messageText,
+                message.type === 'success' ? styles.successText : styles.errorText,
+              ]}
             >
               {message.text}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#f9fafb',
+    paddingVertical: 48,
+    paddingHorizontal: 16,
+  },
+  header: { alignItems: 'center', marginBottom: 32 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#0d3778', marginBottom: 16 },
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  inputIcon: { fontSize: 18, marginRight: 10 },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: '#111827',
+    paddingVertical: 16,
+  },
+  subscribeBtn: {
+    backgroundColor: '#0d3778',
+    borderRadius: 12,
+    paddingVertical: 18,
+    alignItems: 'center',
+    shadowColor: '#0d3778',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  subscribeBtnDisabled: { opacity: 0.5 },
+  btnInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  btnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  btnArrow: { color: '#fff', fontSize: 18 },
+  messageBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+    borderWidth: 1,
+    gap: 10,
+  },
+  successBanner: { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
+  errorBanner: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+  messageIcon: { fontSize: 16 },
+  messageText: { flex: 1, fontSize: 13, lineHeight: 20 },
+  successText: { color: '#16a34a' },
+  errorText: { color: '#dc2626' },
+});

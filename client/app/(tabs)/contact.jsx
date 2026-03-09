@@ -14,7 +14,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '../../components/themed-text';
-import { IconSymbol } from '../../components/ui/icon-symbol';
+import { Ionicons } from '@expo/vector-icons';
+import AppLayout from '../../components/layout/Layout';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect } from 'react';
 
 // Responsive scaling helpers
 const { width: BASE_WIDTH, height: BASE_HEIGHT } = Dimensions.get('window');
@@ -28,6 +31,21 @@ const moderateScale = (size, factor = 0.5) => size + (scale(size) - size) * fact
 export default function ContactScreen() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userStr = await AsyncStorage.getItem('user');
+        if (userStr && userStr !== 'undefined' && userStr !== 'null') {
+          setUser(JSON.parse(userStr));
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
   
   // Responsive breakpoints
   const isSmall = width < 360;
@@ -37,25 +55,25 @@ export default function ContactScreen() {
   const contactCards = [
     {
       title: 'Address',
-      iconName: 'location.fill',
+      iconName: 'location',
       lines: ['Colombo,', 'Sri Lanka'],
       type: 'address',
     },
     {
       title: 'Mail Us',
-      iconName: 'envelope.fill',
-      lines: ['info@rentmycar.lk', 'sales@rentmycar.lk'],
+      iconName: 'mail',
+      lines: ['dev.gamagerecruiters@gmail.com'],
       type: 'email',
     },
     {
       title: 'Telephone',
-      iconName: 'phone.fill',
+      iconName: 'call',
       lines: ['0773342567', '0777642250'],
       type: 'phone',
     },
     {
       title: 'Hot Line',
-      iconName: 'headphones',
+      iconName: 'headset',
       lines: ['0777315095', '0777443552'],
       type: 'phone',
     },
@@ -123,68 +141,12 @@ export default function ContactScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
-      {/* Top Header */}
-      <View style={[styles.topHeader, responsiveStyles.topHeader]}>
-        <View style={styles.logoContainer}>
-          <Image 
-            source={{ uri: 'https://via.placeholder.com/40x30?text=🚗' }}
-            style={[styles.logoIcon, { width: moderateScale(40), height: moderateScale(30) }]}
-            resizeMode="contain"
-          />
-          <ThemedText style={[styles.logoText, { fontSize: responsiveStyles.logoText.fontSize }]}>
-            Rent My Car
-          </ThemedText>
-        </View>
-        <TouchableOpacity style={styles.menuButton}>
-          <View style={[styles.menuIcon, { width: moderateScale(24), height: moderateScale(18) }]}>
-            <View style={[styles.menuLine, { width: moderateScale(24), height: moderateScale(3) }]} />
-            <View style={[styles.menuLine, { width: moderateScale(24), height: moderateScale(3) }]} />
-            <View style={[styles.menuLine, { width: moderateScale(24), height: moderateScale(3) }]} />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* Blue Info Bar */}
-      <LinearGradient
-        colors={['#0D3778', '#0D3778', '#999FA8']}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        locations={[0.14, 0.46, 1]}
-        style={[styles.infoBar, { paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(8) }]}
-      >
-        <TouchableOpacity style={styles.infoItem} onPress={handleLocation}>
-          <IconSymbol name="location.fill" size={responsiveStyles.infoIconSize} color="#fff" />
-          <ThemedText style={[styles.infoText, { fontSize: responsiveStyles.infoTextSize }]}>
-            Find A Location
-          </ThemedText>
-        </TouchableOpacity>
+    <AppLayout user={user}>
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" />
         
-        <TouchableOpacity style={styles.infoItem} onPress={() => handlePhone('0777764224')}>
-          <IconSymbol name="phone.fill" size={responsiveStyles.infoIconSize} color="#fff" />
-          <ThemedText style={[styles.infoText, { fontSize: responsiveStyles.infoTextSize }]}>
-            0777764224
-          </ThemedText>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.infoItem} onPress={() => handleEmail('rentmycar@gmail.com')}>
-          <IconSymbol name="envelope.fill" size={responsiveStyles.infoIconSize} color="#fff" />
-          <ThemedText style={[styles.infoText, { fontSize: responsiveStyles.infoTextSize }]}>
-            rentmycar@gmail.com
-          </ThemedText>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.rentButton}>
-          <ThemedText style={[styles.rentButtonText, { fontSize: responsiveStyles.rentBtnFontSize }]}>
-            Rent Your Car
-          </ThemedText>
-        </TouchableOpacity>
-      </LinearGradient>
-
-      <ScrollView style={styles.scrollContainer} bounces={false}>
-        {/* Hero Section */}
+        <ScrollView style={styles.scrollContainer} bounces={false}>
+          {/* Hero Section */}
         <ImageBackground
           source={{ 
             uri: 'https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=800&q=80' 
@@ -231,7 +193,7 @@ export default function ContactScreen() {
                     height: moderateScale(40),
                     borderRadius: moderateScale(10),
                   }]}>
-                    <IconSymbol name={card.iconName} size={moderateScale(20)} color="#fff" />
+                    <Ionicons name={card.iconName} size={moderateScale(20)} color="#fff" />
                   </View>
                   
                   <ThemedText style={[styles.cardTitle, { fontSize: moderateScale(12) }]}>
@@ -276,7 +238,7 @@ export default function ContactScreen() {
                     height: moderateScale(40),
                     borderRadius: moderateScale(10),
                   }]}>
-                    <IconSymbol name={card.iconName} size={moderateScale(20)} color="#fff" />
+                    <Ionicons name={card.iconName} size={moderateScale(20)} color="#fff" />
                   </View>
                   
                   <ThemedText style={[styles.cardTitle, { fontSize: moderateScale(12) }]}>
@@ -303,8 +265,9 @@ export default function ContactScreen() {
             </View>
           </View>
         </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </AppLayout>
   );
 }
 
