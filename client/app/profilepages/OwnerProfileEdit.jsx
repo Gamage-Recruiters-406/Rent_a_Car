@@ -43,6 +43,7 @@ export default function OwnerProfileEdit({
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -53,7 +54,7 @@ export default function OwnerProfileEdit({
         if (token && userId) {
           const headers = { Authorization: `Bearer ${token}` };
 
-          const response  = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserDetails`, { headers });
+          const response = await axios.get(`${baseUrl}${apiVersion}/authUser/getUserDetails`, { headers });
           const response2 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/earnings/${userId}`, { headers });
           const response3 = await axios.get(`${baseUrl}${apiVersion}/bookings/owner/`, { headers });
           const response4 = await axios.get(`${baseUrl}${apiVersion}/vehicle/get-my-all`, { headers });
@@ -128,9 +129,36 @@ export default function OwnerProfileEdit({
   const handleEdit = () => {
     setIsEditing(true);
     setEditedProfile(activeProfile);
+    setErrors({});
+  };
+
+  const validate = () => {
+    let newErrors = {};
+
+    if (!editedProfile.first_name || !editedProfile.first_name.trim()) {
+      newErrors.first_name = 'First name is required';
+    } else if (!/^[A-Za-z\s]+$/.test(editedProfile.first_name)) {
+      newErrors.first_name = 'First name must contain only letters';
+    }
+
+    if (!editedProfile.last_name || !editedProfile.last_name.trim()) {
+      newErrors.last_name = 'Last name is required';
+    } else if (!/^[A-Za-z\s]+$/.test(editedProfile.last_name)) {
+      newErrors.last_name = 'Last name must contain only letters';
+    }
+
+    if (!editedProfile.contactNumber) {
+      newErrors.contactNumber = 'Phone number is required';
+    } else if (!/^\d{10}$/.test(String(editedProfile.contactNumber).trim())) {
+      newErrors.contactNumber = 'Phone number must be exactly 10 digits';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
+    if (!validate()) return;
     setIsLoading(true);
     try {
       const token = await AsyncStorage.getItem('userToken');
@@ -183,6 +211,7 @@ export default function OwnerProfileEdit({
     setEditedProfile(activeProfile);
     setIsEditing(false);
     setImageFile(null);
+    setErrors({});
     setImagePreview(
       activeProfile.profilePicture ? `${baseUrl}/${activeProfile.profilePicture}` : null
     );
@@ -190,6 +219,9 @@ export default function OwnerProfileEdit({
 
   const handleFieldChange = (field, value) => {
     setEditedProfile((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
     onProfileChange?.(field, value);
   };
 
@@ -338,6 +370,7 @@ export default function OwnerProfileEdit({
                 onChangeText={(v) => handleFieldChange('first_name', v)}
                 editable={isEditing}
               />
+              {errors.first_name && <Text className="text-red-500 text-xs mt-1">{errors.first_name}</Text>}
             </View>
           </View>
 
@@ -352,6 +385,7 @@ export default function OwnerProfileEdit({
                 onChangeText={(v) => handleFieldChange('last_name', v)}
                 editable={isEditing}
               />
+              {errors.last_name && <Text className="text-red-500 text-xs mt-1">{errors.last_name}</Text>}
             </View>
           </View>
 
@@ -381,6 +415,7 @@ export default function OwnerProfileEdit({
                 editable={isEditing}
                 keyboardType="numeric"
               />
+              {errors.contactNumber && <Text className="text-red-500 text-xs mt-1">{errors.contactNumber}</Text>}
             </View>
           </View>
 
