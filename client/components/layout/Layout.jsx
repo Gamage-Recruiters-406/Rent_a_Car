@@ -26,6 +26,7 @@ import Header from './Header';
 import { CustomerFooter, OwnerFooter } from './Footer';
 import CustomerSidebar from './CustomerSidebar';
 import OwnerSidebar from './OwnerSidebar';
+import GuestSidebar from './GuestSidebar';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
@@ -85,7 +86,7 @@ export default function AppLayout({
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9fafb' }}>
+    <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
       {/* Header — passes user so it can show name/role, and opens sidebar on menu press */}
       <Header
         user={user}
@@ -93,6 +94,14 @@ export default function AppLayout({
         onSettingsPress={() => console.log('Settings pressed')}
         {...headerProps}
       />
+
+      {/* Guest Sidebar — only rendered for non-logged in users */}
+      {userRole === 'guest' && (
+        <GuestSidebar
+          isVisible={isSidebarVisible}
+          onClose={() => setIsSidebarVisible(false)}
+        />
+      )}
 
       {/* Customer Sidebar — only rendered for role 1 */}
       {userRole === 'customer' && (
@@ -121,6 +130,6 @@ export default function AppLayout({
 
       {/* Footer — different for customer and owner */}
       {userRole === 'owner' ? <OwnerFooter /> : <CustomerFooter />}
-    </SafeAreaView>
+    </View>
   );
 }
