@@ -75,8 +75,6 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
-.env
-.env.*
 !.env.example
 .env*.local
 
@@ -149,8 +147,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Editor directories and files
-.vscode/
-.vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -201,3 +197,5 @@ config.bat
 
 
 uploads/
+temp_auto_push.bat
+temp_interactive_push.bat
