@@ -52,11 +52,24 @@ export default function Header({
         </View>
 
         {/* Right - Menu icon */}
-        <View className="flex-row items-center">
+        <View className="flex-row items-center gap-2">
+          {showNotifications && (
+            <TouchableOpacity
+              onPress={onNotificationsPress}
+              className="p-2"
+              activeOpacity={0.6}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="notifications-outline" size={28} color="#1e3a8a" />
+            </TouchableOpacity>
+          )}
+
           {showMenu && (
             <TouchableOpacity
               onPress={onMenuPress}
               className="p-2"
+              activeOpacity={0.6}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Ionicons name="menu" size={28} color="#1e3a8a" />
             </TouchableOpacity>
@@ -66,6 +79,8 @@ export default function Header({
             <TouchableOpacity
               onPress={onBackPress}
               className="p-2"
+              activeOpacity={0.6}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Ionicons name="arrow-back" size={28} color="#1e3a8a" />
             </TouchableOpacity>

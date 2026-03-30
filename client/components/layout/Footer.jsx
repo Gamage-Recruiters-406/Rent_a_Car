@@ -10,8 +10,8 @@ export function CustomerFooter() {
 
   const footerItems = [
     { id: 1, icon: 'home', iconOutline: 'home-outline', label: 'Home', route: '/Home/homepage' },
-    { id: 2, icon: 'search', iconOutline: 'search-outline', label: 'Search', route: '/vehicles/search' },
-    { id: 3, icon: 'heart', iconOutline: 'heart-outline', label: 'Favorites', route: '/favorites' },
+    { id: 2, icon: 'search', iconOutline: 'search-outline', label: 'Search', route: '/CustomerVehicleList' },
+    // { id: 3, icon: 'heart', iconOutline: 'heart-outline', label: 'Favorites', route: '/favorites' },
     { id: 4, icon: 'calendar', iconOutline: 'calendar-outline', label: 'Bookings', route: '/Cus_booking-history/booking-history' },
     { id: 5, icon: 'person', iconOutline: 'person-outline', label: 'Profile', route: '/profilepages/CustomerProfileEdit' },
   ];
@@ -61,9 +61,9 @@ export function OwnerFooter() {
 
   const footerItems = [
     { id: 1, icon: 'home', iconOutline: 'home-outline', label: 'Home', route: '/Home/homepage' },
-    { id: 2, icon: 'search', iconOutline: 'search-outline', label: 'Search', route: '/vehicles/search' },
-    { id: 3, icon: 'heart', iconOutline: 'heart-outline', label: 'Favorites', route: '/favorites' },
-    { id: 4, icon: 'calendar', iconOutline: 'calendar-outline', label: 'Bookings', route: '/booking' },
+    { id: 2, icon: 'view-dashboard-outline', iconOutline: 'view-dashboard-outline', label: 'Dashboard', route: '/owner/owner-dashboard' },
+    { id: 3, icon: 'car-outline', iconOutline: 'car-outline', label: 'My Vehicles', route: '/owner/my-vehicle' },
+    { id: 4, icon: 'calendar', iconOutline: 'calendar-outline', label: 'Bookings', route: '/(tabs)/booking' },
     { id: 5, icon: 'person', iconOutline: 'person-outline', label: 'Profile', route: '/profilepages/OwnerProfileEdit' },
   ];
 

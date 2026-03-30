@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
+import { Stack } from 'expo-router';
 import AppLayout from '../components/layout/Layout';
 
 export default function ReviewsScreen() {
@@ -256,9 +257,11 @@ export default function ReviewsScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <AppLayout>
-      <ScrollView contentContainerClassName="p-4 pb-8">
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-white">
+        <AppLayout>
+        <ScrollView contentContainerClassName="p-4 pb-8">
         <View className="p-6">
             <Text className="text-2xl font-bold text-center text-[#0D3778] mt-2">
             Customer Reviews
@@ -514,8 +517,9 @@ export default function ReviewsScreen() {
             </View>
           </View>
         </Modal>
-      </ScrollView>
-      </AppLayout>
-    </SafeAreaView>
+        </ScrollView>
+        </AppLayout>
+      </SafeAreaView>
+    </>
   );
 }

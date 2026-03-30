@@ -16,7 +16,9 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker/js';
 import { useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
+import AppLayout from '../../components/layout/Layout';
 import {
   Calendar as CalendarIconLucide,
   DollarSign,
@@ -315,8 +317,10 @@ export default function CustomerVehicleList() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <AppLayout>
+        <ScrollView showsVerticalScrollIndicator={false}>
         <View className="bg-[#0D3778] px-4 py-10">
           <Text className="text-3xl font-bold text-white">Find Your Perfect Ride</Text>
           <Text className="text-blue-100 text-base mt-2">
@@ -759,6 +763,7 @@ export default function CustomerVehicleList() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+      </AppLayout>
+    </>
   );
 }

@@ -12,7 +12,8 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
+import AppLayout from '../../components/layout/Layout';
 
 const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 const apiVersion = process.env.EXPO_PUBLIC_API_VERSION;
@@ -258,7 +259,10 @@ export default function CustomerProfileEdit({
   const totalSpends = customerBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
 
   return (
-    <ScrollView className="flex-1 bg-gray-100" showsVerticalScrollIndicator={false}>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <AppLayout>
+        <ScrollView className="flex-1 bg-gray-100" showsVerticalScrollIndicator={false}>
 
       {/* ── Header ── */}
       <View className="bg-[#0A2E5C] px-4 pt-6 pb-5">
@@ -487,8 +491,10 @@ export default function CustomerProfileEdit({
             </View>
           ))}
         </View>
-
       </View>
-    </ScrollView>
+        </ScrollView>
+      </AppLayout>
+    </>
+
   );
 }

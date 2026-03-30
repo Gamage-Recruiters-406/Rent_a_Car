@@ -143,7 +143,7 @@ export default function OwnerSidebar({ isVisible, onClose, user = {} }) {
       id: 5,
       icon: 'calendar-outline',
       label: 'Bookings',
-      route: '/booking',
+      route: '/(tabs)/booking',
       iconType: 'Ionicons',
       expandable: true,
       subItems: [

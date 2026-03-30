@@ -38,9 +38,10 @@ app.post(
 
 // ✅ Updated CORS: Added specific frontend origin and allowed headers
 app.use(cors({
-    origin: ["http://localhost:5173", "http://localhost:8081", "http://0.0.0.0:8081", "http://0.0.0.0:8090"], 
-    // origin: "*",
-    credentials: true,
+    // origin: ["http://localhost:5173", "http://localhost:8081", "http://0.0.0.0:8081", "http://0.0.0.0:8090"], 
+    // credentials: true,
+    origin: "*",
+    credentials: false,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));

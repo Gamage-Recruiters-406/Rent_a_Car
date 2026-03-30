@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   FlatList,
   View,
@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  Platform,
   Image,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatDistanceToNow } from 'date-fns';
 import axios from 'axios';
+import { Stack } from 'expo-router';
 import AppLayout from '../components/layout/Layout';
 
 const stars = [1, 2, 3, 4, 5];
@@ -36,7 +36,7 @@ export default function MyReviewsMobile() {
 
   const IMAGE_BASE_URL = API_BASE_URL || '';
 
-  const fetchMyReviews = async ()=>{
+  const fetchMyReviews = useCallback(async ()=>{
       setLoading(true);
     try {
         const res = await axios.get(`${API_BASE_URL}${API_VERSION}/reviews/me`,
@@ -58,11 +58,11 @@ export default function MyReviewsMobile() {
     } finally {
         setLoading(false);
     }
-  };
+  }, [API_BASE_URL, API_VERSION]);
 
   useEffect(() => {
     fetchMyReviews();
-  }, []);
+  }, [fetchMyReviews]);
 
   const handleEdit = (review) => {
     setEditingId(review._id);
@@ -303,15 +303,18 @@ export default function MyReviewsMobile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <AppLayout>
-        <FlatList
-          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-          data={reviews}
-          keyExtractor={(item) => item._id}
-          renderItem={renderReview}
-        />
-      </AppLayout>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView className="flex-1 bg-white">
+        <AppLayout>
+          <FlatList
+            contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+            data={reviews}
+            keyExtractor={(item) => item._id}
+            renderItem={renderReview}
+          />
+        </AppLayout>
+      </SafeAreaView>
 
       {/* Delete Confirmation Modal */}
       <Modal visible={!!deleteTargetId} transparent animationType="fade">
@@ -343,6 +346,6 @@ export default function MyReviewsMobile() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }

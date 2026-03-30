@@ -39,10 +39,10 @@ export default function CustomerSidebar({
 
   const menuItems = [
     { id: 1, icon: 'home-outline', label: 'Home', route: '/Home/homepage' },
-    { id: 2, icon: 'car-outline', label: 'Browse Cars', route: '/CustomerVehicleList' },
+    { id: 2, icon: 'car-outline', label: 'Browse Cars', route: '/vehicle_booking' },
     { id: 3, icon: 'calendar-outline', label: 'My Bookings', route: '/Cus_booking-history/booking-history' },
     { id: 4, icon: 'star-outline', label: 'My Reviews', route: '/MyReviews' },
-    { id: 5, icon: 'call-outline', label: 'Contact Us', route: '/contact' },
+    { id: 5, icon: 'call-outline', label: 'Contact Us', route: '/(tabs)/contact' },
     { id: 6, icon: 'notifications-outline', label: 'Notifications', route: '/Notifications/Notification' },
     { id: 7, icon: 'person-outline', label: 'Profile', route: '/profilepages/CustomerProfileEdit' },
     { id: 8, icon: 'settings-outline', label: 'Settings', route: '/admin/settings' },

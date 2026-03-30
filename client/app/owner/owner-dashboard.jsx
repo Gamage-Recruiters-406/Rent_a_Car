@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Modal, Dim
 import { Car, Calendar, DollarSign, Star, X } from 'lucide-react-native';
 import { LineChart } from 'react-native-chart-kit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Stack } from 'expo-router';
 
 import { getRawOwnerBookings, getOwnerEarnings, getMyVehicleListings, getMyVehicleReviews, api } from '../../services/ownerApi';
 
@@ -428,7 +429,9 @@ const OwnerDashboard = () => {
   const recentBookings = bookings.slice(0, 5);
 
   return (
-    <AppLayout user={user}>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <AppLayout user={user}>
       <View className="flex-1 bg-gray-50">
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
           {/* Metric Cards */}
@@ -510,7 +513,8 @@ const OwnerDashboard = () => {
         <BookingPopup booking={selectedBooking} onClose={closePopup} />
       )}
       </View>
-    </AppLayout>
+      </AppLayout>
+    </>
   );
 };
 

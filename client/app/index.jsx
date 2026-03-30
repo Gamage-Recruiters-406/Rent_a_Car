@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Link } from "expo-router";
+// import { View, Text, TouchableOpacity, Alert } from "react-native";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import { Link } from "expo-router";
 import { ScrollView, StyleSheet } from "react-native";
 import { Hero } from "../components/ui/Hero";
 import { Stats } from "../components/ui/Stats";
