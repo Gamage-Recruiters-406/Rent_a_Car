@@ -13,6 +13,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatDistanceToNow } from 'date-fns';
 import axios from 'axios';
+import AppLayout from '../components/layout/Layout';
 
 const stars = [1, 2, 3, 4, 5];
 
@@ -27,7 +28,7 @@ export default function MyReviewsMobile() {
   const [expandedReviews, setExpandedReviews] = useState([]);
 
   // const API_BASE_URL = 
-  //   Platform.OS === 'web'?
+  //   Platform.OS = 'web'?
   //     'http://localhost:8090':  
   //     process.env.EXPO_PUBLIC_API_BASE_URL;
   const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
@@ -36,6 +37,7 @@ export default function MyReviewsMobile() {
   const IMAGE_BASE_URL = API_BASE_URL || '';
 
   const fetchMyReviews = async ()=>{
+      setLoading(true);
     try {
         const res = await axios.get(`${API_BASE_URL}${API_VERSION}/reviews/me`,
         {withCredentials:true}
@@ -84,7 +86,7 @@ export default function MyReviewsMobile() {
         // Re-fetch latest reviews
         await fetchMyReviews();
 
-        alert('Review updated successfully');
+        // alert('Review updated successfully');
 
 
         
@@ -113,7 +115,7 @@ export default function MyReviewsMobile() {
         );
 
         await fetchMyReviews();
-        alert('Review deleted successfully');
+        // alert('Review deleted successfully');
 
         setDeleteTargetId(null); // colse modal
     } catch (error) {
@@ -140,6 +142,10 @@ export default function MyReviewsMobile() {
 
     return (
       <View className="bg-white rounded-xl p-4 mb-4 border-2 border-[#0D3778] relative">
+
+        {loading && (
+            <p className="text-center text-gray-500">Loading reviews...</p>
+        )}
         {/* Top Row: Image + Title + Menu */}
         <View className="flex-row items-start">
           <View className="w-20 h-20 bg-blue-100 rounded-lg overflow-hidden">
@@ -298,12 +304,14 @@ export default function MyReviewsMobile() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <FlatList
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-        data={reviews}
-        keyExtractor={(item) => item._id}
-        renderItem={renderReview}
-      />
+      <AppLayout>
+        <FlatList
+          contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+          data={reviews}
+          keyExtractor={(item) => item._id}
+          renderItem={renderReview}
+        />
+      </AppLayout>
 
       {/* Delete Confirmation Modal */}
       <Modal visible={!!deleteTargetId} transparent animationType="fade">
