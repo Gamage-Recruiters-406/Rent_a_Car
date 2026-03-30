@@ -11,6 +11,7 @@ import { QuickStats } from "../components/ui/Quickstats";
 import AppLayout from "../components/layout/Layout";
 
 export default function HomeScreen() {
+  console.log('API Base URL:', process.env.EXPO_PUBLIC_API_BASE_URL);
   return (
     <ScrollView
     // style={styles.container}
@@ -50,13 +51,13 @@ export default function HomeScreen() {
         </Link>
       </View>  */}
 
-      <Link href="/vehicle_booking" asChild>
+      {/* <Link href="/vehicle_booking" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             VEHICLE BOOKING
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
      {/* <Link href="/owner/rental-history" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -83,13 +84,13 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link> */}
 
-      <Link href="/vehicle/6981d6ae24ec9900bf582a54" asChild>
+      {/* <Link href="/vehicle/6981d6ae24ec9900bf582a54" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
           <Text className="text-white font-semibold text-lg text-center">
             vehicle details
           </Text>
         </TouchableOpacity>
-      </Link>
+      </Link> */}
 
     {/*  <Link href="/booking" asChild>
         <TouchableOpacity className="bg-blue-500 px-6 py-3 rounded-lg mt-4 shadow-sm w-64">
@@ -141,7 +142,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Link> */}
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         onPress={async () => {
           const keys = ["userToken", "userId", "userRole"];
           const result = await AsyncStorage.multiGet(keys);
@@ -155,7 +156,7 @@ export default function HomeScreen() {
         <Text className="text-white font-semibold text-lg text-center">
           Check Stored Data
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
      {/*   <View className="bg-gray-100 p-6 rounded-2xl mt-6 shadow-sm w-72 items-center">
         <Text className="text-[#0A2E5C] font-bold text-lg mb-4">Profiles</Text>
