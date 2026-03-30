@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, Car, HandCoins, FileText, Hourglass } from 'lucide-react';
+import { Users, Car, HandCoins, FileText, Hourglass, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Layout from '../../layouts/Layout';
 
@@ -61,10 +61,13 @@ const StatCard = ({ icon: Icon, title, value, subtitle, showTrend }) => (
 );
 
 const VehicleStatusChart = ({ approved = 0, pending = 0, rejected = 0 }) => {
-  const total = approved + pending + rejected || 1;
+  const [hoveredStatus, setHoveredStatus] = useState(null);
+  const totalCount = approved + pending + rejected;
+  const total = totalCount || 1;
   const approvedPercent = (approved / total) * 100;
   const pendingPercent = (pending / total) * 100;
   const rejectedPercent = (rejected / total) * 100;
+  const formatPercent = (value) => (totalCount > 0 ? `${((value / totalCount) * 100).toFixed(0)}%` : '0%');
 
   // Small gap between segments (in percentage)
   const gap = 1.0;
@@ -78,6 +81,22 @@ const VehicleStatusChart = ({ approved = 0, pending = 0, rejected = 0 }) => {
   const approvedOffset = 0;
   const pendingOffset = -(approvedPercent * 1.88);
   const rejectedOffset = -((approvedPercent + pendingPercent) * 1.88);
+
+  const getLabelPosition = (startPercent, segmentPercent, radius = 30) => {
+    const angle = -90 + (startPercent + segmentPercent / 2) * 3.6;
+    const angleInRadians = (angle * Math.PI) / 180;
+    return {
+      x: 50 + radius * Math.cos(angleInRadians),
+      y: 50 + radius * Math.sin(angleInRadians),
+    };
+  };
+
+  const approvedLabel = getLabelPosition(0, approvedPercent);
+  const pendingLabel = getLabelPosition(approvedPercent, pendingPercent);
+  const rejectedLabel = getLabelPosition(approvedPercent + pendingPercent, rejectedPercent);
+
+  const hoveredPercent = hoveredStatus ? formatPercent(hoveredStatus.value) : '';
+  const hoveredLabel = hoveredStatus ? hoveredStatus.label : '';
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
@@ -93,10 +112,18 @@ const VehicleStatusChart = ({ approved = 0, pending = 0, rejected = 0 }) => {
                 r="30"
                 fill="none"
                 stroke="#10B981"
-                strokeWidth="18"
+                strokeWidth={hoveredStatus?.key === 'approved' ? 20 : 18}
                 strokeDasharray={`${approvedArc} 188.4`}
                 strokeDashoffset={approvedOffset}
                 strokeLinecap="butt"
+                className="transition-all duration-200 cursor-pointer"
+                style={{
+                  filter: hoveredStatus?.key === 'approved' ? 'drop-shadow(0 3px 4px rgba(0,0,0,0.25))' : 'none',
+                  transform: hoveredStatus?.key === 'approved' ? 'scale(1.03)' : 'scale(1)',
+                  transformOrigin: '50px 50px',
+                }}
+                onMouseEnter={() => setHoveredStatus({ key: 'approved', label: 'Approved', value: approved })}
+                onMouseLeave={() => setHoveredStatus(null)}
               />
             )}
             {/* Pending segment - Amber */}
@@ -107,10 +134,18 @@ const VehicleStatusChart = ({ approved = 0, pending = 0, rejected = 0 }) => {
                 r="30"
                 fill="none"
                 stroke="#FBBF24"
-                strokeWidth="18"
+                strokeWidth={hoveredStatus?.key === 'pending' ? 20 : 18}
                 strokeDasharray={`${pendingArc} 188.4`}
                 strokeDashoffset={pendingOffset}
                 strokeLinecap="butt"
+                className="transition-all duration-200 cursor-pointer"
+                style={{
+                  filter: hoveredStatus?.key === 'pending' ? 'drop-shadow(0 3px 4px rgba(0,0,0,0.25))' : 'none',
+                  transform: hoveredStatus?.key === 'pending' ? 'scale(1.03)' : 'scale(1)',
+                  transformOrigin: '50px 50px',
+                }}
+                onMouseEnter={() => setHoveredStatus({ key: 'pending', label: 'Pending', value: pending })}
+                onMouseLeave={() => setHoveredStatus(null)}
               />
             )}
             {/* Rejected segment - Red */}
@@ -121,13 +156,66 @@ const VehicleStatusChart = ({ approved = 0, pending = 0, rejected = 0 }) => {
                 r="30"
                 fill="none"
                 stroke="#EF4444"
-                strokeWidth="18"
+                strokeWidth={hoveredStatus?.key === 'rejected' ? 20 : 18}
                 strokeDasharray={`${rejectedArc} 188.4`}
                 strokeDashoffset={rejectedOffset}
                 strokeLinecap="butt"
+                className="transition-all duration-200 cursor-pointer"
+                style={{
+                  filter: hoveredStatus?.key === 'rejected' ? 'drop-shadow(0 3px 4px rgba(0,0,0,0.25))' : 'none',
+                  transform: hoveredStatus?.key === 'rejected' ? 'scale(1.03)' : 'scale(1)',
+                  transformOrigin: '50px 50px',
+                }}
+                onMouseEnter={() => setHoveredStatus({ key: 'rejected', label: 'Rejected', value: rejected })}
+                onMouseLeave={() => setHoveredStatus(null)}
               />
             )}
+
+            {approvedPercent > 0 && (
+              <text
+                x={approvedLabel.x}
+                y={approvedLabel.y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                transform="rotate(90 50 50)"
+                className="fill-slate-800 text-[6px] font-semibold pointer-events-none"
+              >
+                {formatPercent(approved)}
+              </text>
+            )}
+
+            {pendingPercent > 0 && (
+              <text
+                x={pendingLabel.x}
+                y={pendingLabel.y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                transform="rotate(90 50 50)"
+                className="fill-slate-800 text-[6px] font-semibold pointer-events-none"
+              >
+                {formatPercent(pending)}
+              </text>
+            )}
+
+            {rejectedPercent > 0 && (
+              <text
+                x={rejectedLabel.x}
+                y={rejectedLabel.y}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                transform="rotate(90 50 50)"
+                className="fill-slate-800 text-[6px] font-semibold pointer-events-none"
+              >
+                {formatPercent(rejected)}
+              </text>
+            )}
           </svg>
+          {hoveredStatus && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-xl font-bold text-[#0D3778] leading-none transition-all duration-200">{hoveredPercent}</span>
+              <span className="text-[10px] text-slate-500 mt-1">{hoveredLabel}</span>
+            </div>
+          )}
         </div>
 
         <div className="w-full space-y-2.5">
@@ -158,7 +246,7 @@ const VehicleStatusChart = ({ approved = 0, pending = 0, rejected = 0 }) => {
   );
 };
 
-const BookingOverviewChart = ({ data = [] }) => {
+const BookingOverviewChart = ({ data = [], period = 'year', onPeriodChange }) => {
   // Calculate max value from actual data
   const maxDone = Math.max(...data.map(d => d.done), 0);
   const maxCancelled = Math.max(...data.map(d => d.cancelled), 0);
@@ -187,12 +275,34 @@ const BookingOverviewChart = ({ data = [] }) => {
 
   // Calculate Y-axis labels (top to bottom: max, mid, 0, mid, max)
   const midValue = maxYAxisValue / 2;
+  const periodOptions = [
+    { value: 'year', label: 'This Year' },
+    { value: 'month', label: 'This Month' },
+    { value: 'week', label: 'This Week' },
+  ];
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-base font-semibold text-[#0D3778]">Booking Overview</h3>
-        <span className="text-xs px-2.5 py-1 bg-slate-100 rounded-full text-slate-600 font-medium">This Year</span>
+        <div className="relative inline-block">
+          <select
+            value={period}
+            onChange={(event) => onPeriodChange?.(event.target.value)}
+            className="appearance-none text-xs pl-3 pr-9 py-1.5 bg-slate-100 rounded-full text-[#0D3778] font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
+          >
+            {periodOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D3778] pointer-events-none"
+            size={14}
+            strokeWidth={2.2}
+          />
+        </div>
       </div>
 
       <div className="flex gap-6 mb-6">
@@ -262,11 +372,11 @@ const BookingOverviewChart = ({ data = [] }) => {
             </div>
           </div>
 
-          {/* Months labels below chart */}
+          {/* X-axis labels below chart */}
           <div className="flex justify-between gap-1 mt-3">
             {data.map((item, index) => (
               <div key={index} className="flex-1 text-center">
-                <span className="text-xs text-slate-600 font-medium">{item.month}</span>
+                <span className="text-xs text-slate-600 font-medium">{item.label}</span>
               </div>
             ))}
           </div>
@@ -324,18 +434,58 @@ export default function AdminDashboard() {
     pending: 0,
     rejected: 0,
   });
+  const [bookings, setBookings] = useState([]);
+  const [bookingPeriod, setBookingPeriod] = useState('year');
   const [bookingData, setBookingData] = useState([]);
   const [mostRentedCars, setMostRentedCars] = useState([]);
+
+  useEffect(() => {
+    setBookingData(calculateBookingOverviewData(bookings, bookingPeriod));
+  }, [bookings, bookingPeriod]);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
+  const fetchAllPaidPaymentsForAdmin = async () => {
+    const firstPageResponse = await fetch(
+      `${baseUrl}${apiVersion}/payment/get-all-paid-payments-for-admin?limit=100&page=1`,
+      { credentials: 'include' }
+    );
+
+    const firstPageData = await firstPageResponse.json();
+    if (!firstPageData.success) {
+      return { success: false, payments: [] };
+    }
+
+    const totalPages = firstPageData.pagination?.totalPages || 1;
+    if (totalPages <= 1) {
+      return { success: true, payments: firstPageData.payments || [] };
+    }
+
+    const pageRequests = Array.from({ length: totalPages - 1 }, (_, index) =>
+      fetch(
+        `${baseUrl}${apiVersion}/payment/get-all-paid-payments-for-admin?limit=100&page=${index + 2}`,
+        { credentials: 'include' }
+      ).then((response) => response.json())
+    );
+
+    const pagedResults = await Promise.all(pageRequests);
+    const remainingPayments = pagedResults
+      .filter((result) => result?.success)
+      .flatMap((result) => result.payments || []);
+
+    return {
+      success: true,
+      payments: [...(firstPageData.payments || []), ...remainingPayments],
+    };
+  };
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
 
-      const [usersRes, vehiclesRes, bookingsRes] = await Promise.all([
+      const [usersRes, vehiclesRes, bookingsRes, paymentsData] = await Promise.all([
         fetch(`${baseUrl}${apiVersion}/authUser/getAllUsers`, {
           credentials: 'include',
         }),
@@ -345,6 +495,7 @@ export default function AdminDashboard() {
         fetch(`${baseUrl}${apiVersion}/bookings/get`, {
           credentials: 'include',
         }),
+        fetchAllPaidPaymentsForAdmin(),
       ]);
 
       const usersData = await usersRes.json();
@@ -356,11 +507,12 @@ export default function AdminDashboard() {
       const vehicles = vehiclesData.vehicles || [];
       const bookings = bookingsData.data || [];
 
-      if ((Array.isArray(usersData) || usersData.success) && vehiclesData.success && bookingsData.success) {
+      if ((Array.isArray(usersData) || usersData.success) && vehiclesData.success && bookingsData.success && paymentsData.success) {
 
-        const totalRevenue = bookings
-          .filter(b => String(b.status || '').toLowerCase() === 'paid')
-          .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+        const totalRevenue = (paymentsData.payments || []).reduce(
+          (sum, payment) => sum + Number(payment?.amount?.amount || 0),
+          0
+        );
 
         const pendingCount = bookings.filter(b => b.status === 'pending').length;
         const cancelledCount = bookings.filter(b => b.status === 'cancelled').length;
@@ -385,8 +537,7 @@ export default function AdminDashboard() {
           rejected: rejectedVehicleCount,
         });
 
-        const monthlyData = calculateMonthlyBookings(bookings);
-        setBookingData(monthlyData);
+        setBookings(bookings);
 
         const rentedCars = calculateMostRentedCars(bookings, vehicles);
         setMostRentedCars(rentedCars);
@@ -401,24 +552,85 @@ export default function AdminDashboard() {
     }
   };
 
-  const calculateMonthlyBookings = (bookings) => {
+  const calculateBookingOverviewData = (bookingsList, period) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentYear = new Date().getFullYear();
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const currentDate = now.getDate();
+    const nowDateTime = new Date();
 
-    const monthlyStats = months.map((month, index) => {
-      const monthBookings = bookings.filter(b => {
-        const bookingDate = new Date(b.createdAt);
-        return bookingDate.getFullYear() === currentYear && bookingDate.getMonth() === index;
+    const getDoneDate = (booking) => new Date(booking.endDate || booking.createdAt);
+    const getCancelledDate = (booking) => new Date(booking.startingDate || booking.startDate || booking.createdAt);
+
+    const countDone = (matcher) => bookingsList.filter((b) => {
+        if (!isCompletedBookingStatus(b.status)) return false;
+        const doneDate = getDoneDate(b);
+        if (Number.isNaN(doneDate.getTime())) return false;
+        if (doneDate > nowDateTime) return false;
+        return matcher(doneDate);
+      }).length;
+
+    const countCancelled = (matcher) => bookingsList.filter((b) => {
+        if (String(b.status || '').toLowerCase() !== 'cancelled') return false;
+        const cancelledDate = getCancelledDate(b);
+        if (Number.isNaN(cancelledDate.getTime())) return false;
+        return matcher(cancelledDate);
+      }).length;
+
+    if (period === 'week') {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(currentDate - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      return Array.from({ length: 7 }, (_, dayOffset) => {
+        const day = new Date(startOfWeek);
+        day.setDate(startOfWeek.getDate() + dayOffset);
+
+        return {
+          label: weekdays[day.getDay()],
+          done: countDone((date) =>
+            date.getFullYear() === day.getFullYear() &&
+            date.getMonth() === day.getMonth() &&
+            date.getDate() === day.getDate()
+          ),
+          cancelled: countCancelled((date) =>
+            date.getFullYear() === day.getFullYear() &&
+            date.getMonth() === day.getMonth() &&
+            date.getDate() === day.getDate()
+          ),
+        };
       });
+    }
 
-      return {
-        month,
-        done: monthBookings.filter(b => isCompletedBookingStatus(b.status)).length,
-        cancelled: monthBookings.filter(b => b.status === 'cancelled').length,
-      };
-    });
+    if (period === 'month') {
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-    return monthlyStats;
+      return Array.from({ length: daysInMonth }, (_, dayIndex) => {
+        const dayNumber = dayIndex + 1;
+
+        return {
+          label: String(dayNumber),
+          done: countDone((date) =>
+            date.getFullYear() === currentYear &&
+            date.getMonth() === currentMonth &&
+            date.getDate() === dayNumber
+          ),
+          cancelled: countCancelled((date) =>
+            date.getFullYear() === currentYear &&
+            date.getMonth() === currentMonth &&
+            date.getDate() === dayNumber
+          ),
+        };
+      });
+    }
+
+    return months.map((month, index) => ({
+      label: month,
+      done: countDone((date) => date.getFullYear() === currentYear && date.getMonth() === index),
+      cancelled: countCancelled((date) => date.getFullYear() === currentYear && date.getMonth() === index),
+    }));
   };
 
   const calculateMostRentedCars = (bookings, vehicles) => {
@@ -530,7 +742,11 @@ export default function AdminDashboard() {
           {/* Bottom Section - Booking Overview Left + Most Rented Cars Right */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <BookingOverviewChart data={bookingData} />
+              <BookingOverviewChart
+                data={bookingData}
+                period={bookingPeriod}
+                onPeriodChange={setBookingPeriod}
+              />
             </div>
             <div className="lg:col-span-1">
               <MostRentedCars vehicles={mostRentedCars} />
