@@ -323,7 +323,7 @@ export default function Header({
 								<NavLink to="/owner/vehicles" active={location.pathname === "/owner/vehicles"}>My Vehicles</NavLink>
 								<NavLink to="/owner/vehicles/new" active={location.pathname === "/owner/vehicles/new" || location.pathname === "/add-vehicle"}>Add Vehicle</NavLink>
 								<NavLink to="/owner/booking-requests" active={location.pathname === "/owner/booking-requests"}>Booking Requests</NavLink>
-								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Earnings</NavLink>
+								<NavLink to="/rental-history" active={location.pathname === "/rental-history"}>Rental History</NavLink>
 							</div>
 							<div className="hidden items-center gap-4 lg:flex">
 								<NotificationBell count={unreadCount} onClick={() => navigate('/notifications')} />

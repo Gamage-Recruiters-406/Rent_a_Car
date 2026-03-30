@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { ENV } from '../../config/env';
+//import { ENV } from '../../config/env';
 
 /**
  * Header Component

@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
-const baseUrl = 'http://localhost:8090';
-const apiVersion = '/api/v1';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -78,7 +78,7 @@ export const Stats = () => {
     const fetchVehicleCount = async () => {
       try {
         setIsLoading(true);
-        const url = `${baseUrl}${apiVersion}/vehicle/vehicle-count`;
+        const url = `${API_BASE_URL}${API_VERSION}/vehicle/vehicle-count`;
         const response = await fetch(url, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -100,7 +100,7 @@ export const Stats = () => {
   useEffect(() => {
     const fetchUserCount = async () => {
       try {
-        const url = `${baseUrl}${apiVersion}/authUser/getAllCustomersCount`;
+        const url = `${API_BASE_URL}${API_VERSION}/authUser/getAllCustomersCount`;
         const response = await fetch(url, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -119,7 +119,7 @@ export const Stats = () => {
   useEffect(() => {
     const fetchAverageRating = async () => {
       try {
-        const url = `${baseUrl}${apiVersion}/reviews/overall-average`;
+        const url = `${API_BASE_URL}${API_VERSION}/reviews/overall-average`;
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();

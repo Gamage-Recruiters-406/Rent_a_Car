@@ -146,8 +146,25 @@ export function CustomerVehicleListPage() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    // Implement search/filter logic based on filters state
-    console.log('Searching with filters:', filters);
+    
+    // Validate date range if both dates are provided
+    if (filters.startDate && filters.endDate) {
+      const startDate = new Date(filters.startDate);
+      const endDate = new Date(filters.endDate);
+      
+      if (endDate <= startDate) {
+        toast.error('End date must be after start date');
+        return;
+      }
+    }
+    
+    // Show feedback message
+    const filterCount = Object.values(filters).filter(v => v !== '').length;
+    if (filterCount > 0) {
+      toast.success(`Searching with ${filterCount} filter(s)...`);
+    } else {
+      toast.info('Showing all vehicles');
+    }
   };
 
   const handleViewDetails = (vehicleId) => {
@@ -162,9 +179,56 @@ export function CustomerVehicleListPage() {
   };
 
   const filteredVehicles = vehicles.filter(vehicle => {
-    if (filters.location && !vehicle.address?.toLowerCase().includes(filters.location.toLowerCase())) {
-      return false;
+    // Location filter - check multiple possible location fields
+    if (filters.location) {
+      const locationStr = filters.location.toLowerCase();
+      const vehicleLocation = vehicle.location?.address || vehicle.address || vehicle.location || '';
+      const locationMatch = vehicleLocation.toLowerCase().includes(locationStr);
+      if (!locationMatch) {
+        return false;
+      }
     }
+    
+    // Date range filter - check if vehicle is available for selected dates
+    if (filters.startDate && filters.endDate) {
+      const startDate = new Date(filters.startDate);
+      const endDate = new Date(filters.endDate);
+      
+      // Basic validation: end date should be after start date
+      if (endDate <= startDate) {
+        return false;
+      }
+      
+      // Check if vehicle has booking/availability data
+      if (vehicle.bookings && Array.isArray(vehicle.bookings)) {
+        // Check if any existing booking conflicts with selected dates
+        const hasConflict = vehicle.bookings.some(booking => {
+          const bookingStart = new Date(booking.startDate);
+          const bookingEnd = new Date(booking.endDate);
+          
+          // Check for date overlap
+          return (startDate <= bookingEnd && endDate >= bookingStart);
+        });
+        
+        if (hasConflict) {
+          return false;
+        }
+      }
+      
+      // If vehicle has availability array, check it
+      if (vehicle.availability && Array.isArray(vehicle.availability)) {
+        const isAvailable = vehicle.availability.some(avail => {
+          const availStart = new Date(avail.startDate);
+          const availEnd = new Date(avail.endDate);
+          return startDate >= availStart && endDate <= availEnd;
+        });
+        
+        if (!isAvailable) {
+          return false;
+        }
+      }
+    }
+    
     if (filters.vehicleType && vehicle.vehicleType !== filters.vehicleType) {
       return false;
     }
@@ -178,6 +242,12 @@ export function CustomerVehicleListPage() {
       return false;
     }
     return true;
+  });
+
+  const sortedVehicles = [...filteredVehicles].sort((a, b) => {
+    const priceA = Number(a?.pricePerDay) || 0;
+    const priceB = Number(b?.pricePerDay) || 0;
+    return priceA - priceB;
   });
 
   return (
@@ -323,21 +393,21 @@ export function CustomerVehicleListPage() {
                 <p className="mt-6 text-gray-700 font-semibold text-base sm:text-lg">Loading vehicles...</p>
               </div>
             </div>
-          ) : filteredVehicles.length > 0 ? (
+          ) : sortedVehicles.length > 0 ? (
             <>
               {/* Filter Results Info */}
               <div className="mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
                   <span className="w-1.5 h-7 sm:h-8 bg-gradient-to-b from-[#0D3778] to-[#0A2E5C] rounded-full shadow-md"></span>
                   <span className="bg-gradient-to-r from-[#0D3778] to-[#0A2E5C] bg-clip-text text-transparent">
-                    {filteredVehicles.length} Vehicle{filteredVehicles.length !== 1 ? 's' : ''} Available
+                    {sortedVehicles.length} Vehicle{sortedVehicles.length !== 1 ? 's' : ''} Available
                   </span>
                 </h2>
               </div>
 
               {/* Vehicles Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {filteredVehicles.map((vehicle) => {
+                {sortedVehicles.map((vehicle) => {
                   const ratingValue = getRatingValue(vehicle);
                   const reviewCount = getReviewCount(vehicle);
 

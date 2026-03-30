@@ -12,7 +12,9 @@ import {
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
-const BASE_URL = 'http://localhost:8090';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION;
+
 
 export const Items = () => {
   const [cars, setCars] = useState([]);
@@ -35,7 +37,7 @@ export const Items = () => {
   const fetchCars = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${BASE_URL}/api/v1/vehicle/top-booked`);
+      const response = await fetch(`${API_BASE_URL}${API_VERSION}/vehicle/top-booked`);
       if (!response.ok) throw new Error('Failed to fetch vehicles');
       const data = await response.json();
       setCars(data.success && data.vehicles ? data.vehicles : []);
@@ -168,7 +170,7 @@ export const Items = () => {
             const car = item?.vehicle || {};
             const firstPhoto = car.photos?.[0]?.url;
             if (!firstPhoto) return null;
-            const imageUrl = `${BASE_URL}${firstPhoto}`;
+            const imageUrl = `${API_BASE_URL}${firstPhoto}`;
 
             return (
               <TouchableOpacity
